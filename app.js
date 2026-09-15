@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.8';
+const APP_VERSION = 'v2.9';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -653,7 +653,7 @@ $('#fileRestore').onchange=async e=>{
   }catch(err){ alert('JSON inválido'); }
   e.target.value='';
 };
-$('#btnReset').onclick=async()=>{ if(!confirm(t('confirmReset'))) return; await clearAll(); await seedIfEmpty(); refresh(); };
+$('#btnReset') && ($('#btnReset').onclick=async()=>{ if(!confirm(t('confirmReset'))) return; await clearAll(); await seedIfEmpty(); refresh(); });
 
 /* ---------- navegação / idioma ---------- */
 function doSetView(v){
