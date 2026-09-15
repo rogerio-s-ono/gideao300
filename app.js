@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.1';
+const APP_VERSION = 'v2.2';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -55,6 +55,8 @@ const I18N = {
     naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
     conta:'Conta e sincronização', usuario:'Usuário', sincronizacao:'Sincronização',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
+    recarregarBase:'Recarregar base original (zera tudo)',
+    confirmRecarregar:'Isto APAGA tudo (planilha e app) e recarrega os 70 Gideões originais. Usar só para reiniciar os testes. Continuar?',
     syncOk:'Sincronizado', syncPend:'Pendente', syncOff:'Offline', syncErr:'Erro', syncing:'Sincronizando…'
   },
   es:{
@@ -100,6 +102,8 @@ const I18N = {
     naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
     conta:'Cuenta y sincronización', usuario:'Usuario', sincronizacao:'Sincronización',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
+    recarregarBase:'Recargar base original (borra todo)',
+    confirmRecarregar:'Esto BORRA todo (hoja y app) y recarga los 70 Gedeones originales. Usar solo para reiniciar las pruebas. ¿Continuar?',
     syncOk:'Sincronizado', syncPend:'Pendiente', syncOff:'Sin conexión', syncErr:'Error', syncing:'Sincronizando…'
   }
 };
@@ -925,6 +929,28 @@ $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }
   try{ setSync('syncing'); const all=await getAll(); await pushAll(all); clearPending(); await pull(); setSync('ok'); refresh(); alert('OK'); }
   catch(e){ setSync('err'); alert('Erro: '+e.message); }
+});
+$('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
+  if(!confirm(t('confirmRecarregar'))) return;
+  try{
+    setSync('syncing');
+    // 1) carrega os 70 originais do seed.json
+    const seed=await (await fetch('seed.json?ts='+Date.now())).json();
+    const base=seed.inscritos.map(i=>({...i, cota:i.cota||COTA, camisaEstado:(i.camisaEstado===undefined?0:i.camisaEstado), datas:i.datas||{}}));
+    // 2) zera base local e repovoa
+    await clearAll(); clearPending();
+    for(const i of base){ await put(i); }
+    // 3) zera a planilha (reset) e sobe os 70 em lote
+    if(ONLINE_ENABLED && auth.idToken){
+      const first=base.slice(0,40), rest=base.slice(40);
+      let r=await fetch(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, reset:true, inscritos:first})});
+      let data=await r.json(); if(!data.ok) throw new Error(data.error||'reset_failed');
+      if(rest.length) await pushAll(rest);
+      await pull();
+    }
+    setSync('ok'); refresh(); alert('OK — base recarregada ('+base.length+')');
+  }catch(e){ setSync('err'); alert('Erro: '+e.message); }
 });
 
 (function(){ initGoogleLogin(); })();

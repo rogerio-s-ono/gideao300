@@ -120,6 +120,11 @@ function doPost(e){
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try{
+    // reset: apaga todas as linhas de dados (mantém o cabeçalho) antes de gravar
+    if(body.reset === true){
+      var last = sh.getLastRow();
+      if(last > 1){ sh.deleteRows(2, last - 1); }
+    }
     var values = sh.getDataRange().getValues();
     var idCol = {}; // id -> rowIndex(1-based)
     for(var r=1; r<values.length; r++){ idCol[String(values[r][0])] = r+1; }
