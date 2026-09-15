@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.0';
+const APP_VERSION = 'v2.1';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -54,7 +54,7 @@ const I18N = {
     loginSub:'Entre com sua conta Google autorizada', loginFoot:'Acesso restrito aos líderes do projeto',
     naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
     conta:'Conta e sincronização', usuario:'Usuário', sincronizacao:'Sincronização',
-    sincronizarAgora:'Sincronizar agora', sair:'Sair',
+    sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     syncOk:'Sincronizado', syncPend:'Pendente', syncOff:'Offline', syncErr:'Erro', syncing:'Sincronizando…'
   },
   es:{
@@ -99,7 +99,7 @@ const I18N = {
     loginSub:'Entra con tu cuenta Google autorizada', loginFoot:'Acceso restringido a los líderes del proyecto',
     naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
     conta:'Cuenta y sincronización', usuario:'Usuario', sincronizacao:'Sincronización',
-    sincronizarAgora:'Sincronizar ahora', sair:'Salir',
+    sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     syncOk:'Sincronizado', syncPend:'Pendiente', syncOff:'Sin conexión', syncErr:'Error', syncing:'Sincronizando…'
   }
 };
@@ -849,25 +849,46 @@ async function pushPending(){
   clearPending();
   return data;
 }
+async function serverCount(){
+  const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) +
+              '&idToken=' + encodeURIComponent(auth.idToken);
+  const r = await fetch(url, {method:'GET'});
+  const data = await r.json();
+  if(!data.ok) throw new Error(data.error||'pull_failed');
+  return data.inscritos ? data.inscritos.length : 0;
+}
+async function pushAll(records){
+  if(!records.length) return;
+  // envia em lotes para não estourar limites
+  for(let k=0;k<records.length;k+=40){
+    const chunk=records.slice(k,k+40);
+    const r=await fetch(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, inscritos:chunk})});
+    const data=await r.json();
+    if(!data.ok) throw new Error(data.error||'push_failed');
+  }
+}
 async function syncNow(){
   if(!ONLINE_ENABLED){ setSync('off'); return; }
   if(!navigator.onLine){ setSync('off'); return; }
   try{
     setSync('syncing');
-    await pushPending();
-    const data=await pull();
-    // primeira vez: servidor vazio E local vazio -> migra o seed.json para o servidor
-    if(data && (!data.inscritos || data.inscritos.length===0)){
-      const local=await getAll();
-      if(local.length===0){
-        try{
-          const seed=await (await fetch('seed.json')).json();
-          for(const i of seed.inscritos){ i.cota=i.cota||COTA; if(i.camisaEstado===undefined) i.camisaEstado=0; await put(i); markPending(i.id); }
-          await pushPending();
-          await pull();
-        }catch(e){ /* sem seed, segue vazio */ }
+    // 1) primeira vez: se o servidor está vazio, sobe a base completa (local ou seed.json)
+    const nServer = await serverCount();
+    if(nServer===0){
+      let base = await getAll();
+      if(base.length===0){
+        try{ const seed=await (await fetch('seed.json')).json();
+          base = seed.inscritos.map(i=>({...i, cota:i.cota||COTA, camisaEstado:(i.camisaEstado===undefined?0:i.camisaEstado)})); }catch(e){ base=[]; }
+        for(const i of base){ await put(i); }
       }
+      await pushAll(base);
+      clearPending();
+    } else {
+      await pushPending();
     }
+    // 2) reconcilia com o servidor
+    await pull();
     setSync(pendingIds().length? 'pend':'ok');
     refresh();
   }catch(e){
@@ -900,5 +921,10 @@ async function startAppAfterLogin(){
 }
 $('#btnLogout') && ($('#btnLogout').onclick=logout);
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
+$('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
+  if(!ONLINE_ENABLED||!auth.idToken){ return; }
+  try{ setSync('syncing'); const all=await getAll(); await pushAll(all); clearPending(); await pull(); setSync('ok'); refresh(); alert('OK'); }
+  catch(e){ setSync('err'); alert('Erro: '+e.message); }
+});
 
 (function(){ initGoogleLogin(); })();
