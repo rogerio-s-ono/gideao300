@@ -1,5 +1,5 @@
 /* Service worker — cache offline do app Gideão 300 */
-const CACHE = 'gideao300-v18';
+const CACHE = 'gideao300-v19';
 const ASSETS = [
   './',
   './index.html',
