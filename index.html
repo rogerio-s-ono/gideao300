@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -32,6 +33,15 @@
   h3{font-size:18px;position:relative;padding-left:12px}
   h3::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:3px;border-radius:2px;background:var(--accent)}
   .hidden{display:none!important}
+  /* login gate */
+  #loginGate{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#141414,#1f1c17 60%,#141414);display:flex;align-items:center;justify-content:center;padding:24px}
+  .login-box{background:#fff;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4);border:1px solid rgba(192,138,45,.4)}
+  .login-logo{width:120px;height:auto;margin:0 auto 10px;display:block}
+  .login-title{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink)}
+  .login-sub{font-size:13.5px;color:var(--muted);margin:6px 0 18px}
+  #gsiBtn{display:flex;justify-content:center;min-height:44px}
+  .login-error{margin-top:14px;background:var(--soft-red);color:var(--red);border-radius:8px;padding:10px;font-size:13px}
+  .login-foot{margin-top:16px;font-size:11px;color:var(--muted);letter-spacing:.3px}
 
   header{position:sticky;top:0;z-index:50;background:linear-gradient(120deg,#141414 0%,#1f1c17 55%,#141414 100%);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 3px 14px rgba(0,0,0,.25);border-bottom:1px solid rgba(192,138,45,.35)}
   .brand-logo{height:44px;width:auto;opacity:.96;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));flex:none}
@@ -151,6 +161,10 @@
   .empty{text-align:center;color:var(--muted);padding:30px 10px}
   .app-version{text-align:center;color:var(--muted);font-size:11px;margin-top:22px;letter-spacing:.3px}
   .app-version span{color:var(--accent);font-weight:600}
+  .acct{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .acct-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;gap:10px}
+  .acct-row b{font-weight:600;text-align:right;word-break:break-all}
+  #syncStatus.ok{color:var(--green)} #syncStatus.pend{color:var(--amber)} #syncStatus.off{color:var(--grey)} #syncStatus.err{color:var(--red)}
   /* banner de atualização */
   #updateBanner{position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:var(--primary);color:#fff;border:1px solid rgba(192,138,45,.5);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:720px;margin:0 auto;font-size:14px}
   #updateBanner button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-family:var(--sans);font-size:14px;flex:none}
@@ -211,6 +225,16 @@
 </style>
 </head>
 <body>
+<div id="loginGate">
+  <div class="login-box">
+    <img src="logo-gideao.png" alt="Projeto Gideão 300" class="login-logo">
+    <div class="login-title">Projeto Gideão 300</div>
+    <div class="login-sub" data-i="loginSub">Entre com sua conta Google autorizada</div>
+    <div id="gsiBtn"></div>
+    <div id="loginError" class="login-error hidden"></div>
+    <div class="login-foot" data-i="loginFoot">Acesso restrito aos líderes do projeto</div>
+  </div>
+</div>
 <header>
   <img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo">
   <div class="brand">
@@ -267,7 +291,14 @@
 
   <!-- MAIS -->
   <section id="view-mais" class="hidden">
-    <h3 data-i="dadosBackup">Dados e backup</h3>
+    <h3 data-i="conta">Conta e sincronização</h3>
+    <div class="acct">
+      <div class="acct-row"><span data-i="usuario">Usuário</span><b id="acctEmail">—</b></div>
+      <div class="acct-row"><span data-i="sincronizacao">Sincronização</span><b id="syncStatus">—</b></div>
+      <button class="btn ghost" id="btnSyncNow" data-i="sincronizarAgora">Sincronizar agora</button>
+      <button class="btn ghost" id="btnLogout" data-i="sair">Sair</button>
+    </div>
+    <h3 data-i="dadosBackup" style="margin-top:18px">Dados e backup</h3>
     <button class="btn ghost" id="btnExportXlsx" data-i="exportarExcel">Exportar Excel (CSV)</button>
     <button class="btn ghost" id="btnBackup" data-i="baixarBackup">Baixar backup (JSON)</button>
     <label data-i="restaurarBackup">Restaurar backup (JSON)</label>
@@ -383,6 +414,7 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v1.27';
+const APP_VERSION = 'v2.0';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -50,7 +50,12 @@ const I18N = {
     confirmSairForm:'Você alterou os dados deste Gideão mas ainda não salvou. O que deseja fazer?',
     editarData:'Editar data',
     estAbbr1:'Conf.', estAbbr2:'Pronta', estAbbr3:'Entreg.',
-    novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…'
+    novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…',
+    loginSub:'Entre com sua conta Google autorizada', loginFoot:'Acesso restrito aos líderes do projeto',
+    naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
+    conta:'Conta e sincronização', usuario:'Usuário', sincronizacao:'Sincronização',
+    sincronizarAgora:'Sincronizar agora', sair:'Sair',
+    syncOk:'Sincronizado', syncPend:'Pendente', syncOff:'Offline', syncErr:'Erro', syncing:'Sincronizando…'
   },
   es:{
     appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
@@ -90,7 +95,12 @@ const I18N = {
     confirmSairForm:'Has cambiado los datos de este Gedeón pero aún no lo has guardado. ¿Qué deseas hacer?',
     editarData:'Editar fecha',
     estAbbr1:'Conf.', estAbbr2:'Lista', estAbbr3:'Entreg.',
-    novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…'
+    novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…',
+    loginSub:'Entra con tu cuenta Google autorizada', loginFoot:'Acceso restringido a los líderes del proyecto',
+    naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
+    conta:'Cuenta y sincronización', usuario:'Usuario', sincronizacao:'Sincronización',
+    sincronizarAgora:'Sincronizar ahora', sair:'Salir',
+    syncOk:'Sincronizado', syncPend:'Pendiente', syncOff:'Sin conexión', syncErr:'Error', syncing:'Sincronizando…'
   }
 };
 let lang = localStorage.getItem('lang') || 'pt';
@@ -441,12 +451,15 @@ async function saveConf(){
       const datas={};
       for(const st of [1,2,3]){ if(st<=d.estado && d.datas[st]) datas[st]=d.datas[st]; }
       rec.datas=datas;
+      rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
       await put(rec);
+      markPending(rec.id);
     }
   }
   state.confDirty={};
   updateSaveBtn();
   renderConfeccao();
+  if(ONLINE_ENABLED) syncNow();
 }
 
 /* ---------- modal ---------- */
@@ -531,8 +544,11 @@ $('#save').onclick=async()=>{
   rec.aRevisar=$('#f-revisar').checked;
   rec.observacoes=$('#f-obs').value.trim();
   if(!('motivoRevisar' in rec)) rec.motivoRevisar='';
-  await put(rec);
+  rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
+  const newId=await put(rec);
+  markPending(rec.id!=null?rec.id:newId);
   closeModal(); refresh();
+  if(ONLINE_ENABLED) syncNow();
 };
 $('#del').onclick=async()=>{ if(!state.editing) return; if(!confirm(t('confirmDel'))) return; await del(state.editing); closeModal(); refresh(); };
 $('#cancel').onclick=()=>tryCloseModal();
@@ -698,7 +714,6 @@ async function refresh(){
   if(state.view==='painel') renderPainel();
 }
 
-/* ---------- boot ---------- */
 /* ---------- atualização (service worker) ---------- */
 function showUpdateBanner(worker){
   const b=$('#updateBanner');
@@ -731,15 +746,159 @@ async function registerSWWithUpdate(){
   document.addEventListener('visibilitychange',()=>{ if(!document.hidden) reg.update().catch(()=>{}); });
 }
 
+/* ---------- v2: config, login Google (GIS) e sincronização ---------- */
+const CFG = window.GIDEAO_CONFIG || {};
+const ONLINE_ENABLED = !!(CFG.SHEET_WEBAPP_URL && CFG.GOOGLE_CLIENT_ID);
+let auth = { idToken:null, email:null };
+
+function parseJwt(tok){ try{ return JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }catch(e){ return {}; } }
+
+function onGoogleCredential(resp){
+  const jwt = resp && resp.credential;
+  if(!jwt) return;
+  const claims = parseJwt(jwt);
+  const email = (claims.email||'').toLowerCase();
+  const allowed = (CFG.ALLOWED_EMAILS||[]).map(e=>e.toLowerCase());
+  if(allowed.length && allowed.indexOf(email)<0){
+    const el=$('#loginError'); el.textContent=t('naoAutorizado'); el.classList.remove('hidden');
+    try{ google.accounts.id.disableAutoSelect(); }catch(e){}
+    return;
+  }
+  auth.idToken = jwt; auth.email = email;
+  sessionStorage.setItem('gd_idtoken', jwt);
+  sessionStorage.setItem('gd_email', email);
+  hideLoginGate();
+  startAppAfterLogin();
+}
+function initGoogleLogin(){
+  if(!ONLINE_ENABLED){ hideLoginGate(); startAppAfterLogin(); return; }
+  // se já temos token de sessão válido, tenta usar (será revalidado no 1º sync)
+  const saved = sessionStorage.getItem('gd_idtoken');
+  const savedEmail = sessionStorage.getItem('gd_email');
+  if(saved && savedEmail){
+    const c=parseJwt(saved);
+    if(c.exp && c.exp*1000 > Date.now()+60000){ auth.idToken=saved; auth.email=savedEmail; hideLoginGate(); startAppAfterLogin(); return; }
+  }
+  showLoginGate();
+  const tryInit=()=>{
+    if(!(window.google && google.accounts && google.accounts.id)){ return setTimeout(tryInit,200); }
+    google.accounts.id.initialize({ client_id: CFG.GOOGLE_CLIENT_ID, callback: onGoogleCredential });
+    google.accounts.id.renderButton($('#gsiBtn'), { theme:'filled_black', size:'large', shape:'pill', text:'signin_with' });
+    google.accounts.id.prompt();
+  };
+  tryInit();
+}
+function showLoginGate(){ $('#loginGate').classList.remove('hidden'); }
+function hideLoginGate(){ $('#loginGate').classList.add('hidden'); }
+function logout(){
+  sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
+  auth={idToken:null,email:null};
+  try{ google.accounts.id.disableAutoSelect(); }catch(e){}
+  location.reload();
+}
+
+/* ----- sync ----- */
+let syncState='off';
+function setSync(s){
+  syncState=s;
+  const el=$('#syncStatus'); if(!el) return;
+  el.className=''; 
+  const map={ok:['ok','syncOk'],pend:['pend','syncPend'],off:['off','syncOff'],err:['err','syncErr'],syncing:['pend','syncing']};
+  const m=map[s]||map.off; el.classList.add(m[0]); el.textContent=t(m[1]);
+}
+function markPending(id){
+  const p=JSON.parse(localStorage.getItem('gd_pending')||'{}'); p[id]=1;
+  localStorage.setItem('gd_pending', JSON.stringify(p));
+}
+function pendingIds(){ return Object.keys(JSON.parse(localStorage.getItem('gd_pending')||'{}')); }
+function clearPending(){ localStorage.removeItem('gd_pending'); }
+
+async function pull(){
+  if(!ONLINE_ENABLED || !auth.idToken) return;
+  const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) +
+              '&idToken=' + encodeURIComponent(auth.idToken);
+  const r = await fetch(url, {method:'GET'});
+  const data = await r.json();
+  if(!data.ok) throw new Error(data.error||'pull_failed');
+  // reconcilia: servidor como verdade (só a pastora escreve); preserva pendentes locais não enviados
+  const pend = pendingIds();
+  const localAll = await getAll();
+  const localById = {}; localAll.forEach(i=>localById[i.id]=i);
+  await clearAll();
+  let maxId=0;
+  for(const s of data.inscritos){
+    // se há alteração local pendente para esse id, mantém a local (será enviada no push)
+    if(pend.indexOf(String(s.id))>=0 && localById[s.id]){ await put(localById[s.id]); }
+    else { await put(s); }
+    if(s.id>maxId) maxId=s.id;
+  }
+  // registros locais novos (criados offline) que ainda não estão no servidor
+  for(const i of localAll){ if(!data.inscritos.find(s=>s.id===i.id)){ await put(i); } }
+  return data;
+}
+async function pushPending(){
+  if(!ONLINE_ENABLED || !auth.idToken) return;
+  const ids=pendingIds(); if(!ids.length) return;
+  const all=await getAll();
+  const toSend=all.filter(i=>ids.indexOf(String(i.id))>=0);
+  if(!toSend.length){ clearPending(); return; }
+  const r=await fetch(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, inscritos:toSend})});
+  const data=await r.json();
+  if(!data.ok) throw new Error(data.error||'push_failed');
+  clearPending();
+  return data;
+}
+async function syncNow(){
+  if(!ONLINE_ENABLED){ setSync('off'); return; }
+  if(!navigator.onLine){ setSync('off'); return; }
+  try{
+    setSync('syncing');
+    await pushPending();
+    const data=await pull();
+    // primeira vez: servidor vazio E local vazio -> migra o seed.json para o servidor
+    if(data && (!data.inscritos || data.inscritos.length===0)){
+      const local=await getAll();
+      if(local.length===0){
+        try{
+          const seed=await (await fetch('seed.json')).json();
+          for(const i of seed.inscritos){ i.cota=i.cota||COTA; if(i.camisaEstado===undefined) i.camisaEstado=0; await put(i); markPending(i.id); }
+          await pushPending();
+          await pull();
+        }catch(e){ /* sem seed, segue vazio */ }
+      }
+    }
+    setSync(pendingIds().length? 'pend':'ok');
+    refresh();
+  }catch(e){
+    if(String(e.message)==='unauthorized'){ showLoginGate(); }
+    setSync('err');
+  }
+}
+
 /* ---------- boot ---------- */
-(async function(){
+let appStarted=false;
+async function startAppAfterLogin(){
+  if(appStarted){ if(ONLINE_ENABLED) syncNow(); return; }
+  appStarted=true;
   await openDB();
-  await seedIfEmpty();
+  if(!ONLINE_ENABLED){ await seedIfEmpty(); }  // offline puro (v1): usa seed local. Online: servidor é a fonte (pull).
   await migrate();
   applyLang();
   applyViewMode();
   const vEl=$('#appVersion'); if(vEl) vEl.textContent=APP_VERSION;
+  const emEl=$('#acctEmail'); if(emEl) emEl.textContent=auth.email||'—';
   setView('lista');
   refresh();
   if('serviceWorker' in navigator){ try{ await registerSWWithUpdate(); }catch(e){} }
-})();
+  if(ONLINE_ENABLED){
+    setSync(navigator.onLine?'ok':'off');
+    syncNow();
+    window.addEventListener('online', syncNow);
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden) syncNow(); });
+  } else { setSync('off'); }
+}
+$('#btnLogout') && ($('#btnLogout').onclick=logout);
+$('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
+
+(function(){ initGoogleLogin(); })();

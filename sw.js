@@ -1,9 +1,10 @@
 /* Service worker — Gideão 300 */
-const CACHE = 'gideao300-v27';
+const CACHE = 'gideao300-v200';
 const ASSETS = [
   './',
   './index.html',
   './app.js',
+  './config.js',
   './manifest.json',
   './seed.json',
   './icon-192.png',
