@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.4';
+const APP_VERSION = 'v2.5';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -883,7 +883,8 @@ async function pushAll(records){
 }
 async function syncNow(){
   if(!ONLINE_ENABLED){ setSync('off'); return; }
-  if(!navigator.onLine){ setSync('off'); return; }
+  if(!navigator.onLine){ setSync('off'); scheduleRetry(); return; }
+  if(syncState==='syncing') return;   // evita concorrência
   try{
     setSync('syncing');
     // 1) primeira vez: se o servidor está vazio, sobe a base completa (local ou seed.json)
@@ -903,11 +904,28 @@ async function syncNow(){
     // 2) reconcilia com o servidor
     await pull();
     setSync(pendingIds().length? 'pend':'ok');
+    retryDelay=0;                       // sucesso -> zera backoff
     refresh();
   }catch(e){
-    if(String(e.message)==='unauthorized'){ showLoginGate(); }
+    if(String(e.message)==='unauthorized'){ showLoginGate(); setSync('err'); return; }
     setSync('err');
+    scheduleRetry();                    // falha de rede/servidor -> re-tenta sozinho
   }
+}
+/* retentativa automática com backoff (5s,15s,30s,60s...) até sincronizar — usuário nunca precisa agir */
+let retryDelay=0, retryTimer=null;
+function scheduleRetry(){
+  if(!ONLINE_ENABLED) return;
+  if(retryTimer) return;               // já há uma retentativa agendada
+  const steps=[5000,15000,30000,60000,120000];
+  const delay=steps[Math.min(retryDelay, steps.length-1)]; retryDelay++;
+  retryTimer=setTimeout(()=>{ retryTimer=null; if(navigator.onLine) syncNow(); else setSync('off'); }, delay);
+}
+/* sincronização periódica leve enquanto o app está aberto e online (near-real-time) */
+let periodicTimer=null;
+function startPeriodicSync(){
+  if(periodicTimer) return;
+  periodicTimer=setInterval(()=>{ if(navigator.onLine && document.visibilityState==='visible' && syncState!=='syncing') syncNow(); }, 3*60*1000);
 }
 
 /* ---------- boot ---------- */
@@ -927,10 +945,12 @@ async function startAppAfterLogin(){
   refresh();
   if('serviceWorker' in navigator){ try{ await registerSWWithUpdate(); }catch(e){} }
   if(ONLINE_ENABLED){
-    setSync(navigator.onLine?'ok':'off');
+    setSync(navigator.onLine?'syncing':'off');
     syncNow();
-    window.addEventListener('online', syncNow);
+    window.addEventListener('online', ()=>{ retryDelay=0; syncNow(); });
+    window.addEventListener('offline', ()=>setSync('off'));
     document.addEventListener('visibilitychange',()=>{ if(!document.hidden) syncNow(); });
+    startPeriodicSync();
   } else { setSync('off'); }
 }
 $('#btnLogout') && ($('#btnLogout').onclick=logout);
