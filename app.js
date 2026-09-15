@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.2';
+const APP_VERSION = 'v2.3';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -53,7 +53,7 @@ const I18N = {
     novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…',
     loginSub:'Entre com sua conta Google autorizada', loginFoot:'Acesso restrito aos líderes do projeto',
     naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
-    conta:'Conta e sincronização', usuario:'Usuário', sincronizacao:'Sincronização',
+    conta:'Conta e sincronização', usuario:'Usuário', sincronizacao:'Sincronização', admin:'Admin',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
     confirmRecarregar:'Isto APAGA tudo (planilha e app) e recarrega os 70 Gideões originais. Usar só para reiniciar os testes. Continuar?',
@@ -100,7 +100,7 @@ const I18N = {
     novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…',
     loginSub:'Entra con tu cuenta Google autorizada', loginFoot:'Acceso restringido a los líderes del proyecto',
     naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
-    conta:'Cuenta y sincronización', usuario:'Usuario', sincronizacao:'Sincronización',
+    conta:'Cuenta y sincronización', usuario:'Usuario', sincronizacao:'Sincronización', admin:'Admin',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
     confirmRecarregar:'Esto BORRA todo (hoja y app) y recarga los 70 Gedeones originales. Usar solo para reiniciar las pruebas. ¿Continuar?',
@@ -690,7 +690,8 @@ $('#confirmCancel').onclick=()=>{ $('#confirmModal').classList.add('hidden'); pe
 $('#btnSaveConf').onclick=saveConf;
 $$('nav button').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 $('#fab').onclick=()=>openModal(null);
-$('#q').oninput=e=>{state.q=e.target.value;renderList();};
+$('#q').oninput=e=>{ state.q=e.target.value; $('#qClear').classList.toggle('hidden', !e.target.value); renderList(); };
+$('#qClear') && ($('#qClear').onclick=()=>{ const q=$('#q'); q.value=''; state.q=''; $('#qClear').classList.add('hidden'); renderList(); q.focus(); });
 
 // view mode toggle (cards / table)
 function applyViewMode(){
@@ -913,6 +914,9 @@ async function startAppAfterLogin(){
   applyViewMode();
   const vEl=$('#appVersion'); if(vEl) vEl.textContent=APP_VERSION;
   const emEl=$('#acctEmail'); if(emEl) emEl.textContent=auth.email||'—';
+  // admin: mostra a seção Admin só para emails admin
+  const isAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0;
+  const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
   setView('lista');
   refresh();
   if('serviceWorker' in navigator){ try{ await registerSWWithUpdate(); }catch(e){} }
