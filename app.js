@@ -3,6 +3,7 @@
 
 const COTA = 300;
 const META = 300;
+const APP_VERSION = 'v1.21';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -666,6 +667,7 @@ async function refresh(){
   await migrate();
   applyLang();
   applyViewMode();
+  const vEl=$('#appVersion'); if(vEl) vEl.textContent=APP_VERSION;
   setView('lista');
   refresh();
   if('serviceWorker' in navigator){ try{ await navigator.serviceWorker.register('sw.js'); }catch(e){} }

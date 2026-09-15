@@ -144,6 +144,8 @@
   .sizecell .v{font-family:var(--serif);font-size:24px;font-weight:600}
   .note{font-size:12px;color:var(--muted);margin-top:6px}
   .empty{text-align:center;color:var(--muted);padding:30px 10px}
+  .app-version{text-align:center;color:var(--muted);font-size:11px;margin-top:22px;letter-spacing:.3px}
+  .app-version span{color:var(--accent);font-weight:600}
   /* confecção pills + states */
   .confcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
   .confcard.dirty{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
@@ -266,6 +268,7 @@
     <p class="note" data-i="backupNota">O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.</p>
     <hr style="margin:20px 0;border:0;border-top:1px solid var(--line)">
     <button class="btn danger" id="btnReset" data-i="zerar">Apagar tudo e recarregar dados iniciais</button>
+    <div class="app-version">Casa Fuerte · Projeto Gideão 300 — <span id="appVersion"></span></div>
   </section>
 </main>
 
