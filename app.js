@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v1.21';
+const APP_VERSION = 'v1.22';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -48,7 +48,8 @@ const I18N = {
     confirmSairMsg:'Você alterou o estado de algumas camisas mas ainda não salvou. O que deseja fazer?',
     salvarESair:'Salvar e sair', descartarSair:'Descartar alterações', continuarEditando:'Continuar editando', de:'de',
     editarData:'Editar data',
-    estAbbr1:'Conf.', estAbbr2:'Pronta', estAbbr3:'Entreg.'
+    estAbbr1:'Conf.', estAbbr2:'Pronta', estAbbr3:'Entreg.',
+    novaVersao:'Nova versão disponível', atualizar:'Atualizar'
   },
   es:{
     appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
@@ -86,7 +87,8 @@ const I18N = {
     confirmSairMsg:'Has cambiado el estado de algunas camisetas pero aún no lo has guardado. ¿Qué deseas hacer?',
     salvarESair:'Guardar y salir', descartarSair:'Descartar cambios', continuarEditando:'Seguir editando', de:'de',
     editarData:'Editar fecha',
-    estAbbr1:'Conf.', estAbbr2:'Lista', estAbbr3:'Entreg.'
+    estAbbr1:'Conf.', estAbbr2:'Lista', estAbbr3:'Entreg.',
+    novaVersao:'Nueva versión disponible', atualizar:'Actualizar'
   }
 };
 let lang = localStorage.getItem('lang') || 'pt';
@@ -661,6 +663,36 @@ async function refresh(){
 }
 
 /* ---------- boot ---------- */
+/* ---------- atualização (service worker) ---------- */
+function showUpdateBanner(worker){
+  const b=$('#updateBanner');
+  $('#updateMsg').textContent=t('novaVersao');
+  $('#updateBtn').textContent=t('atualizar');
+  b.classList.remove('hidden');
+  $('#updateBtn').onclick=()=>{
+    $('#updateBtn').disabled=true;
+    worker.postMessage('skipWaiting');
+  };
+}
+async function registerSWWithUpdate(){
+  const reg=await navigator.serviceWorker.register('sw.js');
+  if(reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg.waiting);
+  reg.addEventListener('updatefound',()=>{
+    const nw=reg.installing;
+    if(!nw) return;
+    nw.addEventListener('statechange',()=>{
+      if(nw.state==='installed' && navigator.serviceWorker.controller){ showUpdateBanner(nw); }
+    });
+  });
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(refreshing) return; refreshing=true; window.location.reload();
+  });
+  setInterval(()=>reg.update().catch(()=>{}), 60*60*1000);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) reg.update().catch(()=>{}); });
+}
+
+/* ---------- boot ---------- */
 (async function(){
   await openDB();
   await seedIfEmpty();
@@ -670,5 +702,5 @@ async function refresh(){
   const vEl=$('#appVersion'); if(vEl) vEl.textContent=APP_VERSION;
   setView('lista');
   refresh();
-  if('serviceWorker' in navigator){ try{ await navigator.serviceWorker.register('sw.js'); }catch(e){} }
+  if('serviceWorker' in navigator){ try{ await registerSWWithUpdate(); }catch(e){} }
 })();

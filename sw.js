@@ -1,5 +1,5 @@
 /* Service worker — cache offline do app Gideão 300 */
-const CACHE = 'gideao300-v21';
+const CACHE = 'gideao300-v22';
 const ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,12 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+});
+
+// ativa o SW novo só quando a página pedir (botão "Atualizar")
+self.addEventListener('message', e => {
+  if (e.data === 'skipWaiting') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {

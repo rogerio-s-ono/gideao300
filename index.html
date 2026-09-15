@@ -146,6 +146,9 @@
   .empty{text-align:center;color:var(--muted);padding:30px 10px}
   .app-version{text-align:center;color:var(--muted);font-size:11px;margin-top:22px;letter-spacing:.3px}
   .app-version span{color:var(--accent);font-weight:600}
+  /* banner de atualização */
+  #updateBanner{position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:var(--primary);color:#fff;border:1px solid rgba(192,138,45,.5);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:720px;margin:0 auto;font-size:14px}
+  #updateBanner button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-family:var(--sans);font-size:14px;flex:none}
   /* confecção pills + states */
   .confcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
   .confcard.dirty{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
@@ -273,6 +276,11 @@
 </main>
 
 <div id="printArea" aria-hidden="true"></div>
+
+<div id="updateBanner" class="hidden">
+  <span id="updateMsg">Nova versão disponível</span>
+  <button id="updateBtn">Atualizar</button>
+</div>
 
 <button class="fab" id="fab" title="Novo">+</button>
 
