@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.9';
+const APP_VERSION = 'v2.10';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -721,45 +721,44 @@ async function refresh(){
   if(state.view==='painel') renderPainel();
 }
 
-/* ---------- atualização (service worker) ---------- */
+/* ---------- atualização (via version.json — confiável) ---------- */
 let bannerShown=false;
-function showUpdateBanner(worker){
-  if(bannerShown) return;           // não remostrar (evita banner pegajoso)
+function showUpdateBanner(){
+  if(bannerShown) return;
   bannerShown=true;
   const b=$('#updateBanner');
   $('#updateMsg').textContent=t('novaVersao');
   $('#updateBtn').textContent=t('atualizar');
   b.classList.remove('hidden');
-  $('#updateBtn').onclick=()=>{
+  $('#updateBtn').onclick=async()=>{
     $('#updateBtn').disabled=true;
     $('#updateBtn').textContent=t('atualizando');
-    sessionStorage.setItem('gd_updating','1');   // marca que estamos aplicando update
-    try{ worker.postMessage('skipWaiting'); }catch(e){}
-    setTimeout(()=>{ window.location.reload(); }, 1500);  // fallback
+    try{
+      // limpa caches e atualiza o service worker para garantir código novo
+      if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
+      if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.update().catch(()=>{}))); }
+    }catch(e){}
+    // recarrega forçando rede
+    setTimeout(()=>{ location.reload(); }, 300);
   };
 }
+async function checkVersion(){
+  try{
+    const r=await fetchTimeout('version.json?ts='+Date.now(), {cache:'no-store'}, 8000);
+    if(!r.ok) return;
+    const data=await r.json();
+    if(data && data.version && data.version!==APP_VERSION){ showUpdateBanner(); }
+  }catch(e){ /* offline: ignora */ }
+}
 async function registerSWWithUpdate(){
-  const reg=await navigator.serviceWorker.register('sw.js');
-  // só mostra o banner se há um SW em espera E a página já está sob controle de um SW antigo
-  if(reg.waiting && navigator.serviceWorker.controller){ showUpdateBanner(reg.waiting); }
-  reg.addEventListener('updatefound',()=>{
-    const nw=reg.installing;
-    if(!nw) return;
-    nw.addEventListener('statechange',()=>{
-      // novo SW instalado, havendo um controller atual = é uma ATUALIZAÇÃO (não a 1ª instalação)
-      if(nw.state==='installed' && navigator.serviceWorker.controller){ showUpdateBanner(nw); }
-    });
-  });
-  // recarrega UMA vez quando o novo SW assume — só se o update foi disparado pelo botão
-  let refreshing=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(refreshing) return; refreshing=true;
-    if(sessionStorage.getItem('gd_updating')==='1'){ sessionStorage.removeItem('gd_updating'); window.location.reload(); }
-  });
-  // verifica atualização periodicamente (não remostra o banner por causa do guard bannerShown)
-  setInterval(()=>reg.update().catch(()=>{}), 60*60*1000);
+  try{ await navigator.serviceWorker.register('sw.js'); }catch(e){}
+  // detecção de versão por polling do version.json (independe do timing do SW)
+  checkVersion();
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkVersion(); });
+  setInterval(checkVersion, 30*60*1000);
 }
 
+/* ---------- v2: config, login Google (GIS) e sincronização ---------- */
 /* ---------- v2: config, login Google (GIS) e sincronização ---------- */
 const CFG = window.GIDEAO_CONFIG || {};
 const ONLINE_ENABLED = !!(CFG.SHEET_WEBAPP_URL && CFG.GOOGLE_CLIENT_ID);
