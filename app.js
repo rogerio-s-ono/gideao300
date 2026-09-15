@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v1.26';
+const APP_VERSION = 'v1.27';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -145,7 +145,7 @@ function norm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
 // ordem por número: '' ou NaN vão para o fim; 0 ('00') fica no início (corrige 0||9999)
 function numOrder(v){ const n=parseInt(v); return isNaN(n)?9999:n; }
 
-let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confHighlight:null, confDirty:{} };
+let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confHighlight:null, confDirty:{}, scrollPos:{} };
 
 /* ---------- render lista ---------- */
 const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['revisar','fRevisar']];
@@ -635,6 +635,8 @@ $('#btnReset').onclick=async()=>{ if(!confirm(t('confirmReset'))) return; await 
 
 /* ---------- navegação / idioma ---------- */
 function doSetView(v){
+  // guarda a posição de scroll da tab atual
+  if(state.view){ state.scrollPos = state.scrollPos||{}; state.scrollPos[state.view]=window.scrollY; }
   state.view=v;
   ['lista','painel','confeccao','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
@@ -642,6 +644,9 @@ function doSetView(v){
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   updateSaveBtn();
+  // restaura a posição de scroll específica desta tab
+  const y=(state.scrollPos&&state.scrollPos[v])||0;
+  requestAnimationFrame(()=>window.scrollTo(0,y));
 }
 let pendingView=null;
 function setView(v){
