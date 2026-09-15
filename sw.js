@@ -1,5 +1,5 @@
 /* Service worker — Gideão 300 */
-const CACHE = 'gideao300-v211';
+const CACHE = 'gideao300-v212';
 const ASSETS = [
   './',
   './index.html',
@@ -48,17 +48,14 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   const sameOrigin = url.origin === self.location.origin;
 
-  if (isShell(url)) {
-    e.respondWith(
-      fetch(e.request).then(resp => {
-        const copy = resp.clone();
-        if (resp.ok) caches.open(CACHE).then(c => c.put(e.request, copy));
-        return resp;
-      }).catch(() => caches.match(e.request))
-    );
+  // version.json: SEMPRE rede, nunca cache (é o gatilho do banner de atualização)
+  if (url.pathname.indexOf('version.json') >= 0) {
+    e.respondWith(fetch(e.request).catch(() => new Response('{}', {headers:{'Content-Type':'application/json'}})));
     return;
   }
 
+  // tudo (inclusive app shell) = cache-first: app roda a versão cacheada (estável/offline);
+  // a atualização é detectada por version.json e aplicada pelo botão "Atualizar" (limpa cache + reload).
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
