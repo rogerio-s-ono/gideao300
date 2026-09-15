@@ -1,0 +1,1248 @@
+{
+  "projeto": "Projeto Gideão 300",
+  "cota": 300,
+  "meta": 300,
+  "moeda": "EUR",
+  "geradoEm": "2026-09-15",
+  "inscritos": [
+    {
+      "id": 1,
+      "numero": "00",
+      "nome": "Pr. Marciano",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "00 - Pr. Marciano L",
+      "camisaEstado": 3
+    },
+    {
+      "id": 2,
+      "numero": "01",
+      "nome": "Pr. Ronaldo",
+      "telefone": "",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300,
+          "data": "",
+          "tipo": "",
+          "nota": "importado: Pago sem valor"
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "01 - Pr. Ronaldo XL✅🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 3,
+      "numero": "02",
+      "nome": "Rogério Ono",
+      "telefone": "635657417",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "02- Rogério (M) ✅ 🆗Tânia S",
+      "camisaEstado": 3
+    },
+    {
+      "id": 4,
+      "numero": "02",
+      "nome": "Tânia Ono",
+      "telefone": "699192750",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "02- Rogério (M) ✅ 🆗Tânia S",
+      "camisaEstado": 0
+    },
+    {
+      "id": 5,
+      "numero": "03",
+      "nome": "Célio L",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "03 - Célio L / Débora M",
+      "camisaEstado": 0
+    },
+    {
+      "id": 6,
+      "numero": "03",
+      "nome": "Débora M",
+      "telefone": "",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "03 - Célio L / Débora M",
+      "camisaEstado": 0
+    },
+    {
+      "id": 7,
+      "numero": "04",
+      "nome": "Marcos",
+      "telefone": "",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Marcos Oliveira?",
+      "aRevisar": true,
+      "motivoRevisar": "Marcos Oliveira?",
+      "textoOriginal": "04 - Marcos M 🆗/ Alessandra M ✅",
+      "camisaEstado": 3
+    },
+    {
+      "id": 8,
+      "numero": "04",
+      "nome": "Alessandra",
+      "telefone": "",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "qual status?",
+      "aRevisar": true,
+      "motivoRevisar": "qual status?",
+      "textoOriginal": "04 - Marcos M 🆗/ Alessandra M ✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 9,
+      "numero": "05",
+      "nome": "Everton",
+      "telefone": "",
+      "tamanho": "XXL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "(300)",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "05 - (300) Everton XXL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 10,
+      "numero": "06",
+      "nome": "Daniel",
+      "telefone": "",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "06 - Daniel XL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 11,
+      "numero": "07",
+      "nome": "Larissa",
+      "telefone": "",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "07 - Larissa S",
+      "camisaEstado": 0
+    },
+    {
+      "id": 12,
+      "numero": "08",
+      "nome": "Arantes",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "08 - Arantes L / Glaucia M🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 13,
+      "numero": "08",
+      "nome": "Glaucia",
+      "telefone": "",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "qual status?",
+      "aRevisar": true,
+      "motivoRevisar": "qual status?",
+      "textoOriginal": "08 - Arantes L / Glaucia M🆗",
+      "camisaEstado": 0
+    },
+    {
+      "id": 14,
+      "numero": "09",
+      "nome": "Carlinhos",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "09- Carlinhos L",
+      "camisaEstado": 0
+    },
+    {
+      "id": 15,
+      "numero": "10",
+      "nome": "Lucas (Carol)",
+      "telefone": "",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "10- Lucas XL🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 16,
+      "numero": "11",
+      "nome": "Ivaneide",
+      "telefone": "",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "11- Ivaneide XL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 17,
+      "numero": "12",
+      "nome": "Linda Elem",
+      "telefone": "645622594",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "12 - Linda Elem 645622594 M ✅🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 18,
+      "numero": "13",
+      "nome": "Pr. Marcos",
+      "telefone": "",
+      "tamanho": "XXL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "13 - Pr. Marcos XXL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 19,
+      "numero": "14",
+      "nome": "Renato",
+      "telefone": "631729096",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "14 - Renato XL 631729096 ✅🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 20,
+      "numero": "15",
+      "nome": "Sandra Ma Campos Moraes",
+      "telefone": "659644525",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "Cartão/Máquina",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "15 - Sandra Ma Campos Moraes - 659644525 S ✅ (Máquina) 🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 21,
+      "numero": "16",
+      "nome": "Ale Quiñon",
+      "telefone": "",
+      "tamanho": "S/M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "Confirmado",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "👍🏼16 - Ale Quiñon S/M",
+      "camisaEstado": 0
+    },
+    {
+      "id": 22,
+      "numero": "17",
+      "nome": "Keyla",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "17 - Keyla L ✅ 🆗/ esposo L",
+      "camisaEstado": 3
+    },
+    {
+      "id": 23,
+      "numero": "17",
+      "nome": "Esposo (Keyla)",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "17 - Keyla L ✅ 🆗/ esposo L",
+      "camisaEstado": 0
+    },
+    {
+      "id": 24,
+      "numero": "18",
+      "nome": "Júlio",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "(filho Euzete) · Julio Cesar de Oliveira",
+      "aRevisar": true,
+      "motivoRevisar": "Julio Cesar de Oliveira",
+      "textoOriginal": "18 - Júlio L y Brenda M (filho Euzete) (pastora)",
+      "camisaEstado": 0
+    },
+    {
+      "id": 25,
+      "numero": "18",
+      "nome": "Brenda",
+      "telefone": "",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "Esposa Julio",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "18 - Júlio L y Brenda M (filho Euzete) (pastora)",
+      "camisaEstado": 0
+    },
+    {
+      "id": 26,
+      "numero": "19",
+      "nome": "Oscar",
+      "telefone": "657729777",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "(septiembre)",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "19 - Oscar 657729777 XL (septiembre)",
+      "camisaEstado": 0
+    },
+    {
+      "id": 27,
+      "numero": "20",
+      "nome": "Maria Cabelereira",
+      "telefone": "",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "✅20 - Maria Cabelereira S ✅ 🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 28,
+      "numero": "21",
+      "nome": "Enivã Pereira Lopes",
+      "telefone": "685526042",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "(48)",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "21 - Enivã Pereira lopes M 685526042 (48)",
+      "camisaEstado": 0
+    },
+    {
+      "id": 29,
+      "numero": "22",
+      "nome": "Euzete",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "22- Euzete L ✅🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 30,
+      "numero": "23",
+      "nome": "Ulises Almeida",
+      "telefone": "677680502",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "(77)",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "23 - Ulises Almeida M 677680502 (77)",
+      "camisaEstado": 0
+    },
+    {
+      "id": 31,
+      "numero": "24",
+      "nome": "Sergio",
+      "telefone": "722394732",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Sergio M Casetto",
+      "aRevisar": true,
+      "motivoRevisar": "Sergio M Casetto",
+      "textoOriginal": "24 - ✅Sergio M com numero (722394732) ✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 32,
+      "numero": "25",
+      "nome": "Elias Show",
+      "telefone": "",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300,
+          "data": "",
+          "tipo": "",
+          "nota": "importado: Pago sem valor"
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "✅25 - Elias Show S ✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 33,
+      "numero": "26",
+      "nome": "Elias David Grasso",
+      "telefone": "",
+      "tamanho": "3XL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "(pai david)",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "26 Elias david grasso. 3XL (pai david)",
+      "camisaEstado": 0
+    },
+    {
+      "id": 34,
+      "numero": "27",
+      "nome": "Cristian Lari",
+      "telefone": "",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Cristian portaria ???",
+      "aRevisar": true,
+      "motivoRevisar": "Cristian portaria ???",
+      "textoOriginal": "27 Cristian Lari S O S )✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 35,
+      "numero": "28",
+      "nome": "Gean Cezar",
+      "telefone": "604148920",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 150.0,
+          "data": "",
+          "tipo": "Bizum",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Outra metade em Out",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "28 Gean Cezar M 604148920 ✅ metade",
+      "camisaEstado": 0
+    },
+    {
+      "id": 36,
+      "numero": "28",
+      "nome": "Elizete Marques dos Santos",
+      "telefone": "669929658",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Confirmado",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "👍🏼28 Elizete Marques dos Santos 669929658 ✅S",
+      "camisaEstado": 0
+    },
+    {
+      "id": 37,
+      "numero": "29",
+      "nome": "Alex Oliveira Mendonça",
+      "telefone": "",
+      "tamanho": "",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "marido Elizete · Alexsander Mendonza",
+      "aRevisar": true,
+      "motivoRevisar": "Alexsander Mendonza",
+      "textoOriginal": "👍🏼29 ALEX oliveira Mendonça ( Márido Elizete)✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 38,
+      "numero": "30",
+      "nome": "Lorena",
+      "telefone": "",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "(Débora)",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "30 LORENA S ( Débora)",
+      "camisaEstado": 0
+    },
+    {
+      "id": 39,
+      "numero": "31",
+      "nome": "Adriano Rodrigues da Silva",
+      "telefone": "645345530",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "31 ADRIANO RODRIGUES DA 2SILVA XL / 645345530",
+      "camisaEstado": 0
+    },
+    {
+      "id": 40,
+      "numero": "32",
+      "nome": "Daniel Lesme",
+      "telefone": "624875136",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "32- DANIEL LESME 624875136 XL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 41,
+      "numero": "33",
+      "nome": "Jose Carlos",
+      "telefone": "612509485",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "33- Jose Carlos 612509485 M",
+      "camisaEstado": 0
+    },
+    {
+      "id": 42,
+      "numero": "34",
+      "nome": "Glória Matos Silva",
+      "telefone": "698488016",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "Cartão/Máquina",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "34 - Glória Matos Silva 698488016 XL (cartão máquina igreja) 🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 43,
+      "numero": "35",
+      "nome": "Luz",
+      "telefone": "",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Confirmado",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "👍🏼35 - luz L ✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 44,
+      "numero": "36",
+      "nome": "Sónia Lima",
+      "telefone": "",
+      "tamanho": "XS/S",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "(diaconisa)",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "36 - Sónia Lima (diaconisa) XS/S",
+      "camisaEstado": 0
+    },
+    {
+      "id": 45,
+      "numero": "37",
+      "nome": "Ademir Ferreira",
+      "telefone": "603357739",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "37 - Ademir Ferreira 603357739 L",
+      "camisaEstado": 0
+    },
+    {
+      "id": 46,
+      "numero": "38",
+      "nome": "Denis Gregorio",
+      "telefone": "666247425",
+      "tamanho": "2XL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "38 - Denis Gregorio 666247425 2xL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 47,
+      "numero": "39",
+      "nome": "Rossmary",
+      "telefone": "612247861",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "39 - Rossmary 612247861 S ✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 48,
+      "numero": "40",
+      "nome": "Miguel Angel Penha",
+      "telefone": "666062494",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "Cartão/Máquina",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "✅40 - Miguel Angel Penha 666062494 L ✅ cartão de crédito 🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 49,
+      "numero": "41",
+      "nome": "Carlos",
+      "telefone": "670825193",
+      "tamanho": "L (troca de XL)",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "41 - Carlos 670 825193 XL ✅ 🆗 troca L",
+      "camisaEstado": 3
+    },
+    {
+      "id": 50,
+      "numero": "42",
+      "nome": "David Felipe Grasso",
+      "telefone": "643774877",
+      "tamanho": "L",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "42- David felipe Grasso L. 643774877",
+      "camisaEstado": 0
+    },
+    {
+      "id": 51,
+      "numero": "43",
+      "nome": "Tania da Costa (kids)",
+      "telefone": "651856586",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "43- Tania da Costa(kids) 651856586 S ✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 52,
+      "numero": "44",
+      "nome": "Lucelia",
+      "telefone": "",
+      "tamanho": "XXL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "44- Lucelia / Waldson XXL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 53,
+      "numero": "44",
+      "nome": "Waldson",
+      "telefone": "",
+      "tamanho": "XXL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "44- Lucelia / Waldson XXL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 54,
+      "numero": "45",
+      "nome": "Márcia Souza",
+      "telefone": "",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "cozinha · Marcia Souza",
+      "aRevisar": true,
+      "motivoRevisar": "Marcia Souza",
+      "textoOriginal": "45 - Márcia cozinha XL ✅🆗",
+      "camisaEstado": 3
+    },
+    {
+      "id": 55,
+      "numero": "46",
+      "nome": "Samira dos Reis Messias",
+      "telefone": "642859085",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "46 Samira dos Reis Messias 642859085 S",
+      "camisaEstado": 0
+    },
+    {
+      "id": 56,
+      "numero": "47",
+      "nome": "Jo (amigo Ronaldo)",
+      "telefone": "",
+      "tamanho": "",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Confirmado · Jó Cardoso",
+      "aRevisar": true,
+      "motivoRevisar": "Jó Cardoso",
+      "textoOriginal": "👍🏼47 - Jo (amigo Ronaldo )✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 57,
+      "numero": "48",
+      "nome": "Pablo (Nara)",
+      "telefone": "",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "Confirmado",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "👍🏼48 - Pablo (Nara) XL",
+      "camisaEstado": 0
+    },
+    {
+      "id": 58,
+      "numero": "49",
+      "nome": "Nicolás Baquero",
+      "telefone": "642146021",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "49 - Nicolás baquero 642146021 M",
+      "camisaEstado": 0
+    },
+    {
+      "id": 59,
+      "numero": "50",
+      "nome": "Pablo Jose Reran Mora",
+      "telefone": "60269139",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Confirmado",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "👍🏼50 - Pablo jose reran mora M 60269139 (✅)",
+      "camisaEstado": 0
+    },
+    {
+      "id": 60,
+      "numero": "51",
+      "nome": "Lucilaine",
+      "telefone": "633808201",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Confirmado · faltando entre Lucilaine, Luz, Pabo, Keyla",
+      "aRevisar": true,
+      "motivoRevisar": "faltando entre Lucilaine, Luz, Pabo, Keyla",
+      "textoOriginal": "👍🏼51 - Lucilaine M 633808201✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 61,
+      "numero": "52",
+      "nome": "Vanusa",
+      "telefone": "",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Confirmado",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "👍🏼52 - Vanusa M ✅ / Esley 2XL (paga domingo) ✅👍🏼1",
+      "camisaEstado": 0
+    },
+    {
+      "id": 62,
+      "numero": "52",
+      "nome": "Esley",
+      "telefone": "",
+      "tamanho": "2XL",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "paga domingo",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "👍🏼52 - Vanusa M ✅ / Esley 2XL (paga domingo) ✅👍🏼1",
+      "camisaEstado": 0
+    },
+    {
+      "id": 63,
+      "numero": "53",
+      "nome": "Vanessa Garcia",
+      "telefone": "645624154",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Confirmado",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "👍🏼53 Vanessa Garcia 645624154 M ✅👍🏼",
+      "camisaEstado": 0
+    },
+    {
+      "id": 64,
+      "numero": "54",
+      "nome": "Alan Batista da Silva",
+      "telefone": "643848010",
+      "tamanho": "XL",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "54 Alan Batista da silva XL 643848010✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 65,
+      "numero": "55",
+      "nome": "Diana Garcia",
+      "telefone": "605183851",
+      "tamanho": "M",
+      "cota": 300,
+      "pagamentos": [],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "55 Diana Garcia 605183851 M",
+      "camisaEstado": 0
+    },
+    {
+      "id": 66,
+      "numero": "56",
+      "nome": "Micheli Garcia Santana da Rocha",
+      "telefone": "692558243",
+      "tamanho": "S",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "Cartão AME",
+          "nota": ""
+        }
+      ],
+      "observacoes": "",
+      "aRevisar": false,
+      "motivoRevisar": "",
+      "textoOriginal": "56 Micheli Garcia Santana Da Rocha 692558243 S✅",
+      "camisaEstado": 0
+    },
+    {
+      "id": 67,
+      "numero": "",
+      "nome": "Joyce Teixeira",
+      "telefone": "",
+      "tamanho": "",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 100.0,
+          "data": "",
+          "tipo": "Cartão/Máquina",
+          "nota": ""
+        }
+      ],
+      "observacoes": "100 pago · Nao estava na lista",
+      "aRevisar": true,
+      "motivoRevisar": "Nao estava na lista",
+      "textoOriginal": "",
+      "camisaEstado": 0
+    },
+    {
+      "id": 68,
+      "numero": "",
+      "nome": "Welder Nunes",
+      "telefone": "613563543",
+      "tamanho": "",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Nao estava na lista",
+      "aRevisar": true,
+      "motivoRevisar": "Nao estava na lista",
+      "textoOriginal": "",
+      "camisaEstado": 0
+    },
+    {
+      "id": 69,
+      "numero": "",
+      "nome": "Florencia",
+      "telefone": "",
+      "tamanho": "",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "Bizum",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Nao estava na lista",
+      "aRevisar": true,
+      "motivoRevisar": "Nao estava na lista",
+      "textoOriginal": "",
+      "camisaEstado": 0
+    },
+    {
+      "id": 70,
+      "numero": "",
+      "nome": "Odlaine Jeremias y Yeremi",
+      "telefone": "",
+      "tamanho": "",
+      "cota": 300,
+      "pagamentos": [
+        {
+          "valor": 300.0,
+          "data": "",
+          "tipo": "",
+          "nota": ""
+        }
+      ],
+      "observacoes": "Filho 2 anos · Nao estava na lista · Inscrição inclui filho de 2 anos",
+      "aRevisar": true,
+      "motivoRevisar": "Nao estava na lista",
+      "textoOriginal": "",
+      "camisaEstado": 0
+    }
+  ]
+}
