@@ -316,7 +316,16 @@
     <label data-i="nome">Nome</label><input id="f-nome" placeholder="Nome completo">
     <label data-i="telefone">Telefone</label><input id="f-telefone" inputmode="tel" placeholder="Telefone">
 
-    <h3 style="margin-top:16px" data-i="pagamentos">Pagamentos (cota 300€)</h3>
+    <div class="toggle" id="camisaStatusLine" style="cursor:pointer;margin-top:12px">
+      <span><span data-i="camisaStatus">Estado da camisa</span>: <b id="f-camisa-txt"></b></span>
+      <span style="color:var(--accent);font-size:13px" data-i="verConfeccao">Abrir na Confecção</span>
+    </div>
+    <div class="toggle"><span data-i="aRevisar">A revisar</span><input type="checkbox" id="f-revisar"></div>
+
+    <label data-i="observacoes">Observações</label><textarea id="f-obs"></textarea>
+    <details style="margin-top:8px"><summary class="note" data-i="textoOriginal">Texto original</summary><p class="note" id="f-orig"></p></details>
+
+    <h3 style="margin-top:18px" data-i="pagamentos">Pagamentos (cota 300€)</h3>
     <div id="paysList"></div>
     <div class="saldo" id="saldoBox"></div>
     <div class="row2">
@@ -327,15 +336,6 @@
       <div><label data-i="data">Data</label><input id="p-data" type="date"></div>
       <div style="display:flex;align-items:flex-end"><button class="btn ok" id="addPay" style="margin:0" data-i="addPagamento">+ Pagamento</button></div>
     </div>
-
-    <div class="toggle" id="camisaStatusLine" style="cursor:pointer">
-      <span><span data-i="camisaStatus">Estado da camisa</span>: <b id="f-camisa-txt"></b></span>
-      <span style="color:var(--accent);font-size:13px" data-i="verConfeccao">Abrir na Confecção</span>
-    </div>
-    <div class="toggle"><span data-i="aRevisar">A revisar</span><input type="checkbox" id="f-revisar"></div>
-
-    <label data-i="observacoes">Observações</label><textarea id="f-obs"></textarea>
-    <details style="margin-top:8px"><summary class="note" data-i="textoOriginal">Texto original</summary><p class="note" id="f-orig"></p></details>
 
     <button class="btn primary" id="save" data-i="salvar">Salvar</button>
     <button class="btn danger" id="del" data-i="excluir">Excluir</button>

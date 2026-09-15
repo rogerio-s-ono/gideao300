@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v1.22';
+const APP_VERSION = 'v1.23';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -478,6 +478,7 @@ async function openModal(id){
   $('#del').style.display=rec?'block':'none';
   renderPays();
   $('#modal').classList.remove('hidden');
+  const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
 }
 function fillSelect(sel,opts,val){
   $(sel).innerHTML=opts.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o||'—'}</option>`).join('');
