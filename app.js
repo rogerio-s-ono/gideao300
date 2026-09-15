@@ -470,7 +470,8 @@ async function openModal(id){
   $('#f-revisar').checked=rec?!!rec.aRevisar:false;
   $('#f-obs').value=rec?(rec.observacoes||''):'';
   $('#f-orig').textContent=rec?(rec.textoOriginal||'—'):'—';
-  $('#p-valor').value=''; $('#p-data').value=hoje();
+  const restanteOpen=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
+  $('#p-valor').value = restanteOpen>0 ? String(restanteOpen) : ''; $('#p-data').value=hoje();
   $('#del').style.display=rec?'block':'none';
   renderPays();
   $('#modal').classList.remove('hidden');
@@ -492,7 +493,9 @@ $('#addPay').onclick=()=>{
   const v=parseFloat(($('#p-valor').value||'').replace(',','.'));
   if(!v||v<=0) return;
   state.draftPays.push({valor:v,tipo:$('#p-tipo').value,data:$('#p-data').value||hoje(),nota:''});
-  $('#p-valor').value=''; $('#p-data').value=hoje();
+  const restante=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
+  $('#p-valor').value = restante>0 ? String(restante) : '';
+  $('#p-data').value=hoje();
   renderPays();
 };
 $('#save').onclick=async()=>{
