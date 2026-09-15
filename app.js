@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.6';
+const APP_VERSION = 'v2.7';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -832,11 +832,22 @@ function markPending(id){
 function pendingIds(){ return Object.keys(JSON.parse(localStorage.getItem('gd_pending')||'{}')); }
 function clearPending(){ localStorage.removeItem('gd_pending'); }
 
+// fetch com timeout — evita ficar preso em "Sincronizando" se a rede/Apps Script travar
+async function fetchTimeout(url, opts, ms){
+  ms = ms || 20000;
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), ms);
+  try{
+    const r = await fetch(url, Object.assign({}, opts, {signal: ctrl.signal, redirect:'follow'}));
+    return r;
+  } finally { clearTimeout(timer); }
+}
+
 async function pull(){
   if(!ONLINE_ENABLED || !auth.idToken) return;
   const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) +
               '&idToken=' + encodeURIComponent(auth.idToken);
-  const r = await fetch(url, {method:'GET'});
+  const r = await fetchTimeout(url, {method:'GET'});
   const data = await r.json();
   if(!data.ok) throw new Error(data.error||'pull_failed');
   if(data.role){ auth.role=data.role; applyAdminUI(); }
@@ -862,7 +873,7 @@ async function pushPending(){
   const all=await getAll();
   const toSend=all.filter(i=>ids.indexOf(String(i.id))>=0);
   if(!toSend.length){ clearPending(); return; }
-  const r=await fetch(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+  const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, inscritos:toSend})});
   const data=await r.json();
   if(!data.ok) throw new Error(data.error||'push_failed');
@@ -872,7 +883,7 @@ async function pushPending(){
 async function serverCount(){
   const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) +
               '&idToken=' + encodeURIComponent(auth.idToken);
-  const r = await fetch(url, {method:'GET'});
+  const r = await fetchTimeout(url, {method:'GET'});
   const data = await r.json();
   if(!data.ok) throw new Error(data.error||'pull_failed');
   return data.inscritos ? data.inscritos.length : 0;
@@ -882,7 +893,7 @@ async function pushAll(records){
   // envia em lotes para não estourar limites
   for(let k=0;k<records.length;k+=40){
     const chunk=records.slice(k,k+40);
-    const r=await fetch(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, inscritos:chunk})});
     const data=await r.json();
     if(!data.ok) throw new Error(data.error||'push_failed');
@@ -894,22 +905,20 @@ async function syncNow(){
   if(syncState==='syncing') return;   // evita concorrência
   try{
     setSync('syncing');
-    // 1) primeira vez: se o servidor está vazio, sobe a base completa (local ou seed.json)
-    const nServer = await serverCount();
-    if(nServer===0){
+    // envia pendências primeiro (se houver)
+    await pushPending();
+    // 1 pull: reconcilia e descobre se o servidor está vazio
+    const data = await pull();
+    // primeira vez: servidor vazio -> sobe a base completa (local atual ou seed.json)
+    if(data && (!data.inscritos || data.inscritos.length===0)){
       let base = await getAll();
       if(base.length===0){
         try{ const seed=await (await fetch('seed.json')).json();
           base = seed.inscritos.map(i=>({...i, cota:i.cota||COTA, camisaEstado:(i.camisaEstado===undefined?0:i.camisaEstado)})); }catch(e){ base=[]; }
         for(const i of base){ await put(i); }
       }
-      await pushAll(base);
-      clearPending();
-    } else {
-      await pushPending();
+      if(base.length){ await pushAll(base); clearPending(); await pull(); }
     }
-    // 2) reconcilia com o servidor
-    await pull();
     setSync(pendingIds().length? 'pend':'ok');
     retryDelay=0;                       // sucesso -> zera backoff
     refresh();
@@ -980,8 +989,8 @@ $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
     // 3) zera a planilha (reset) e sobe os 70 em lote
     if(ONLINE_ENABLED && auth.idToken){
       const first=base.slice(0,40), rest=base.slice(40);
-      let r=await fetch(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, reset:true, inscritos:first})});
+      let r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, reset:true, inscritos:first})}, 30000);
       let data=await r.json(); if(!data.ok) throw new Error(data.error||'reset_failed');
       if(rest.length) await pushAll(rest);
       await pull();
