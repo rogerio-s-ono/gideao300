@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.10';
+const APP_VERSION = 'v2.11';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -160,6 +160,13 @@ function hoje(){ const d=new Date(); const off=d.getTimezoneOffset(); const l=ne
 function norm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
 // ordem por número: '' ou NaN vão para o fim; 0 ('00') fica no início (corrige 0||9999)
 function numOrder(v){ const n=parseInt(v); return isNaN(n)?9999:n; }
+// exibe o número com 2 dígitos (0..9 -> 00..09); vazio -> "s/n"; mantém não-numéricos como estão
+function fmtNum(v){
+  const s=(v==null?'':String(v)).trim();
+  if(s==='') return t('semNumero');
+  const n=parseInt(s,10);
+  return (!isNaN(n) && n>=0 && n<10 && /^\d+$/.test(s)) ? ('0'+n) : s;
+}
 
 let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confHighlight:null, confDirty:{}, scrollPos:{} };
 
@@ -223,7 +230,7 @@ async function renderList(){
     if(i.telefone) metaParts.push(esc(i.telefone));
     metaParts.push(`${soma}€ / ${i.cota}€`);
     return `<div class="card" data-id="${i.id}">
-      <div class="num">${i.numero||t('semNumero')}</div>
+      <div class="num">${fmtNum(i.numero)}</div>
       <div class="info">
         <div class="nome">${esc(i.nome)}</div>
         <div class="meta">${metaParts.join(' · ')}</div>
@@ -244,7 +251,7 @@ function renderTable(filtered,el){
     const stTxt=st==='pago'?t('sPago'):st==='parcial'?t('faltam',{v:falta}):t('sPend');
     const stClass=st==='pago'?'st-pago':st==='parcial'?'st-parcial':'st-pend';
     return `<tr data-id="${i.id}">
-      <td>${i.numero||t('semNumero')}</td>
+      <td>${fmtNum(i.numero)}</td>
       <td>${esc(i.nome)}</td>
       <td>${esc(i.tamanho||'')}</td>
       <td>${esc(i.telefone||'')}</td>
@@ -367,7 +374,7 @@ async function renderConfList(){
     }).join('');
     return `<div class="confcard ${dirty?'dirty':''} ${pago?'':'locked'}" data-id="${i.id}" ${hl}>
       <div class="top">
-        <div class="num">${i.numero||t('semNumero')}</div>
+        <div class="num">${fmtNum(i.numero)}</div>
         <div class="nm">
           <div class="nome"><span class="conf-name-link" data-id="${i.id}">${esc(i.nome)}</span> ${i.tamanho?`<span class="tam" style="font-size:12px">${esc(i.tamanho)}</span>`:''} ${dirty?'<span class="dirtydot"></span>':''}</div>
           <div class="sub"><span class="paytag ${pago?'ok':'no'}">${pago?t('pago'):t('pendPag')}</span></div>
@@ -615,7 +622,7 @@ async function buildPrint(){
     const stTxt=st==='pago'?t('sPago'):st==='parcial'?t('faltam',{v:i.cota-soma}):t('sPend');
     const camisa = statusPag(i)==='pago' ? t(estKey(i.camisaEstado||0)) : t('pendPag');
     return `<tr>
-      <td>${esc(i.numero||t('semNumero'))}</td>
+      <td>${esc(fmtNum(i.numero))}</td>
       <td>${esc(i.nome)}</td>
       <td>${esc(i.tamanho||'')}</td>
       <td>${esc(i.telefone||'')}</td>
