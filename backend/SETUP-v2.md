@@ -56,3 +56,27 @@ No final, me mande os 3 valores marcados com 📋.
 Com esses valores eu conecto o app (login + sincronização) e migro os 70 Gideões atuais para a planilha.
 
 > Observação de segurança: o SYNC_TOKEN é um segredo. Se preferir não colá-lo no chat, me avise que eu deixo um campo de configuração para você preencher direto no código depois. (O Client ID e a URL não são secretos.)
+
+---
+
+## Gestão de usuários — aba "Admin" (v2.3+)
+Quem entra no app e quem é admin agora é controlado por uma **aba `Admin`** na planilha (não mais só no código). O script cria essa aba automaticamente na primeira execução, já com os emails iniciais.
+
+**Estrutura da aba `Admin`:**
+| email | papel |
+|---|---|
+| rogerio.s.ono@gmail.com | admin |
+| tania.eustaqui@gmail.com | user |
+
+- **papel = `admin`**: entra no app + vê a seção Admin (sincronizar / enviar base / recarregar base).
+- **papel = `user`**: entra e usa o app, sincroniza sozinho; **sem** a seção Admin.
+- Email **fora** da aba → **não entra**.
+
+**Como adicionar um usuário normal:** acrescente uma linha com o email (coluna A) e `user` (coluna B).
+**Como adicionar um admin:** acrescente a linha com `admin`, ou mude o papel de uma linha existente para `admin`.
+**Como remover acesso:** apague a linha do email.
+
+As mudanças valem no **próximo login/sincronização** — não precisa reimplantar o script.
+
+> ⚠️ 1ª vez de um email NOVO: enquanto o app OAuth estiver em "modo de teste", o Google exige que o email também esteja em **Google Cloud Console → Tela de consentimento OAuth → Usuários de teste**. Adicione lá também. (Quando/se você "publicar" o app OAuth, esse passo deixa de ser necessário.)
+

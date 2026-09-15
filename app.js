@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.3';
+const APP_VERSION = 'v2.4';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -754,7 +754,7 @@ async function registerSWWithUpdate(){
 /* ---------- v2: config, login Google (GIS) e sincronização ---------- */
 const CFG = window.GIDEAO_CONFIG || {};
 const ONLINE_ENABLED = !!(CFG.SHEET_WEBAPP_URL && CFG.GOOGLE_CLIENT_ID);
-let auth = { idToken:null, email:null };
+let auth = { idToken:null, email:null, role:null };
 
 function parseJwt(tok){ try{ return JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }catch(e){ return {}; } }
 
@@ -795,6 +795,13 @@ function initGoogleLogin(){
 }
 function showLoginGate(){ $('#loginGate').classList.remove('hidden'); }
 function hideLoginGate(){ $('#loginGate').classList.add('hidden'); }
+function applyAdminUI(){
+  // admin = papel vindo do servidor (aba Admin da planilha); fallback: config.js ADMIN_EMAILS
+  let isAdmin;
+  if(auth.role){ isAdmin = (auth.role==='admin'); }
+  else { isAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
+  const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
+}
 function logout(){
   sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
   auth={idToken:null,email:null};
@@ -825,6 +832,7 @@ async function pull(){
   const r = await fetch(url, {method:'GET'});
   const data = await r.json();
   if(!data.ok) throw new Error(data.error||'pull_failed');
+  if(data.role){ auth.role=data.role; applyAdminUI(); }
   // reconcilia: servidor como verdade (só a pastora escreve); preserva pendentes locais não enviados
   const pend = pendingIds();
   const localAll = await getAll();
@@ -914,9 +922,7 @@ async function startAppAfterLogin(){
   applyViewMode();
   const vEl=$('#appVersion'); if(vEl) vEl.textContent=APP_VERSION;
   const emEl=$('#acctEmail'); if(emEl) emEl.textContent=auth.email||'—';
-  // admin: mostra a seção Admin só para emails admin
-  const isAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0;
-  const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
+  applyAdminUI();
   setView('lista');
   refresh();
   if('serviceWorker' in navigator){ try{ await registerSWWithUpdate(); }catch(e){} }
