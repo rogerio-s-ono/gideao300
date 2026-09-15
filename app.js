@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v1.23';
+const APP_VERSION = 'v1.24';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -49,7 +49,7 @@ const I18N = {
     salvarESair:'Salvar e sair', descartarSair:'Descartar alterações', continuarEditando:'Continuar editando', de:'de',
     editarData:'Editar data',
     estAbbr1:'Conf.', estAbbr2:'Pronta', estAbbr3:'Entreg.',
-    novaVersao:'Nova versão disponível', atualizar:'Atualizar'
+    novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…'
   },
   es:{
     appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
@@ -88,7 +88,7 @@ const I18N = {
     salvarESair:'Guardar y salir', descartarSair:'Descartar cambios', continuarEditando:'Seguir editando', de:'de',
     editarData:'Editar fecha',
     estAbbr1:'Conf.', estAbbr2:'Lista', estAbbr3:'Entreg.',
-    novaVersao:'Nueva versión disponible', atualizar:'Actualizar'
+    novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…'
   }
 };
 let lang = localStorage.getItem('lang') || 'pt';
@@ -672,7 +672,10 @@ function showUpdateBanner(worker){
   b.classList.remove('hidden');
   $('#updateBtn').onclick=()=>{
     $('#updateBtn').disabled=true;
-    worker.postMessage('skipWaiting');
+    $('#updateBtn').textContent=t('atualizando');
+    try{ worker.postMessage('skipWaiting'); }catch(e){}
+    // fallback: se o controllerchange não disparar em 1.8s, recarrega mesmo assim
+    setTimeout(()=>{ window.location.reload(); }, 1800);
   };
 }
 async function registerSWWithUpdate(){
