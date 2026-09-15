@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.7';
+const APP_VERSION = 'v2.8';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -27,6 +27,7 @@ const I18N = {
     backupNota:'O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.',
     zerar:'Apagar tudo e recarregar dados iniciais',
     fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos',
+    sPago:'Pago', sPend:'Pendente',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber',
     saldoPago:'Pago — cota completa', saldoFalta:'Faltam {v}€', saldoPend:'Nenhum pagamento',
@@ -74,6 +75,7 @@ const I18N = {
     backupNota:'La copia permite pasar los datos entre los líderes (WhatsApp, Drive). Importar reemplaza los datos actuales.',
     zerar:'Borrar todo y recargar datos iniciales',
     fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos',
+    sPago:'Pagado', sPend:'Pendiente',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar',
     saldoPago:'Pagado — cuota completa', saldoFalta:'Faltan {v}€', saldoPend:'Sin pagos',
@@ -206,9 +208,9 @@ async function renderList(){
     const st=statusPag(i), soma=somaPago(i), falta=i.cota-soma;
     // badges à direita: pagamento + entregue/estado camisa (+ revisar)
     const right=[];
-    if(st==='pago') right.push(`<span class="b pago">${t('fPago')}</span>`);
+    if(st==='pago') right.push(`<span class="b pago">${t('sPago')}</span>`);
     else if(st==='parcial') right.push(`<span class="b parcial">${t('faltam',{v:falta})}</span>`);
-    else right.push(`<span class="b pend">${t('fPend')}</span>`);
+    else right.push(`<span class="b pend">${t('sPend')}</span>`);
     if(st==='pago'){
       if(i.camisaEstado===EST.EMCONF) right.push(`<span class="b parcial">${t('est1')}</span>`);
       else if(i.camisaEstado===EST.PRONTA) right.push(`<span class="b pronta">${t('est2')}</span>`);
@@ -239,7 +241,7 @@ function renderTable(filtered,el){
     <th>${t('thCamisa')}</th><th class="c">${t('thRevisar')}</th></tr>`;
   const body=filtered.map(i=>{
     const st=statusPag(i), soma=somaPago(i), falta=i.cota-soma;
-    const stTxt=st==='pago'?t('fPago'):st==='parcial'?t('faltam',{v:falta}):t('fPend');
+    const stTxt=st==='pago'?t('sPago'):st==='parcial'?t('faltam',{v:falta}):t('sPend');
     const stClass=st==='pago'?'st-pago':st==='parcial'?'st-parcial':'st-pend';
     return `<tr data-id="${i.id}">
       <td>${i.numero||t('semNumero')}</td>
@@ -610,7 +612,7 @@ async function buildPrint(){
   const all=(await getAll()).sort((a,b)=>numOrder(a.numero)-numOrder(b.numero)||a.nome.localeCompare(b.nome));
   const rows=all.map(i=>{
     const soma=somaPago(i), st=statusPag(i);
-    const stTxt=st==='pago'?t('fPago'):st==='parcial'?t('faltam',{v:i.cota-soma}):t('fPend');
+    const stTxt=st==='pago'?t('sPago'):st==='parcial'?t('faltam',{v:i.cota-soma}):t('sPend');
     const camisa = statusPag(i)==='pago' ? t(estKey(i.camisaEstado||0)) : t('pendPag');
     return `<tr>
       <td>${esc(i.numero||t('semNumero'))}</td>
