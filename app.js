@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.12';
+const APP_VERSION = 'v2.13';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -124,10 +124,10 @@ function openDB(){
   });
 }
 function tx(mode){ return db.transaction(STORE,mode).objectStore(STORE); }
-function getAll(){ return new Promise(res=>{ const r=tx('readonly').getAll(); r.onsuccess=()=>res(r.result||[]); }); }
-function put(rec){ return new Promise(res=>{ const r=tx('readwrite').put(rec); r.onsuccess=()=>res(r.result); }); }
-function del(id){ return new Promise(res=>{ const r=tx('readwrite').delete(id); r.onsuccess=()=>res(); }); }
-function clearAll(){ return new Promise(res=>{ const r=tx('readwrite').clear(); r.onsuccess=()=>res(); }); }
+function getAll(){ return new Promise((res,rej)=>{ try{ const r=tx('readonly').getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error||new Error('db_getAll')); }catch(e){ rej(e); } }); }
+function put(rec){ return new Promise((res,rej)=>{ try{ const r=tx('readwrite').put(rec); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error||new Error('db_put')); }catch(e){ rej(e); } }); }
+function del(id){ return new Promise((res,rej)=>{ try{ const r=tx('readwrite').delete(id); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error||new Error('db_del')); }catch(e){ rej(e); } }); }
+function clearAll(){ return new Promise((res,rej)=>{ try{ const r=tx('readwrite').clear(); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error||new Error('db_clear')); }catch(e){ rej(e); } }); }
 
 async function migrate(){
   const all=await getAll();
@@ -826,6 +826,7 @@ function logout(){
 
 /* ----- sync ----- */
 let syncState='off';
+let syncStartedAt=0;
 function setSync(s){
   syncState=s;
   const el=$('#syncStatus'); if(!el) return;
@@ -910,7 +911,15 @@ async function pushAll(records){
 async function syncNow(){
   if(!ONLINE_ENABLED){ setSync('off'); return; }
   if(!navigator.onLine){ setSync('off'); scheduleRetry(); return; }
-  if(syncState==='syncing') return;   // evita concorrência
+  if(syncState==='syncing'){
+    // proteção: se ficou "syncing" há muito tempo (>40s), destrava e permite nova tentativa
+    if(syncStartedAt && (Date.now()-syncStartedAt) > 40000){ syncState='off'; }
+    else return;
+  }
+  syncStartedAt = Date.now();
+  // watchdog: se por algum motivo travar, força erro e destrava depois de 35s
+  let done=false;
+  const watchdog = setTimeout(()=>{ if(!done){ setSync('err'); scheduleRetry(); } }, 35000);
   try{
     setSync('syncing');
     // envia pendências primeiro (se houver)
@@ -931,9 +940,11 @@ async function syncNow(){
     retryDelay=0;                       // sucesso -> zera backoff
     refresh();
   }catch(e){
-    if(String(e.message)==='unauthorized'){ showLoginGate(); setSync('err'); return; }
-    setSync('err');
-    scheduleRetry();                    // falha de rede/servidor -> re-tenta sozinho
+    if(String(e.message)==='unauthorized'){ showLoginGate(); setSync('err'); }
+    else { setSync('err'); scheduleRetry(); }   // falha de rede/servidor/db -> re-tenta sozinho
+  }finally{
+    done=true; clearTimeout(watchdog); syncStartedAt=0;
+    if(syncState==='syncing') setSync('err');   // salvaguarda: nunca deixa preso em syncing
   }
 }
 /* retentativa automática com backoff (5s,15s,30s,60s...) até sincronizar — usuário nunca precisa agir */
