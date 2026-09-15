@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v1.25';
+const APP_VERSION = 'v1.26';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -47,6 +47,7 @@ const I18N = {
     projeto:'Projeto Gideão', alteracoesNaoSalvas:'Alterações não salvas',
     confirmSairMsg:'Você alterou o estado de algumas camisas mas ainda não salvou. O que deseja fazer?',
     salvarESair:'Salvar e sair', descartarSair:'Descartar alterações', continuarEditando:'Continuar editando', de:'de',
+    confirmSairForm:'Você alterou os dados deste Gideão mas ainda não salvou. O que deseja fazer?',
     editarData:'Editar data',
     estAbbr1:'Conf.', estAbbr2:'Pronta', estAbbr3:'Entreg.',
     novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…'
@@ -86,6 +87,7 @@ const I18N = {
     projeto:'Proyecto Gedeón', alteracoesNaoSalvas:'Cambios sin guardar',
     confirmSairMsg:'Has cambiado el estado de algunas camisetas pero aún no lo has guardado. ¿Qué deseas hacer?',
     salvarESair:'Guardar y salir', descartarSair:'Descartar cambios', continuarEditando:'Seguir editando', de:'de',
+    confirmSairForm:'Has cambiado los datos de este Gedeón pero aún no lo has guardado. ¿Qué deseas hacer?',
     editarData:'Editar fecha',
     estAbbr1:'Conf.', estAbbr2:'Lista', estAbbr3:'Entreg.',
     novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…'
@@ -479,7 +481,17 @@ async function openModal(id){
   renderPays();
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
+  state.formSnapshot=formSnapshot();
 }
+function formSnapshot(){
+  return JSON.stringify({
+    numero:$('#f-numero').value.trim(), nome:$('#f-nome').value.trim(),
+    telefone:$('#f-telefone').value.trim(), tamanho:$('#f-tamanho').value,
+    revisar:$('#f-revisar').checked, obs:$('#f-obs').value.trim(),
+    pays:state.draftPays
+  });
+}
+function formDirty(){ return state.formSnapshot!==undefined && state.formSnapshot!==formSnapshot(); }
 function fillSelect(sel,opts,val){
   $(sel).innerHTML=opts.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o||'—'}</option>`).join('');
 }
@@ -492,6 +504,8 @@ function renderPays(){
   if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
   else { box.style.background='var(--soft-grey)';box.style.color='var(--grey)';box.textContent=t('saldoPend'); }
+  // esconde a área de adicionar pagamento quando a cota já está completa
+  const ap=$('#addPayArea'); if(ap) ap.classList.toggle('hidden', soma>=COTA);
 }
 $('#addPay').onclick=()=>{
   const v=parseFloat(($('#p-valor').value||'').replace(',','.'));
@@ -521,14 +535,30 @@ $('#save').onclick=async()=>{
   closeModal(); refresh();
 };
 $('#del').onclick=async()=>{ if(!state.editing) return; if(!confirm(t('confirmDel'))) return; await del(state.editing); closeModal(); refresh(); };
-$('#cancel').onclick=closeModal;
+$('#cancel').onclick=()=>tryCloseModal();
+$('#modalBack').onclick=()=>tryCloseModal();
+$('#modal').addEventListener('click',(e)=>{ if(e.target.id==='modal') tryCloseModal(); });  // clicar no fundo
 $('#camisaStatusLine').onclick=()=>{
   const pid=$('#camisaStatusLine').dataset.pid;
   closeModal();
   state.confFilter='todos';
   state.confHighlight=pid?+pid:null;
   setView('confeccao');
-};function closeModal(){ $('#modal').classList.add('hidden'); state.editing=null; state.draftPays=[]; }
+};
+function closeModal(){ $('#modal').classList.add('hidden'); state.editing=null; state.draftPays=[]; state.formSnapshot=undefined; }
+// fecha o modal do Gideão; se houver alterações não salvas, pergunta antes
+function tryCloseModal(){
+  if(formDirty()){ $('#formConfirm').classList.remove('hidden'); }
+  else closeModal();
+}
+$('#fcSave').onclick=async()=>{
+  const nome=$('#f-nome').value.trim();
+  if(!nome){ alert(t('nomeObrig')); return; }
+  $('#formConfirm').classList.add('hidden');
+  $('#save').click();
+};
+$('#fcDiscard').onclick=()=>{ $('#formConfirm').classList.add('hidden'); closeModal(); };
+$('#fcCancel').onclick=()=>{ $('#formConfirm').classList.add('hidden'); };
 
 /* ---------- export / backup ---------- */
 function download(name,content,type){

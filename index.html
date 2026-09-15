@@ -119,6 +119,11 @@
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-end}
   .sheet{background:#fff;width:100%;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:16px;max-width:720px;margin:0 auto}
   .sheet h2{font-size:22px}
+  .sheet-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .sheet-head h2{margin:0}
+  .back-btn{background:none;border:0;padding:4px;display:inline-flex;align-items:center;color:var(--ink);cursor:pointer;margin-left:-4px}
+  .back-btn svg{width:26px;height:26px;fill:currentColor}
+  .back-btn:hover{color:var(--accent)}
   label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
   input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font-size:16px;font-family:var(--sans);background:#fff}
   textarea{min-height:60px;resize:vertical}
@@ -306,7 +311,12 @@
 <!-- MODAL EDITAR/NOVO -->
 <div class="overlay hidden" id="modal">
   <div class="sheet">
-    <h2 id="modalTitle" data-i="novoInscrito">Novo inscrito</h2>
+    <div class="sheet-head">
+      <button id="modalBack" class="back-btn" title="Voltar" aria-label="Voltar">
+        <svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg>
+      </button>
+      <h2 id="modalTitle" data-i="novoInscrito">Novo inscrito</h2>
+    </div>
     <div class="row2">
       <div><label data-i="numero">Número</label><input id="f-numero" inputmode="numeric" placeholder="auto"></div>
       <div><label data-i="tamanho">Tamanho</label>
@@ -328,6 +338,7 @@
     <h3 style="margin-top:18px" data-i="pagamentos">Pagamentos (cota 300€)</h3>
     <div id="paysList"></div>
     <div class="saldo" id="saldoBox"></div>
+    <div id="addPayArea">
     <div class="row2">
       <div><label data-i="valor">Valor (€)</label><input id="p-valor" inputmode="decimal" placeholder="300"></div>
       <div><label data-i="tipo">Tipo</label><select id="p-tipo"></select></div>
@@ -335,6 +346,7 @@
     <div class="row2">
       <div><label data-i="data">Data</label><input id="p-data" type="date"></div>
       <div style="display:flex;align-items:flex-end"><button class="btn ok" id="addPay" style="margin:0" data-i="addPagamento">+ Pagamento</button></div>
+    </div>
     </div>
 
     <button class="btn primary" id="save" data-i="salvar">Salvar</button>
@@ -354,6 +366,20 @@
     <button class="btn primary" id="confirmSave" data-i="salvarESair">Salvar e sair</button>
     <button class="btn danger" id="confirmDiscard" data-i="descartarSair">Descartar alterações</button>
     <button class="btn ghost" id="confirmCancel" data-i="continuarEditando">Continuar editando</button>
+  </div>
+</div>
+
+<!-- MODAL: alterações não salvas no cadastro do Gideão -->
+<div class="overlay hidden" id="formConfirm">
+  <div class="sheet confirm-sheet">
+    <div class="confirm-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2zm0 5 7.5 13h-15L12 7zm-1 4v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg>
+    </div>
+    <h2 data-i="alteracoesNaoSalvas">Alterações não salvas</h2>
+    <p class="confirm-msg" data-i="confirmSairForm">Você alterou os dados deste Gideão mas ainda não salvou. O que deseja fazer?</p>
+    <button class="btn primary" id="fcSave" data-i="salvarESair">Salvar e sair</button>
+    <button class="btn danger" id="fcDiscard" data-i="descartarSair">Descartar alterações</button>
+    <button class="btn ghost" id="fcCancel" data-i="continuarEditando">Continuar editando</button>
   </div>
 </div>
 
