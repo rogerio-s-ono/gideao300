@@ -80,3 +80,28 @@ As mudanças valem no **próximo login/sincronização** — não precisa reimpl
 
 > ⚠️ 1ª vez de um email NOVO: enquanto o app OAuth estiver em "modo de teste", o Google exige que o email também esteja em **Google Cloud Console → Tela de consentimento OAuth → Usuários de teste**. Adicione lá também. (Quando/se você "publicar" o app OAuth, esse passo deixa de ser necessário.)
 
+---
+
+## Backup diário automático (abas de backup)
+O `Code.gs` inclui `dailyBackup()`, que cria 1 aba por dia com o snapshot da base (`bkp_AAAA-MM-DD`) e faz a retenção automática.
+
+**Configurar o acionador (1 vez):**
+1. Planilha → **Extensões → Apps Script**.
+2. No editor, ícone de **relógio (Acionadores)** na barra lateral esquerda.
+3. **+ Adicionar acionador:**
+   - Função: **dailyBackup**
+   - Origem do evento: **Baseado em tempo**
+   - Tipo: **Timer diário** → escolha um horário (ex.: 2h–3h da manhã).
+   - Salvar (autorize se pedir).
+
+**Regra de retenção (automática):**
+- **Mês corrente:** backups diários acumulam (`bkp_AAAA-MM-DD`).
+- **Mês anterior:** mantém todos os diários.
+- **2 meses atrás:** consolida — mantém só o último dia, renomeado para `bkp_AAAA-MM`, e apaga os outros dias daquele mês.
+- **Meses antigos:** já consolidados (1 aba `bkp_AAAA-MM` cada).
+
+Ex.: ao entrar Setembro, Julho é consolidado (fica só `bkp_2026-07`, apaga 01..30 Jul); Agosto mantém os diários; Setembro acumula os diários.
+
+**Restaurar de um backup:** copie o conteúdo da aba `bkp_...` desejada para a aba `Gideoes`, e no app (Admin) use "Sincronizar agora". Para reset total use o botão Admin "Recarregar base original".
+
+> Extra: o Google Sheets guarda **Histórico de versões** nativo (Arquivo → Histórico de versões) — rede de segurança adicional e gratuita.

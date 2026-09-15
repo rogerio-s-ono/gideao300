@@ -183,3 +183,69 @@ function doPost(e){
     lock.releaseLock();
   }
 }
+
+/************************************************************
+ * BACKUP DIÁRIO + RETENÇÃO
+ * Crie um ACIONADOR de tempo para rodar dailyBackup() 1x/dia:
+ *   Apps Script > Acionadores (relógio) > Adicionar acionador >
+ *   função: dailyBackup | evento: Baseado em tempo > Diário > (ex. 2h-3h).
+ *
+ * Regra de retenção (executada no 1º backup de cada mês):
+ *  - Mês corrente: backups diários (bkp_AAAA-MM-DD) vão se acumulando.
+ *  - Mês anterior: mantém todos os diários.
+ *  - 2 meses atrás: consolida — mantém só o ÚLTIMO dia, renomeado para bkp_AAAA-MM,
+ *    e remove os demais diários daquele mês.
+ *  - Meses mais antigos: já consolidados (1 aba bkp_AAAA-MM cada).
+ ************************************************************/
+function _pad2(n){ return (n<10?'0':'')+n; }
+function _ym(d){ return d.getFullYear()+'-'+_pad2(d.getMonth()+1); }        // AAAA-MM
+function _ymd(d){ return _ym(d)+'-'+_pad2(d.getDate()); }                   // AAAA-MM-DD
+
+function dailyBackup(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var src = ss.getSheetByName(SHEET_NAME);
+  if(!src) return;
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try{
+    var today = new Date();
+    var name = 'bkp_' + _ymd(today);
+    // se já existe o backup de hoje, substitui (evita duplicar em re-execução)
+    var existing = ss.getSheetByName(name);
+    if(existing) ss.deleteSheet(existing);
+    var copy = src.copyTo(ss);
+    copy.setName(name);
+    // consolidação de 2 meses atrás (roda sempre; só age se houver diários a consolidar)
+    _consolidateTwoMonthsAgo(ss, today);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function _consolidateTwoMonthsAgo(ss, today){
+  // alvo = 2 meses atrás
+  var target = new Date(today.getFullYear(), today.getMonth()-2, 1);
+  var ymTarget = _ym(target);                    // AAAA-MM do mês a consolidar
+  var prefixDay = 'bkp_' + ymTarget + '-';       // bkp_AAAA-MM-DD do mês alvo
+  var monthlyName = 'bkp_' + ymTarget;           // nome consolidado
+
+  var sheets = ss.getSheets();
+  var dayTabs = [];
+  for(var i=0;i<sheets.length;i++){
+    var nm = sheets[i].getName();
+    if(nm.indexOf(prefixDay)===0) dayTabs.push(nm);
+  }
+  if(dayTabs.length===0) return;                 // nada a consolidar (já feito ou sem dados)
+  dayTabs.sort();                                // ordena por data (string AAAA-MM-DD)
+  var lastDayTab = dayTabs[dayTabs.length-1];    // último dia do mês alvo
+
+  // renomeia o último dia para o nome mensal (se ainda não existir um consolidado)
+  if(!ss.getSheetByName(monthlyName)){
+    ss.getSheetByName(lastDayTab).setName(monthlyName);
+    // remove os demais dias
+    for(var k=0;k<dayTabs.length-1;k++){ var s=ss.getSheetByName(dayTabs[k]); if(s) ss.deleteSheet(s); }
+  } else {
+    // já há consolidado: remove todos os diários remanescentes do mês alvo
+    for(var j=0;j<dayTabs.length;j++){ var sj=ss.getSheetByName(dayTabs[j]); if(sj) ss.deleteSheet(sj); }
+  }
+}
