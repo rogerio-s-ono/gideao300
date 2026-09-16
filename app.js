@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.15';
+const APP_VERSION = 'v2.16';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -724,8 +724,9 @@ $$('.lang button').forEach(b=>b.onclick=()=>{lang=b.dataset.lang;localStorage.se
 async function refresh(){
   const all=await getAll();
   $('#metaSub').textContent=t('metaSub',{n:all.length});
-  if(state.view==='lista') renderList();
-  if(state.view==='painel') renderPainel();
+  if(state.view==='lista') await renderList();
+  else if(state.view==='painel') await renderPainel();
+  else if(state.view==='confeccao') await renderConfeccao();
 }
 
 /* ---------- atualização (via version.json — confiável) ---------- */
@@ -938,7 +939,7 @@ async function syncNow(){
     }
     setSync(pendingIds().length? 'pend':'ok');
     retryDelay=0;                       // sucesso -> zera backoff
-    refresh();
+    await refresh();
   }catch(e){
     if(String(e.message)==='unauthorized'){ showLoginGate(); setSync('err'); }
     else { setSync('err'); scheduleRetry(); }   // falha de rede/servidor/db -> re-tenta sozinho
