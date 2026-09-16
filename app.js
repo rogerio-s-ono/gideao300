@@ -817,12 +817,22 @@ function renderDraftFotos(){
   const el=$('#d-fotos'); if(!el) return;
   el.innerHTML=(caixaState.draftFotos||[]).map((f,idx)=>{
     const src = f.dataUrl || thumbFromUrl(f.url);
-    return `<div class="foto-thumb"><img src="${src}" alt="foto"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
+    return `<div class="foto-thumb"><img src="${src}" alt="foto" class="foto-open" data-i="${idx}"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
   }).join('');
-  el.querySelectorAll('.rm').forEach(b=>b.onclick=()=>{ caixaState.draftFotos.splice(+b.dataset.i,1); renderDraftFotos(); });
+  el.querySelectorAll('.rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); caixaState.draftFotos.splice(+b.dataset.i,1); renderDraftFotos(); });
+  el.querySelectorAll('.foto-open').forEach(im=>im.onclick=()=>{ const f=caixaState.draftFotos[+im.dataset.i]; openFoto(f); });
   const addBtn=$('#d-addFoto'); if(addBtn) addBtn.style.display=(caixaState.draftFotos.length>=3)?'none':'block';
 }
+function openFoto(f){
+  if(!f) return;
+  if(f.url){ window.open(f.url, '_blank'); return; }   // foto já no Drive -> abre em nova aba
+  // foto local (ainda não enviada) -> lightbox com o dataUrl
+  const lb=$('#fotoLightbox'), img=$('#fotoLightImg');
+  if(lb && img){ img.src=f.dataUrl; lb.classList.remove('hidden'); }
+}
 function thumbFromUrl(url){ if(!url) return ''; const m=url.match(/\/d\/([^/]+)\//); return m? ('https://drive.google.com/thumbnail?id='+m[1]) : url; }
+$('#fotoLightClose') && ($('#fotoLightClose').onclick=()=>$('#fotoLightbox').classList.add('hidden'));
+$('#fotoLightbox') && ($('#fotoLightbox').addEventListener('click',e=>{ if(e.target.id==='fotoLightbox') $('#fotoLightbox').classList.add('hidden'); }));
 $('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ alert(t('maxFotos')); return; } $('#d-fotoInput').click(); });
 $('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; if(!file) return;
