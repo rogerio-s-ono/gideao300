@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.19-beta1';
+const APP_VERSION = 'v2.19-beta2';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -834,8 +834,8 @@ function doSetView(v){
   state.view=v;
   ['lista','painel','confeccao','caixa','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-  $('#fab').style.display=v==='lista'?'block':'none';
-  const fc=$('#fabCaixa'); if(fc) fc.style.display=v==='caixa'?'block':'none';
+  $('#fab').classList.toggle('hidden', v!=='lista');
+  const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa');
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
