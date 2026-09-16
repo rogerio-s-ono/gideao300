@@ -209,6 +209,12 @@
   .ext-item .e-bal{font-size:11px;color:var(--muted);margin-top:2px}
   .ext-item.clickable{cursor:pointer}
   .ext-tag{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:600;margin-right:6px}
+  .fotos-grid{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
+  .foto-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#f2f0ea}
+  .foto-thumb img{width:100%;height:100%;object-fit:cover}
+  .foto-thumb .rm{position:absolute;top:2px;right:2px;background:rgba(178,59,59,.9);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:13px;line-height:1;cursor:pointer}
+  .foto-thumb.up{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center}
+  .foto-link{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--accent);margin-top:3px}
   .app-version span{color:var(--accent);font-weight:600}
   .acct{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
   .acct-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;gap:10px}
@@ -528,6 +534,10 @@
       <div><label data-i="pagoDe">Pago de (bolso)</label><select id="d-bolso"></select></div>
     </div>
     <label data-i="observacao">Observação</label><input id="d-obs" placeholder="nº nota, fornecedor...">
+    <label data-i="fotosFatura">Fotos da fatura (até 3)</label>
+    <div id="d-fotos" class="fotos-grid"></div>
+    <button type="button" class="btn ghost" id="d-addFoto" data-i="tirarFoto">📷 Tirar/anexar foto</button>
+    <input type="file" id="d-fotoInput" accept="image/*" capture="environment" class="hidden">
     <button class="btn primary" id="despSave" data-i="salvar">Salvar</button>
     <button class="btn danger hidden" id="despDel" data-i="excluir">Excluir</button>
     <button class="btn ghost" id="despCancel" data-i="cancelar">Cancelar</button>

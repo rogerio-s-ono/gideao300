@@ -28,7 +28,7 @@ const HEADERS = ['id','numero','nome','telefone','tamanho','cota','pagamentos_js
                  'atualizadoEm','atualizadoPor'];
 // coleções financeiras (fase Caixa)
 const DESP_SHEET='Despesas';
-const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','atualizadoEm','atualizadoPor'];
+const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','fotos_json','atualizadoEm','atualizadoPor'];
 const MOV_SHEET='Movimentos';
 const MOV_HEADERS=['id','de','para','valor','data','comentario','atualizadoEm','atualizadoPor'];
 
@@ -53,6 +53,7 @@ function _collGetAll(name, headers){
     // datas: se o Sheets converteu para Date, devolve como AAAA-MM-DD (texto)
     if(o.data instanceof Date){ o.data = Utilities.formatDate(o.data, Session.getScriptTimeZone(), 'yyyy-MM-dd'); }
     else if(o.data){ o.data = String(o.data).slice(0,10); }
+    if('fotos_json' in o){ try{ o.fotos = o.fotos_json? JSON.parse(o.fotos_json):[]; }catch(_){ o.fotos=[]; } delete o.fotos_json; }
     out.push(o);
   }
   return out;
@@ -72,6 +73,7 @@ function _collUpsert(name, headers, arr, email, now, dels){
   var saved=0;
   (arr||[]).forEach(function(o){
     o.atualizadoEm=now; o.atualizadoPor=email;
+    if(o.fotos!==undefined && o.fotos_json===undefined){ o.fotos_json=JSON.stringify(o.fotos||[]); }
     var row=headers.map(function(h){ return o[h]!==undefined?o[h]:''; });
     var existing=idCol[String(o.id)];
     if(existing){ sh.getRange(existing,1,1,headers.length).setValues([row]); }
@@ -211,6 +213,13 @@ function doPost(e){
   var u = _verify(body.idToken);
   if(!u) return _json({ok:false, error:'unauthorized'});
   var email = u.email;
+  // ---- upload de imagem (foto de fatura) para o Google Drive ----
+  if(body.action === 'upload'){
+    try{
+      var url = _uploadFoto(body.dataUrl, body.filename);
+      return _json({ok:true, url:url, user:email});
+    }catch(err){ return _json({ok:false, error:'upload_failed:'+err.message}); }
+  }
   var arr = body.inscritos || [];
   var sh = _sheet();
   var lock = LockService.getScriptLock();
@@ -308,4 +317,30 @@ function _consolidateTwoMonthsAgo(ss, today){
     // já há consolidado: remove todos os diários remanescentes do mês alvo
     for(var j=0;j<dayTabs.length;j++){ var sj=ss.getSheetByName(dayTabs[j]); if(sj) ss.deleteSheet(sj); }
   }
+}
+
+/************************************************************
+ * UPLOAD DE FOTO DE FATURA -> Google Drive
+ * Salva na pasta "Faturas Gideao 300" (cria se não existir),
+ * deixa o arquivo acessível por link e retorna a URL.
+ ************************************************************/
+var FATURAS_FOLDER = 'Faturas Gideao 300';
+function _faturasFolder(){
+  var it = DriveApp.getFoldersByName(FATURAS_FOLDER);
+  if(it.hasNext()) return it.next();
+  return DriveApp.createFolder(FATURAS_FOLDER);
+}
+function _uploadFoto(dataUrl, filename){
+  // dataUrl = "data:image/jpeg;base64,...."
+  var parts = String(dataUrl).match(/^data:([^;]+);base64,(.+)$/);
+  if(!parts) throw new Error('dataUrl invalido');
+  var mime = parts[1];
+  var bytes = Utilities.base64Decode(parts[2]);
+  var name = (filename || ('fatura_' + new Date().toISOString().replace(/[:.]/g,'-'))) ;
+  var blob = Utilities.newBlob(bytes, mime, name);
+  var folder = _faturasFolder();
+  var file = folder.createFile(blob);
+  try{ file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); }catch(e){}
+  // link direto de visualização
+  return 'https://drive.google.com/file/d/' + file.getId() + '/view';
 }
