@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.19-beta7';
+const APP_VERSION = 'v2.19-beta8';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1013,7 +1013,8 @@ function showUpdateBanner(newVer){
   if(bannerShown) return;
   bannerShown=true;
   const b=$('#updateBanner');
-  $('#updateMsg').textContent = t('novaVersao') + (newVer? ` (${APP_VERSION} → ${newVer})` : '');
+  $('#updateMsg').textContent = t('novaVersao');
+  const uv=$('#updateVer'); if(uv) uv.innerHTML = newVer? `<b>${APP_VERSION}</b> → <b>${newVer}</b>` : '';
   $('#updateBtn').textContent=t('atualizar');
   b.classList.remove('hidden');
   $('#updateBtn').onclick=async()=>{
