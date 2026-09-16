@@ -34,14 +34,18 @@
   h3::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:3px;border-radius:2px;background:var(--accent)}
   .hidden{display:none!important}
   /* login gate */
-  #loginGate{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#141414,#1f1c17 60%,#141414);display:flex;align-items:center;justify-content:center;padding:24px}
-  .login-box{background:#141414;border-radius:16px;padding:30px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.5);border:1px solid rgba(192,138,45,.5)}
-  .login-logo{width:150px;height:auto;margin:0 auto 14px;display:block}
-  .login-title{font-family:var(--serif);font-size:24px;font-weight:600;color:#fff}
-  .login-sub{font-size:13.5px;color:#c9c4ba;margin:6px 0 18px}
+  #loginGate{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 0%, #26221a 0%, #17140f 45%, #0d0b08 100%);display:flex;flex-direction:column;padding:0}
+  .login-topbar{display:flex;align-items:center;padding:18px 20px;border-bottom:1px solid rgba(192,138,45,.18)}
+  .login-church{height:26px;width:auto;opacity:.9}
+  .login-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 24px 8px}
+  .login-emblem-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+  .login-emblem-wrap::before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle, rgba(192,138,45,.28) 0%, rgba(192,138,45,.06) 45%, transparent 70%);filter:blur(6px)}
+  .login-logo{position:relative;width:190px;height:auto;filter:drop-shadow(0 6px 18px rgba(0,0,0,.55))}
+  .login-title{font-family:var(--serif);font-size:30px;font-weight:600;color:#fff;letter-spacing:.4px}
+  .login-sub{font-size:13.5px;color:#b8b2a6;margin:8px 0 24px;max-width:280px;line-height:1.5}
   #gsiBtn{display:flex;justify-content:center;min-height:44px}
-  .login-error{margin-top:14px;background:rgba(178,59,59,.25);color:#ff9a9a;border-radius:8px;padding:10px;font-size:13px}
-  .login-foot{margin-top:16px;font-size:11px;color:#8f8a80;letter-spacing:.3px}
+  .login-error{margin-top:16px;background:rgba(178,59,59,.22);color:#ff9a9a;border:1px solid rgba(255,120,120,.3);border-radius:10px;padding:11px 14px;font-size:13px;max-width:300px}
+  .login-foot{text-align:center;font-size:11px;color:#7d786e;letter-spacing:1px;text-transform:uppercase;padding:18px;border-top:1px solid rgba(192,138,45,.12)}
 
   header{position:sticky;top:0;z-index:50;background:linear-gradient(120deg,#141414 0%,#1f1c17 55%,#141414 100%);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 3px 14px rgba(0,0,0,.25);border-bottom:1px solid rgba(192,138,45,.35)}
   .brand-logo{height:44px;width:auto;opacity:.96;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));flex:none}
@@ -230,14 +234,19 @@
 </head>
 <body>
 <div id="loginGate">
-  <div class="login-box">
-    <img src="logo-gideao.png" alt="Projeto Gideão 300" class="login-logo">
+  <div class="login-topbar">
+    <img src="logo-cf-light.png" alt="Casa Fuerte Church" class="login-church">
+  </div>
+  <div class="login-hero">
+    <div class="login-emblem-wrap">
+      <img src="logo-gideao.png" alt="Yo soy uno de los 300" class="login-logo">
+    </div>
     <div class="login-title">Projeto Gideão 300</div>
     <div class="login-sub" data-i="loginSub">Entre com sua conta Google autorizada</div>
     <div id="gsiBtn"></div>
     <div id="loginError" class="login-error hidden"></div>
-    <div class="login-foot" data-i="loginFoot">Acesso restrito aos líderes do projeto</div>
   </div>
+  <div class="login-foot" data-i="loginFoot">Acesso restrito aos líderes do projeto</div>
 </div>
 <header>
   <img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo">

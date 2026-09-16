@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.16';
+const APP_VERSION = 'v2.17';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -940,6 +940,8 @@ async function syncNow(){
     setSync(pendingIds().length? 'pend':'ok');
     retryDelay=0;                       // sucesso -> zera backoff
     await refresh();
+    // garante o re-render da lista (mesmo caminho de quando se clica num filtro)
+    if(state.view==='lista'){ renderFilters(); await renderList(); }
   }catch(e){
     if(String(e.message)==='unauthorized'){ showLoginGate(); setSync('err'); }
     else { setSync('err'); scheduleRetry(); }   // falha de rede/servidor/db -> re-tenta sozinho
