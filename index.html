@@ -221,8 +221,15 @@
   .acct-row b{font-weight:600;text-align:right;word-break:break-all}
   #syncStatus.ok{color:var(--green)} #syncStatus.pend{color:var(--amber)} #syncStatus.off{color:var(--grey)} #syncStatus.err{color:var(--red)}
   /* banner de atualização */
-  #updateBanner{position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:var(--primary);color:#fff;border:1px solid rgba(192,138,45,.5);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:720px;margin:0 auto;font-size:14px}
-  #updateBanner button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-family:var(--sans);font-size:14px;flex:none}
+  #updateBanner{position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:linear-gradient(135deg,#1f1c17,#141414);color:#fff;border:1px solid rgba(192,138,45,.55);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:720px;margin:0 auto}
+  #updateBanner .ub-icon{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none}
+  #updateBanner .ub-icon svg{width:20px;height:20px;fill:var(--accent)}
+  #updateBanner .ub-text{flex:1;min-width:0}
+  #updateBanner .ub-title{font-family:var(--serif);font-size:16px;font-weight:600;color:#fff;line-height:1.1}
+  #updateBanner .ub-ver{font-size:11px;color:#b8b2a6;margin-top:2px;letter-spacing:.3px}
+  #updateBanner .ub-ver b{color:var(--accent);font-weight:600}
+  #updateBanner button{background:var(--accent);color:#141414;border:0;border-radius:9px;padding:9px 16px;font-weight:600;font-family:var(--sans);font-size:14px;flex:none;box-shadow:0 2px 8px rgba(192,138,45,.4)}
+  #updateBanner button:disabled{opacity:.6}
   /* confecção pills + states */
   .confcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
   .confcard.dirty{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
@@ -411,7 +418,11 @@
 <div id="printArea" aria-hidden="true"></div>
 
 <div id="updateBanner" class="hidden">
-  <span id="updateMsg">Nova versão disponível</span>
+  <div class="ub-icon"><svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6a6 6 0 11-6 6H4a8 8 0 108-8z"/></svg></div>
+  <div class="ub-text">
+    <div class="ub-title" id="updateMsg">Nova versão disponível</div>
+    <div class="ub-ver" id="updateVer"></div>
+  </div>
   <button id="updateBtn">Atualizar</button>
 </div>
 

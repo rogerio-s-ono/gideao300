@@ -1013,7 +1013,8 @@ function showUpdateBanner(newVer){
   if(bannerShown) return;
   bannerShown=true;
   const b=$('#updateBanner');
-  $('#updateMsg').textContent = t('novaVersao') + (newVer? ` (${APP_VERSION} → ${newVer})` : '');
+  $('#updateMsg').textContent = t('novaVersao');
+  const uv=$('#updateVer'); if(uv) uv.innerHTML = newVer? `<b>${APP_VERSION}</b> → <b>${newVer}</b>` : '';
   $('#updateBtn').textContent=t('atualizar');
   b.classList.remove('hidden');
   $('#updateBtn').onclick=async()=>{
