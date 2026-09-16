@@ -560,7 +560,7 @@ async function openModal(id){
   $('#f-numero').value=rec?(rec.numero||''):nextNum;
   $('#f-numero').placeholder=nextNum||'auto';
   fillSelect('#f-tamanho',TAMANHOS,rec?rec.tamanho:'');
-  fillSelect('#p-tipo',TIPOS,'');
+  fillSelect('#p-tipo',TIPOS,'Dinheiro');
   if($('#p-outros-wrap')){ $('#p-outros-wrap').classList.add('hidden'); $('#p-comentario').value=''; }
   $('#f-nome').value=rec?rec.nome:'';
   $('#f-telefone').value=rec?(rec.telefone||''):'';
