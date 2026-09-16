@@ -834,8 +834,8 @@ function doSetView(v){
   state.view=v;
   ['lista','painel','confeccao','caixa','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-  $('#fab').style.display=v==='lista'?'block':'none';
-  const fc=$('#fabCaixa'); if(fc) fc.style.display=v==='caixa'?'block':'none';
+  $('#fab').classList.toggle('hidden', v!=='lista');
+  const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa');
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
