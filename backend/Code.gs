@@ -37,6 +37,9 @@ function _collSheet(name, headers){
   let sh=ss.getSheetByName(name);
   if(!sh){ sh=ss.insertSheet(name); }
   if(sh.getLastRow()===0){ sh.appendRow(headers); }
+  // força a coluna 'data' como TEXTO puro (evita auto-conversão para Date)
+  var di=headers.indexOf('data');
+  if(di>=0){ try{ sh.getRange(1, di+1, sh.getMaxRows(), 1).setNumberFormat('@'); }catch(e){} }
   return sh;
 }
 function _collGetAll(name, headers){
@@ -47,6 +50,9 @@ function _collGetAll(name, headers){
     if(values[r][0]===''||values[r][0]===null) continue;
     var o={}; headers.forEach(function(h,i){ o[h]=values[r][i]; });
     o.id=Number(o.id); o.valor=Number(o.valor||0);
+    // datas: se o Sheets converteu para Date, devolve como AAAA-MM-DD (texto)
+    if(o.data instanceof Date){ o.data = Utilities.formatDate(o.data, Session.getScriptTimeZone(), 'yyyy-MM-dd'); }
+    else if(o.data){ o.data = String(o.data).slice(0,10); }
     out.push(o);
   }
   return out;

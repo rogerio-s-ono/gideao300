@@ -493,8 +493,20 @@ function setDirtyData(rec, st, val){
 function fmtDate(iso){ if(!iso) return ''; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y}`; }
 const MESES={pt:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'],
              es:['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']};
-function fmtShort(iso){ if(!iso) return ''; const [y,m,dd]=iso.split('-'); return `${dd}/${(MESES[lang]||MESES.pt)[(+m)-1]}`; }
-function fmtFull(iso){ if(!iso) return ''; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y.slice(2)}`; }
+function toISODate(v){
+  if(!v) return '';
+  if(v instanceof Date){ const off=v.getTimezoneOffset(); return new Date(v.getTime()-off*60000).toISOString().slice(0,10); }
+  let s=String(v).trim();
+  // pega só a parte AAAA-MM-DD de um ISO/datetime; se vier com 'T' ou espaço, corta
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[1]+'-'+m[2]+'-'+m[3];
+  // dd/mm/aaaa -> aaaa-mm-dd
+  const b=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(b){ const y=b[3].length===2?'20'+b[3]:b[3]; return y+'-'+b[2].padStart(2,'0')+'-'+b[1].padStart(2,'0'); }
+  return s;
+}
+function fmtShort(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${(MESES[lang]||MESES.pt)[(+p[1])-1]||p[1]}`; }
+function fmtFull(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${p[1]}/${p[0].slice(2)}`; }
 
 function dirtyCount(){ return Object.keys(state.confDirty).length; }
 function updateSaveBtn(){
