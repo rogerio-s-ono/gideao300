@@ -168,6 +168,32 @@
   .note{font-size:12px;color:var(--muted);margin-top:6px}
   .empty{text-align:center;color:var(--muted);padding:30px 10px}
   .app-version{text-align:center;color:var(--muted);font-size:11px;margin-top:22px;letter-spacing:.3px}
+  /* Caixa */
+  .saldo-hero{background:linear-gradient(135deg,#1a1a1a,#2a2419);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid rgba(192,138,45,.4)}
+  .saldo-hero .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#c9c4ba}
+  .saldo-hero .val{font-family:var(--serif);font-size:38px;font-weight:600;color:var(--accent);line-height:1;margin-top:2px}
+  .saldo-hero .sub{font-size:12px;color:#b8b2a6;margin-top:6px}
+  .bolsos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .bolso{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .bolso .b-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .bolso .b-v{font-family:var(--serif);font-size:22px;font-weight:600}
+  .bolso.dinheiro .b-v{color:var(--green)} .bolso.banco .b-v{color:#2f6db0} .bolso.outros .b-v{color:var(--amber)}
+  .concil{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:6px}
+  .crow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px;border-bottom:1px solid var(--line)}
+  .crow:last-child{border-bottom:0}
+  .mini-in{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:14px;width:120px;text-align:right;font-family:var(--sans)}
+  .diff-ok{color:var(--green);font-weight:600} .diff-bad{color:var(--red);font-weight:600}
+  .tabs2{display:flex;gap:6px;margin:6px 0 10px}
+  .tab2{flex:1;text-align:center;padding:9px;border-radius:20px;border:1px solid var(--line);background:#fff;font-size:13px;color:var(--muted)}
+  .tab2.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .cx-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .cx-item .desc{font-weight:500;font-size:14px}
+  .cx-item .meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .cx-item .amt{font-family:var(--serif);font-size:18px;font-weight:600}
+  .cx-item .amt.out{color:var(--red)} .cx-item .amt.mov{color:#2f6db0}
+  .mov-flow{display:flex;align-items:flex-end;gap:8px;margin:6px 0}
+  .mov-box{flex:1} .mov-box span{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .mov-arrow{color:var(--accent);font-size:22px;padding-bottom:8px}
   .app-version span{color:var(--accent);font-weight:600}
   .acct{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
   .acct-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;gap:10px}
@@ -307,6 +333,32 @@
     <div id="confSize"></div>
   </section>
 
+  <!-- CAIXA (só admin) -->
+  <section id="view-caixa" class="hidden">
+    <div class="saldo-hero">
+      <div class="lbl" data-i="saldoProjeto">Saldo do projeto</div>
+      <div class="val" id="cxSaldoProjeto">—</div>
+      <div class="sub" id="cxSaldoSub"></div>
+    </div>
+    <div class="bolsos">
+      <div class="bolso dinheiro"><div class="b-v" id="cxDinheiro">—</div><div class="b-l" data-i="bolsoDinheiro">Dinheiro</div></div>
+      <div class="bolso banco"><div class="b-v" id="cxBanco">—</div><div class="b-l" data-i="bolsoBanco">Banco</div></div>
+      <div class="bolso outros"><div class="b-v" id="cxOutros">—</div><div class="b-l" data-i="bolsoOutros">Outros</div></div>
+    </div>
+    <h3 data-i="conciliacaoBanco">Conciliação bancária</h3>
+    <div class="concil">
+      <div class="crow"><span data-i="saldoBancoCalc">Saldo em banco (calculado)</span><b id="cxBancoCalc">—</b></div>
+      <div class="crow"><span data-i="saldoBancoReal">Saldo real do banco</span><input id="cxBancoReal" class="mini-in" inputmode="decimal" placeholder="0"></div>
+      <div class="crow"><span data-i="diferenca">Diferença</span><span id="cxDiff">—</span></div>
+    </div>
+    <h3 data-i="lancamentos" style="margin-top:16px">Lançamentos</h3>
+    <div class="tabs2" id="cxTabs">
+      <div class="tab2 on" data-cx="despesas" data-i="despesas">Despesas</div>
+      <div class="tab2" data-cx="movimentos" data-i="movimentacoes">Movimentações</div>
+    </div>
+    <div id="cxList"></div>
+  </section>
+
   <!-- MAIS -->
   <section id="view-mais" class="hidden">
     <h3 data-i="conta">Conta e sincronização</h3>
@@ -342,6 +394,7 @@
 </div>
 
 <button class="fab" id="fab" title="Novo">+</button>
+<button class="fab hidden" id="fabCaixa" title="Novo lançamento">+</button>
 
 <nav>
   <button data-view="lista" class="active">
@@ -355,6 +408,10 @@
   <button data-view="painel">
     <svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zm0 7h6v-5H4zm8 0h6V11h-6zm0-16v5h6V4z"/></svg>
     <span data-i="navPainel">Painel</span>
+  </button>
+  <button data-view="caixa" id="navCaixa" class="hidden">
+    <svg viewBox="0 0 24 24"><path d="M21 7H3V5h18zm0 2v10H3V9zm-6 3a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <span data-i="navCaixa">Caixa</span>
   </button>
   <button data-view="mais">
     <svg viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z"/></svg>
@@ -397,6 +454,7 @@
       <div><label data-i="valor">Valor (€)</label><input id="p-valor" inputmode="decimal" placeholder="300"></div>
       <div><label data-i="tipo">Tipo</label><select id="p-tipo"></select></div>
     </div>
+    <div id="p-outros-wrap" class="hidden"><label data-i="comentarioOutros">Comentário (Outros)</label><input id="p-comentario" placeholder="ex.: Bizum Rogério, Máquina igreja"></div>
     <div class="row2">
       <div><label data-i="data">Data</label><input id="p-data" type="date"></div>
       <div style="display:flex;align-items:flex-end"><button class="btn ok" id="addPay" style="margin:0" data-i="addPagamento">+ Pagamento</button></div>
@@ -434,6 +492,52 @@
     <button class="btn primary" id="fcSave" data-i="salvarESair">Salvar e sair</button>
     <button class="btn danger" id="fcDiscard" data-i="descartarSair">Descartar alterações</button>
     <button class="btn ghost" id="fcCancel" data-i="continuarEditando">Continuar editando</button>
+  </div>
+</div>
+
+<!-- MODAL: nova/editar despesa -->
+<div class="overlay hidden" id="despModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <button id="despBack" class="back-btn" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
+      <h2 id="despTitle" data-i="novaDespesa">Nova despesa</h2>
+    </div>
+    <label data-i="descricao">Descrição</label><input id="d-desc" placeholder="ex.: Camisas — lote 1">
+    <div class="row2">
+      <div><label data-i="valor">Valor (€)</label><input id="d-valor" inputmode="decimal" placeholder="0"></div>
+      <div><label data-i="data">Data</label><input id="d-data" type="date"></div>
+    </div>
+    <div class="row2">
+      <div><label data-i="categoria">Categoria</label><select id="d-categoria"></select></div>
+      <div><label data-i="pagoDe">Pago de (bolso)</label><select id="d-bolso"></select></div>
+    </div>
+    <label data-i="observacao">Observação</label><input id="d-obs" placeholder="nº nota, fornecedor...">
+    <button class="btn primary" id="despSave" data-i="salvar">Salvar</button>
+    <button class="btn danger hidden" id="despDel" data-i="excluir">Excluir</button>
+    <button class="btn ghost" id="despCancel" data-i="cancelar">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL: nova/editar movimentação -->
+<div class="overlay hidden" id="movModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <button id="movBack" class="back-btn" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
+      <h2 id="movTitle" data-i="novaMovimentacao">Nova movimentação</h2>
+    </div>
+    <div class="mov-flow">
+      <div class="mov-box"><span data-i="de">De</span><select id="m-de"></select></div>
+      <div class="mov-arrow">→</div>
+      <div class="mov-box"><span data-i="para">Para</span><select id="m-para"></select></div>
+    </div>
+    <div class="row2">
+      <div><label data-i="valor">Valor (€)</label><input id="m-valor" inputmode="decimal" placeholder="0"></div>
+      <div><label data-i="data">Data</label><input id="m-data" type="date"></div>
+    </div>
+    <label data-i="comentario">Comentário</label><input id="m-comentario" placeholder="ex.: Depósito; Bizum Rogério">
+    <button class="btn primary" id="movSave" data-i="salvar">Salvar</button>
+    <button class="btn danger hidden" id="movDel" data-i="excluir">Excluir</button>
+    <button class="btn ghost" id="movCancel" data-i="cancelar">Cancelar</button>
   </div>
 </div>
 

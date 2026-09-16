@@ -26,6 +26,54 @@ const ADMIN_SHEET = 'Admin';
 const HEADERS = ['id','numero','nome','telefone','tamanho','cota','pagamentos_json',
                  'camisaEstado','datas_json','observacoes','aRevisar','textoOriginal',
                  'atualizadoEm','atualizadoPor'];
+// coleções financeiras (fase Caixa)
+const DESP_SHEET='Despesas';
+const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','atualizadoEm','atualizadoPor'];
+const MOV_SHEET='Movimentos';
+const MOV_HEADERS=['id','de','para','valor','data','comentario','atualizadoEm','atualizadoPor'];
+
+function _collSheet(name, headers){
+  const ss=SpreadsheetApp.getActiveSpreadsheet();
+  let sh=ss.getSheetByName(name);
+  if(!sh){ sh=ss.insertSheet(name); }
+  if(sh.getLastRow()===0){ sh.appendRow(headers); }
+  return sh;
+}
+function _collGetAll(name, headers){
+  const sh=_collSheet(name, headers);
+  const values=sh.getDataRange().getValues();
+  const out=[];
+  for(var r=1;r<values.length;r++){
+    if(values[r][0]===''||values[r][0]===null) continue;
+    var o={}; headers.forEach(function(h,i){ o[h]=values[r][i]; });
+    o.id=Number(o.id); o.valor=Number(o.valor||0);
+    out.push(o);
+  }
+  return out;
+}
+function _collUpsert(name, headers, arr, email, now, dels){
+  const sh=_collSheet(name, headers);
+  const values=sh.getDataRange().getValues();
+  const idCol={}; for(var r=1;r<values.length;r++){ idCol[String(values[r][0])]=r+1; }
+  // deleções primeiro (de baixo pra cima para não bagunçar índices)
+  if(dels && dels.length){
+    var rowsToDelete=dels.map(function(id){return idCol[String(id)];}).filter(Boolean).sort(function(a,b){return b-a;});
+    rowsToDelete.forEach(function(rowIdx){ sh.deleteRows(rowIdx,1); });
+    // recomputa índices
+    values=sh.getDataRange().getValues(); for(var k in idCol) delete idCol[k];
+    for(var r2=1;r2<values.length;r2++){ idCol[String(values[r2][0])]=r2+1; }
+  }
+  var saved=0;
+  (arr||[]).forEach(function(o){
+    o.atualizadoEm=now; o.atualizadoPor=email;
+    var row=headers.map(function(h){ return o[h]!==undefined?o[h]:''; });
+    var existing=idCol[String(o.id)];
+    if(existing){ sh.getRange(existing,1,1,headers.length).setValues([row]); }
+    else { sh.appendRow(row); }
+    saved++;
+  });
+  return saved;
+}
 
 /* ---------- utilidades ---------- */
 function _sheet(){
@@ -143,7 +191,10 @@ function doGet(e){
     if(values[r][0] === '' || values[r][0] === null) continue;
     out.push(_rowToObj(values[r]));
   }
-  return _json({ok:true, inscritos: out, serverTime: new Date().toISOString(), user: u.email, role: u.role});
+  return _json({ok:true, inscritos: out,
+    despesas: _collGetAll(DESP_SHEET, DESP_HEADERS),
+    movimentos: _collGetAll(MOV_SHEET, MOV_HEADERS),
+    serverTime: new Date().toISOString(), user: u.email, role: u.role});
 }
 
 // PUSH: POST body {token, idToken, inscritos:[...]}
@@ -178,7 +229,10 @@ function doPost(e){
       else { sh.appendRow(row); }
       saved++;
     });
-    return _json({ok:true, saved: saved, serverTime: now, user: email, role: u.role});
+    var savedDesp=0, savedMov=0;
+    if(body.despesas || body.despesasDel){ savedDesp=_collUpsert(DESP_SHEET, DESP_HEADERS, body.despesas||[], email, now, body.despesasDel||[]); }
+    if(body.movimentos || body.movimentosDel){ savedMov=_collUpsert(MOV_SHEET, MOV_HEADERS, body.movimentos||[], email, now, body.movimentosDel||[]); }
+    return _json({ok:true, saved: saved, savedDesp: savedDesp, savedMov: savedMov, serverTime: now, user: email, role: u.role});
   } finally {
     lock.releaseLock();
   }
