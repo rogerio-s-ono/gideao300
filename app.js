@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.13';
+const APP_VERSION = 'v2.14';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
@@ -980,7 +980,7 @@ async function startAppAfterLogin(){
   refresh();
   if('serviceWorker' in navigator){ try{ await registerSWWithUpdate(); }catch(e){} }
   if(ONLINE_ENABLED){
-    setSync(navigator.onLine?'syncing':'off');
+    setSync('off');
     syncNow();
     window.addEventListener('online', ()=>{ retryDelay=0; syncNow(); });
     window.addEventListener('offline', ()=>setSync('off'));
