@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.19-beta2';
+const APP_VERSION = 'v2.19-beta3';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -958,7 +958,15 @@ function onGoogleCredential(resp){
   hideLoginGate();
   startAppAfterLogin();
 }
+function isBetaEnv(){ return location.pathname.indexOf('/beta/')>=0 || location.pathname.indexOf('/beta')>=0; }
+function applyEnvBadges(){
+  // versão na tela de login
+  const lv=$('#loginVer'); if(lv) lv.textContent = APP_VERSION;
+  // selo BETA no header (só no ambiente beta)
+  const bb=$('#betaBadge'); if(bb) bb.classList.toggle('hidden', !isBetaEnv());
+}
 function initGoogleLogin(){
+  applyEnvBadges();
   if(!ONLINE_ENABLED){ hideLoginGate(); startAppAfterLogin(); return; }
   // se já temos token de sessão válido, tenta usar (será revalidado no 1º sync)
   const saved = sessionStorage.getItem('gd_idtoken');
