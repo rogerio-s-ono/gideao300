@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.19-beta11';
+const APP_VERSION = 'v2.19-beta12';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -560,7 +560,7 @@ async function openModal(id){
   $('#f-numero').value=rec?(rec.numero||''):nextNum;
   $('#f-numero').placeholder=nextNum||'auto';
   fillSelect('#f-tamanho',TAMANHOS,rec?rec.tamanho:'');
-  fillSelect('#p-tipo',TIPOS,'');
+  fillSelect('#p-tipo',TIPOS,'Dinheiro');
   if($('#p-outros-wrap')){ $('#p-outros-wrap').classList.add('hidden'); $('#p-comentario').value=''; }
   $('#f-nome').value=rec?rec.nome:'';
   $('#f-telefone').value=rec?(rec.telefone||''):'';
