@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.19-beta14';
+const APP_VERSION = 'v2.19-beta15';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -49,7 +49,7 @@ const I18N = {
     navConfeccao:'Confecção', camisa:'Camisa', camisaStatus:'Estado da camisa',
     est0:'A fazer', est1:'Em confecção', est2:'Pronta', est3:'Entregue',
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
-    avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total',
+    avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
     verConfeccao:'Abrir na Confecção',
     pendPag:'Pendente pagamento', pago:'Pago', alteracoesSalvas:'Alterações salvas',
     semAlteracoes:'Sem alterações', confirmSairConf:'Há alterações não salvas. Sair mesmo assim?',
@@ -107,7 +107,7 @@ const I18N = {
     navConfeccao:'Confección', camisa:'Camiseta', camisaStatus:'Estado de la camiseta',
     est0:'Por hacer', est1:'En confección', est2:'Lista', est3:'Entregada',
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
-    avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total',
+    avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
     verConfeccao:'Abrir en Confección',
     pendPag:'Pago pendiente', pago:'Pagado', alteracoesSalvas:'Cambios guardados',
     semAlteracoes:'Sin cambios', confirmSairConf:'Hay cambios sin guardar. ¿Salir de todos modos?',
@@ -367,10 +367,15 @@ async function renderPainel(){
 }
 
 /* ---------- confecção ---------- */
-const CONF_FILTERS=[['todos','fTodos'],['0','cAfazer'],['1','cEmConf'],['2','cPronta'],['3','cEntregue']];
-function renderConfFilters(){
-  $('#confFilters').innerHTML=CONF_FILTERS.map(([k,l])=>`<div class="chip ${state.confFilter===k?'active':''}" data-f="${k}">${t(l)}</div>`).join('');
-  $$('#confFilters .chip').forEach(c=>c.onclick=()=>{state.confFilter=c.dataset.f;renderConfFilters();renderConfList();});
+// [filtro key, label i18n, classe do badge de cor]
+const CONF_FILTERS=[['todos','fTodos',''],['0','cAfazer','cb-grey'],['1','cEmConf','cb-amber'],['2','cPronta','cb-gold'],['3','cEntregue','cb-green'],['pend','pendPag','cb-red']];
+function renderConfFilters(counts){
+  const cc=counts||{};
+  $('#confFilters').innerHTML=CONF_FILTERS.map(([k,l,cls])=>{
+    const n=(cc[k]!=null)?cc[k]:0;
+    return `<div class="chip ${state.confFilter===k?'active':''}" data-f="${k}">${t(l)} <span class="cbadge ${cls}">${n}</span></div>`;
+  }).join('');
+  $$('#confFilters .chip').forEach(c=>c.onclick=()=>{state.confFilter=c.dataset.f;renderConfeccao();});
 }
 async function renderConfeccao(){
   const all=await getAll();
@@ -379,22 +384,19 @@ async function renderConfeccao(){
     if(statusPag(i)!=='pago'){ pendPagCount++; return; }  // sem pagamento completo -> não entra em nenhuma etapa
     c[i.camisaEstado||0]++;
   });
-  $('#confKpis').innerHTML=`
-    <div class="kpi"><div class="n" style="color:var(--grey)">${c[0]}</div><div class="l">${t('cAfazer')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--amber)">${c[1]}</div><div class="l">${t('cEmConf')}</div></div>
-    <div class="kpi"><div class="n" style="color:#7a6a45">${c[2]}</div><div class="l">${t('cPronta')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--green)">${c[3]}</div><div class="l">${t('cEntregue')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--red)">${pendPagCount}</div><div class="l">${t('pendPag')}</div></div>`;
-  renderConfFilters();
+  // contagens para os badges dos filtros (contador dentro do chip)
+  const counts={ todos: all.length, '0':c[0], '1':c[1], '2':c[2], '3':c[3], pend:pendPagCount };
+  renderConfFilters(counts);
   renderConfList();
-  // resumo por tamanho x estado (para produção): mostra pendentes de produção (a fazer + em confecção) por tamanho
-  const bySize={};
-  all.forEach(i=>{ if(statusPag(i)!=='pago') return; const s=(i.tamanho||'—').trim()||'—'; if(!bySize[s])bySize[s]=[0,0,0,0]; bySize[s][i.camisaEstado||0]++; });
+  // resumo por tamanho x estado (para produção): pagos por tamanho e status
+  const bySize={}; const totCol=[0,0,0,0];
+  all.forEach(i=>{ if(statusPag(i)!=='pago') return; const s=(i.tamanho||'—').trim()||'—'; if(!bySize[s])bySize[s]=[0,0,0,0]; const e=i.camisaEstado||0; bySize[s][e]++; totCol[e]++; });
   const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  const totGeral=totCol[0]+totCol[1]+totCol[2]+totCol[3];
   let html=`<div class="tablewrap"><table class="grid"><thead><tr><th>${t('thTam')}</th><th class="c">${t('cAfazer')}</th><th class="c">${t('cEmConf')}</th><th class="c">${t('cPronta')}</th><th class="c">${t('cEntregue')}</th><th class="c">${t('totalConf')}</th></tr></thead><tbody>`;
   keys.forEach(s=>{const a=bySize[s];const tot=a[0]+a[1]+a[2]+a[3];html+=`<tr><td>${esc(s)}</td><td class="c">${a[0]||''}</td><td class="c">${a[1]||''}</td><td class="c">${a[2]||''}</td><td class="c">${a[3]||''}</td><td class="c"><b>${tot}</b></td></tr>`;});
-  html+=`</tbody></table></div>`;
+  html+=`</tbody><tfoot><tr><td>${t('totalGeral')}</td><td class="c">${totCol[0]}</td><td class="c">${totCol[1]}</td><td class="c">${totCol[2]}</td><td class="c">${totCol[3]}</td><td class="c">${totGeral}</td></tr></tfoot></table></div>`;
   $('#confSize').innerHTML=html;
 }
 async function renderConfList(){
@@ -402,6 +404,8 @@ async function renderConfList(){
   const f=state.confFilter;
   const filtered=all.filter(i=>{
     if(f==='todos') return true;
+    // filtro "pendente de pagamento": Gideões sem pagamento completo
+    if(f==='pend') return statusPag(i)!=='pago';
     // mantém visível qualquer card em edição, para não sumir ao trocar status antes de salvar
     if(i.id in state.confDirty) return true;
     // gate de pagamento: sem pagamento completo não entra em nenhuma etapa (A fazer/Em conf/Pronta/Entregue)
