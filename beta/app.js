@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.19-beta5';
+const APP_VERSION = 'v2.19-beta6';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -960,23 +960,23 @@ async function refresh(){
 
 /* ---------- atualização (via version.json — confiável) ---------- */
 let bannerShown=false;
-function showUpdateBanner(){
+function showUpdateBanner(newVer){
   if(bannerShown) return;
   bannerShown=true;
   const b=$('#updateBanner');
-  $('#updateMsg').textContent=t('novaVersao');
+  $('#updateMsg').textContent = t('novaVersao') + (newVer? ` (${APP_VERSION} → ${newVer})` : '');
   $('#updateBtn').textContent=t('atualizar');
   b.classList.remove('hidden');
   $('#updateBtn').onclick=async()=>{
     $('#updateBtn').disabled=true;
     $('#updateBtn').textContent=t('atualizando');
     try{
-      // limpa caches e atualiza o service worker para garantir código novo
+      // desregistra o service worker (garante que o app.js novo venha da rede) + limpa caches
+      if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.unregister())); }
       if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
-      if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.update().catch(()=>{}))); }
     }catch(e){}
-    // recarrega forçando rede
-    setTimeout(()=>{ location.reload(); }, 300);
+    // recarrega forçando rede (cache-buster)
+    setTimeout(()=>{ location.replace(location.pathname + '?u=' + Date.now()); }, 300);
   };
 }
 async function checkVersion(){
@@ -984,7 +984,7 @@ async function checkVersion(){
     const r=await fetchTimeout('version.json?ts='+Date.now(), {cache:'no-store'}, 8000);
     if(!r.ok) return;
     const data=await r.json();
-    if(data && data.version && data.version!==APP_VERSION){ showUpdateBanner(); }
+    if(data && data.version && data.version!==APP_VERSION){ showUpdateBanner(data.version); }
   }catch(e){ /* offline: ignora */ }
 }
 async function registerSWWithUpdate(){
