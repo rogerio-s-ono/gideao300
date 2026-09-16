@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.19-beta6';
+const APP_VERSION = 'v2.19-beta7';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -73,7 +73,8 @@ const I18N = {
     novaDespesa:'Nova despesa', editarDespesa:'Editar despesa', descricao:'Descrição', categoria:'Categoria', pagoDe:'Pago de (bolso)', observacao:'Observação',
     novaMovimentacao:'Nova movimentação', editarMovimentacao:'Editar movimentação', de:'De', para:'Para', comentario:'Comentário',
     arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?',
-    extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento'
+    extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento',
+    fotosFatura:'Fotos da fatura (até 3)', tirarFoto:'📷 Tirar/anexar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.'
   },
   es:{
     appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
@@ -128,7 +129,8 @@ const I18N = {
     novaDespesa:'Nuevo gasto', editarDespesa:'Editar gasto', descricao:'Descripción', categoria:'Categoría', pagoDe:'Pagado de (bolsa)', observacao:'Observación',
     novaMovimentacao:'Nuevo traspaso', editarMovimentacao:'Editar traspaso', de:'De', para:'A', comentario:'Comentario',
     arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?',
-    extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago'
+    extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago',
+    fotosFatura:'Fotos de la factura (hasta 3)', tirarFoto:'📷 Tomar/adjuntar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.'
   }
 };
 let lang = localStorage.getItem('lang') || 'pt';
@@ -735,7 +737,7 @@ $('#btnReset') && ($('#btnReset').onclick=async()=>{ if(!confirm(t('confirmReset
 /* ---------- CAIXA (financeiro, só admin) ---------- */
 const CATEGORIAS=['Camisas','Material','Outros'];
 const BOLSO_LABEL={dinheiro:'Dinheiro',banco:'Banco',outros:'Outros'};
-let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null };
+let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[] };
 function eur(n){ return (Math.round((+n||0)*100)/100).toLocaleString('pt-PT')+' €'; }
 
 async function loadCaixa(){
@@ -768,7 +770,7 @@ function renderCaixaList(){
     const arr=caixaState.despesas.slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
     if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
     el.innerHTML=arr.map(d=>`<div class="cx-item" data-id="${d.id}" data-k="desp">
-      <div><div class="desc">${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}</div></div>
+      <div><div class="desc">${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
       <div class="amt out">−${eur(d.valor)}</div></div>`).join('');
     el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>openDesp(+it.dataset.id));
   } else {
@@ -791,16 +793,63 @@ function openDesp(id){
   fillSelect('#d-categoria', CATEGORIAS, d? d.categoria : 'Camisas');
   fillSelect('#d-bolso', BOLSOS.map(b=>BOLSO_LABEL[b]), d? BOLSO_LABEL[d.bolso] : 'Banco');
   $('#d-obs').value = d? (d.obs||'') : '';
+  caixaState.draftFotos = (d && Array.isArray(d.fotos)) ? d.fotos.map(u=>({url:u})) : [];
+  renderDraftFotos();
   $('#despDel').classList.toggle('hidden', !d);
   $('#despModal').classList.remove('hidden');
 }
 function bolsoFromLabel(lbl){ for(const b of BOLSOS){ if(BOLSO_LABEL[b]===lbl) return b; } return 'banco'; }
+/* --- fotos de fatura --- */
+function compressImage(file, maxDim, quality){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{ const img=new Image(); img.onload=()=>{
+      let {width:w,height:h}=img; const scale=Math.min(1, maxDim/Math.max(w,h));
+      w=Math.round(w*scale); h=Math.round(h*scale);
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      res(cv.toDataURL('image/jpeg', quality));
+    }; img.onerror=rej; img.src=fr.result; };
+    fr.onerror=rej; fr.readAsDataURL(file);
+  });
+}
+function renderDraftFotos(){
+  const el=$('#d-fotos'); if(!el) return;
+  el.innerHTML=(caixaState.draftFotos||[]).map((f,idx)=>{
+    const src = f.dataUrl || thumbFromUrl(f.url);
+    return `<div class="foto-thumb"><img src="${src}" alt="foto"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
+  }).join('');
+  el.querySelectorAll('.rm').forEach(b=>b.onclick=()=>{ caixaState.draftFotos.splice(+b.dataset.i,1); renderDraftFotos(); });
+  const addBtn=$('#d-addFoto'); if(addBtn) addBtn.style.display=(caixaState.draftFotos.length>=3)?'none':'block';
+}
+function thumbFromUrl(url){ if(!url) return ''; const m=url.match(/\/d\/([^/]+)\//); return m? ('https://drive.google.com/thumbnail?id='+m[1]) : url; }
+$('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ alert(t('maxFotos')); return; } $('#d-fotoInput').click(); });
+$('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
+  const file=e.target.files && e.target.files[0]; if(!file) return;
+  try{ const dataUrl=await compressImage(file, 1280, 0.7); caixaState.draftFotos.push({dataUrl}); renderDraftFotos(); }
+  catch(err){ alert('Erro ao processar a foto'); }
+  e.target.value='';
+});
 $('#despSave') && ($('#despSave').onclick=async()=>{
   const desc=$('#d-desc').value.trim(); const v=parseFloat(($('#d-valor').value||'').replace(',','.'));
   if(!desc||!v||v<=0){ alert(t('nomeObrig')); return; }
+  // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
+  const btn=$('#despSave'); const orig=btn.textContent;
+  try{
+    for(const f of caixaState.draftFotos){
+      if(f.url) continue;                       // já é uma URL (foto existente)
+      if(!ONLINE_ENABLED||!auth.idToken){ break; } // offline: mantém dataUrl (sobe depois — simplificado: fica local)
+      btn.disabled=true; btn.textContent=t('enviandoFoto');
+      const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:'fatura_'+Date.now()+'.jpg'})}, 30000);
+      const d=await resp.json(); if(d.ok && d.url){ f.url=d.url; delete f.dataUrl; }
+    }
+  }catch(e){ alert('Falha ao enviar foto: '+e.message); btn.disabled=false; btn.textContent=orig; return; }
+  btn.disabled=false; btn.textContent=orig;
   const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
   rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
   rec.bolso=bolsoFromLabel($('#d-bolso').value); rec.obs=$('#d-obs').value.trim();
+  rec.fotos=(caixaState.draftFotos||[]).map(f=>f.url).filter(Boolean);
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id!=null?rec.id:newId);
   $('#despModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow();

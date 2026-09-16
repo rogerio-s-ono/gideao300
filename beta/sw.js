@@ -1,5 +1,5 @@
 /* Service worker — Gideão 300 */
-const CACHE = 'gideao300-beta-v6';
+const CACHE = 'gideao300-beta-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -8,7 +8,7 @@ const ASSETS = [
   './manifest.json',
   './seed.json',
   './icon-192.png',
-  './icon-512.png','./icon-192-beta.png','./icon-512-beta.png',
+  './icon-512.png',
   './logo-cf.png',
   './logo-cf-light.png',
   './logo-gideao.png',
