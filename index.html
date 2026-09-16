@@ -197,6 +197,18 @@
   .mov-flow{display:flex;align-items:flex-end;gap:8px;margin:6px 0}
   .mov-box{flex:1} .mov-box span{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
   .mov-arrow{color:var(--accent);font-size:22px;padding-bottom:8px}
+  .bolso{cursor:pointer}
+  .ext-saldo{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;font-size:14px}
+  .ext-saldo b{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--accent)}
+  .ext-item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+  .ext-item .e-d{font-weight:500;font-size:14px}
+  .ext-item .e-m{font-size:12px;color:var(--muted);margin-top:2px}
+  .ext-item .e-right{text-align:right;white-space:nowrap}
+  .ext-item .e-v{font-family:var(--serif);font-size:16px;font-weight:600}
+  .ext-item .e-v.pos{color:var(--green)} .ext-item .e-v.neg{color:var(--red)}
+  .ext-item .e-bal{font-size:11px;color:var(--muted);margin-top:2px}
+  .ext-item.clickable{cursor:pointer}
+  .ext-tag{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:600;margin-right:6px}
   .app-version span{color:var(--accent);font-weight:600}
   .acct{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
   .acct-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;gap:10px}
@@ -345,9 +357,9 @@
       <div class="sub" id="cxSaldoSub"></div>
     </div>
     <div class="bolsos">
-      <div class="bolso dinheiro"><div class="b-v" id="cxDinheiro">—</div><div class="b-l" data-i="bolsoDinheiro">Dinheiro</div></div>
-      <div class="bolso banco"><div class="b-v" id="cxBanco">—</div><div class="b-l" data-i="bolsoBanco">Banco</div></div>
-      <div class="bolso outros"><div class="b-v" id="cxOutros">—</div><div class="b-l" data-i="bolsoOutros">Outros</div></div>
+      <div class="bolso dinheiro" data-bolso="dinheiro"><div class="b-v" id="cxDinheiro">—</div><div class="b-l" data-i="bolsoDinheiro">Dinheiro</div></div>
+      <div class="bolso banco" data-bolso="banco"><div class="b-v" id="cxBanco">—</div><div class="b-l" data-i="bolsoBanco">Banco</div></div>
+      <div class="bolso outros" data-bolso="outros"><div class="b-v" id="cxOutros">—</div><div class="b-l" data-i="bolsoOutros">Outros</div></div>
     </div>
     <h3 data-i="conciliacaoBanco">Conciliação bancária</h3>
     <div class="concil">
@@ -542,6 +554,18 @@
     <button class="btn primary" id="movSave" data-i="salvar">Salvar</button>
     <button class="btn danger hidden" id="movDel" data-i="excluir">Excluir</button>
     <button class="btn ghost" id="movCancel" data-i="cancelar">Cancelar</button>
+  </div>
+</div>
+
+<!-- EXTRATO por bolso -->
+<div class="overlay hidden" id="extratoModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <button id="extBack" class="back-btn" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
+      <h2 id="extTitle">Extrato</h2>
+    </div>
+    <div class="ext-saldo"><span data-i="saldoAtual">Saldo atual</span><b id="extSaldo">—</b></div>
+    <div id="extList"></div>
   </div>
 </div>
 

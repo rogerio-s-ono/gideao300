@@ -72,7 +72,8 @@ const I18N = {
     diferenca:'Diferença', lancamentos:'Lançamentos', despesas:'Despesas', movimentacoes:'Movimentações',
     novaDespesa:'Nova despesa', editarDespesa:'Editar despesa', descricao:'Descrição', categoria:'Categoria', pagoDe:'Pago de (bolso)', observacao:'Observação',
     novaMovimentacao:'Nova movimentação', editarMovimentacao:'Editar movimentação', de:'De', para:'Para', comentario:'Comentário',
-    arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?'
+    arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?',
+    extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento'
   },
   es:{
     appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
@@ -126,7 +127,8 @@ const I18N = {
     diferenca:'Diferencia', lancamentos:'Movimientos', despesas:'Gastos', movimentacoes:'Traspasos',
     novaDespesa:'Nuevo gasto', editarDespesa:'Editar gasto', descricao:'Descripción', categoria:'Categoría', pagoDe:'Pagado de (bolsa)', observacao:'Observación',
     novaMovimentacao:'Nuevo traspaso', editarMovimentacao:'Editar traspaso', de:'De', para:'A', comentario:'Comentario',
-    arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?'
+    arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?',
+    extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago'
   }
 };
 let lang = localStorage.getItem('lang') || 'pt';
@@ -839,6 +841,54 @@ $('#fabCaixa') && ($('#fabCaixa').onclick=()=>{ caixaState.tab==='despesas'? ope
 $('#cxBancoReal') && ($('#cxBancoReal').oninput=()=>renderCaixa());
 // marcador de pendência para sync das novas coleções (chave composta)
 function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=1; localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
+
+/* --- Extrato por bolso --- */
+async function openExtrato(bolso){
+  const inscritos=await getAll();
+  const lanc=[]; // {data, tipo, desc, valor(sinal), kind, refId}
+  // entradas (pagamentos que caem neste bolso)
+  inscritos.forEach(i=>(i.pagamentos||[]).forEach((p,idx)=>{
+    if(bolsoDaForma(p.tipo)!==bolso) return;
+    lanc.push({ data:p.data||'', tipo:t('entrada'), desc:`${t('pagamentoDe')} — ${i.nome}${p.tipo==='Outros'&&p.nota?' ('+p.nota+')':''}`, valor:(+p.valor||0), kind:'pag' });
+  }));
+  // despesas pagas deste bolso
+  caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor:-(+d.valor||0), kind:'desp', refId:d.id }); });
+  // movimentações que afetam este bolso
+  caixaState.movimentos.forEach(m=>{
+    if(m.para===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:(+m.valor||0), kind:'mov', refId:m.id });
+    if(m.de===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:-(+m.valor||0), kind:'mov', refId:m.id });
+  });
+  // ordena CRONOLOGICO crescente para calcular saldo corrente
+  lanc.sort((a,b)=>toISODate(a.data).localeCompare(toISODate(b.data)));
+  let bal=0; lanc.forEach(l=>{ bal+=l.valor; l.bal=bal; });
+  const saldoFinal=bal;
+  // exibe recente no topo
+  lanc.reverse();
+  $('#extTitle').textContent=`${t('extrato')} · ${BOLSO_LABEL[bolso]}`;
+  $('#extSaldo').textContent=eur(saldoFinal);
+  const el=$('#extList');
+  if(!lanc.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
+  else el.innerHTML=lanc.map(l=>{
+    const pos=l.valor>=0; const clk=(l.kind==='desp'||l.kind==='mov');
+    return `<div class="ext-item ${clk?'clickable':''}" ${clk?`data-kind="${l.kind}" data-id="${l.refId}"`:''}>
+      <div><div class="e-d"><span class="ext-tag">${l.tipo}</span>${esc(l.desc)}</div><div class="e-m">${fmtShort(l.data)}</div></div>
+      <div class="e-right"><div class="e-v ${pos?'pos':'neg'}">${pos?'+':'−'}${eur(Math.abs(l.valor))}</div><div class="e-bal">${eur(l.bal)}</div></div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.ext-item.clickable').forEach(it=>it.onclick=()=>{
+    const kind=it.dataset.kind, id=+it.dataset.id;
+    $('#extratoModal').classList.add('hidden');
+    if(kind==='desp') openDesp(id); else if(kind==='mov') openMov(id);
+  });
+  $('#extratoModal').classList.remove('hidden');
+  const sh=$('#extratoModal .sheet'); if(sh) sh.scrollTop=0;
+}
+document.addEventListener('click',(e)=>{
+  const b=e.target.closest && e.target.closest('#view-caixa .bolso');
+  if(b && b.dataset.bolso && state.view==='caixa'){ openExtrato(b.dataset.bolso); }
+});
+$('#extBack') && ($('#extBack').onclick=()=>$('#extratoModal').classList.add('hidden'));
+$('#extratoModal') && $('#extratoModal').addEventListener('click',e=>{ if(e.target.id==='extratoModal') $('#extratoModal').classList.add('hidden'); });
 
 function doSetView(v){
   // guarda a posição de scroll da tab atual
