@@ -74,7 +74,9 @@ const I18N = {
     novaMovimentacao:'Nova movimentação', editarMovimentacao:'Editar movimentação', de:'De', para:'Para', comentario:'Comentário',
     arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?',
     extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento',
-    fotosFatura:'Fotos da fatura (até 3)', tirarFoto:'📷 Tirar/anexar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.'
+    fotosFatura:'Fotos da fatura (até 3)', tirarFoto:'📷 Tirar/anexar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.',
+    fotoSemConexao:'Sem conexão para enviar a foto. Conecte-se à internet e tente salvar novamente (ou remova a foto para salvar sem ela).',
+    fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
   es:{
     appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
@@ -130,7 +132,9 @@ const I18N = {
     novaMovimentacao:'Nuevo traspaso', editarMovimentacao:'Editar traspaso', de:'De', para:'A', comentario:'Comentario',
     arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?',
     extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago',
-    fotosFatura:'Fotos de la factura (hasta 3)', tirarFoto:'📷 Tomar/adjuntar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.'
+    fotosFatura:'Fotos de la factura (hasta 3)', tirarFoto:'📷 Tomar/adjuntar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.',
+    fotoSemConexao:'Sin conexión para enviar la foto. Conéctate a internet e intenta guardar de nuevo (o quita la foto para guardar sin ella).',
+    fotoFalhou:'No se pudo enviar la foto. El gasto NO se guardó. Intenta de nuevo o quita la foto.'
   }
 };
 let lang = localStorage.getItem('lang') || 'pt';
@@ -845,17 +849,30 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   if(!desc||!v||v<=0){ alert(t('nomeObrig')); return; }
   // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
   const btn=$('#despSave'); const orig=btn.textContent;
-  try{
-    for(const f of caixaState.draftFotos){
-      if(f.url) continue;                       // já é uma URL (foto existente)
-      if(!ONLINE_ENABLED||!auth.idToken){ break; } // offline: mantém dataUrl (sobe depois — simplificado: fica local)
-      btn.disabled=true; btn.textContent=t('enviandoFoto');
-      const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:'fatura_'+Date.now()+'.jpg'})}, 30000);
-      const d=await resp.json(); if(d.ok && d.url){ f.url=d.url; delete f.dataUrl; }
+  // valida upload das fotos ANTES de salvar; se alguma falhar, aborta e avisa (não finge que subiu)
+  const pendentes=caixaState.draftFotos.filter(f=>!f.url && f.dataUrl);
+  if(pendentes.length){
+    if(!ONLINE_ENABLED || !auth.idToken || !navigator.onLine){
+      alert(t('fotoSemConexao'));   // precisa de internet para enviar a foto
+      return;
     }
-  }catch(e){ alert('Falha ao enviar foto: '+e.message); btn.disabled=false; btn.textContent=orig; return; }
-  btn.disabled=false; btn.textContent=orig;
+    btn.disabled=true; btn.textContent=t('enviandoFoto');
+    for(const f of pendentes){
+      let d=null, err=null;
+      try{
+        const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:'fatura_'+Date.now()+'.jpg'})}, 45000);
+        try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
+      }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
+      if(!d || !d.ok || !d.url){
+        btn.disabled=false; btn.textContent=orig;
+        alert(t('fotoFalhou') + (err? ('\n('+err+')') : (d && d.error? ('\n('+d.error+')') : '')));
+        return;   // ABORTA o salvamento — foto não subiu, não deixa achar que subiu
+      }
+      f.url=d.url; delete f.dataUrl;   // sucesso confirmado
+    }
+    btn.disabled=false; btn.textContent=orig;
+  }
   const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
   rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
   rec.bolso=bolsoFromLabel($('#d-bolso').value); rec.obs=$('#d-obs').value.trim();
