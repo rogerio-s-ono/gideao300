@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.23';
+const APP_VERSION = 'v3.24';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -278,7 +278,7 @@ function fmtNum(v){
   return (!isNaN(n) && n>=0 && n<10 && /^\d+$/.test(s)) ? ('0'+n) : s;
 }
 
-let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confHighlight:null, confDirty:{}, scrollPos:{} };
+let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, confDirty:{}, scrollPos:{} };
 
 /* ---------- render lista ---------- */
 const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['revisar','fRevisar']];
@@ -455,7 +455,9 @@ async function renderConfeccao(){
 async function renderConfList(){
   const all=(await getAll()).sort((a,b)=>numOrder(a.numero)-numOrder(b.numero)||a.nome.localeCompare(b.nome));
   const f=state.confFilter;
+  const qn=norm(state.confQ||'');
   const filtered=all.filter(i=>{
+    if(qn && !norm(i.nome).includes(qn)) return false;   // busca por nome (sem acento)
     if(f==='todos') return true;
     // filtro "pendente de pagamento": Gideões sem pagamento completo
     if(f==='pend') return statusPag(i)!=='pago';
@@ -520,6 +522,11 @@ async function renderConfList(){
     setDirtyData(rec, st, inp.value);
     updateSaveBtn(); renderConfList();
   });
+  // rola até o card destacado (vindo do modal), centralizado — mantém o highlight
+  if(state.confHighlight!=null){
+    const card=el.querySelector(`.confcard[data-id="${state.confHighlight}"]`);
+    if(card){ requestAnimationFrame(()=>{ try{ card.scrollIntoView({block:'center', behavior:'smooth'}); }catch(e){ card.scrollIntoView(); } }); }
+  }
 }
 
 // ----- estado efetivo (dirty ou salvo) -----
@@ -1195,6 +1202,8 @@ $('#btnSaveConf').onclick=saveConf;
 $$('nav button').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 $('#fab').onclick=()=>openModal(null);
 $('#q').oninput=e=>{ state.q=e.target.value; $('#qClear').classList.toggle('hidden', !e.target.value); renderList(); };
+$('#confQ') && ($('#confQ').oninput=e=>{ state.confQ=e.target.value; $('#confQClear').classList.toggle('hidden', !e.target.value); renderConfList(); });
+$('#confQClear') && ($('#confQClear').onclick=()=>{ const q=$('#confQ'); q.value=''; state.confQ=''; $('#confQClear').classList.add('hidden'); renderConfList(); q.focus(); });
 $('#qClear') && ($('#qClear').onclick=()=>{ const q=$('#q'); q.value=''; state.q=''; $('#qClear').classList.add('hidden'); renderList(); q.focus(); });
 
 // view mode toggle (cards / table)
