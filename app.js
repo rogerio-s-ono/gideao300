@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.16';
+const APP_VERSION = 'v3.17';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -251,10 +251,10 @@ function computeCaixa(inscritos, despesas, movimentos){
     var v=+d.valor||0;
     if(d.origemCusto==='pastor') cashPastor-=v; else cashTeso-=v;
   });
-  // movimentações que SAEM do dinheiro (ex.: depósito no banco) saem do "com tesoureiro" primeiro, depois pastor
+  // movimentações que SAEM do dinheiro (depósito): reduzem a custódia de origem (default tesoureiro), SEM transbordo
   (movimentos||[]).forEach(m=>{
     var v=+m.valor||0;
-    if(m.de==='dinheiro'){ var fromTeso=Math.min(cashTeso, v); cashTeso-=fromTeso; cashPastor-=(v-fromTeso); }
+    if(m.de==='dinheiro'){ if(m.origemCusto==='pastor') cashPastor-=v; else cashTeso-=v; }
     if(m.para==='dinheiro'){ cashTeso+=v; }  // entrada em dinheiro via movimentação vai p/ tesoureiro
   });
   // movimentações: realocam entre bolsos (não mudam o total)
@@ -873,18 +873,7 @@ $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
   cashSplitOpen=!cashSplitOpen;
   const lines=$('#cashLines'); if(lines) lines.classList.toggle('hidden', !cashSplitOpen);
   const head=$('#cashSplitHead'); if(head) head.classList.toggle('open', cashSplitOpen);
-  if(cashSplitOpen){ gdDiagCustodia(); }
 });
-// DIAGNÓSTICO TEMPORÁRIO — ative com window.GD_DIAG=true no console; mostra a decomposição do dinheiro
-async function gdDiagCustodia(){
-  const ins=await getAll();
-  const c=computeCaixa(ins, caixaState.despesas, caixaState.movimentos);
-  var movs=(caixaState.movimentos||[]).map(function(m){return m.de+'->'+m.para+' '+(+m.valor||0);}).join('\n');
-  var desp=(caixaState.despesas||[]).map(function(d){return (d.bolso||'?')+' '+(+d.valor||0)+' orig='+(d.origemCusto||'-');}).join('\n');
-  alert('DIAG v3\ncashTeso='+(c.cashTeso||0).toFixed(2)+' cashPastor='+(c.cashPastor||0).toFixed(2)
-    +'\n\nMOVIMENTOS ('+(caixaState.movimentos||[]).length+'):\n'+movs
-    +'\n\nDESPESAS ('+(caixaState.despesas||[]).length+'):\n'+desp);
-}
 function renderCaixaTabs(){
   $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
 }
@@ -1030,9 +1019,19 @@ function openMov(id){
   $('#m-valor').value = m? m.valor : '';
   $('#m-data').value = m? (m.data||hoje()) : hoje();
   $('#m-comentario').value = m? (m.comentario||'') : '';
+  // origem de custódia (só quando SAI do Dinheiro): pastor/tesoureiro
+  var morig = (m && m.origemCusto==='pastor') ? 'pastor' : 'tesoureiro';
+  $$('#movModal input[name="m-origem"]').forEach(r=>{ r.checked=(r.value===morig); });
+  updateMovOrigemVis();
   $('#movDel').classList.toggle('hidden', !m);
   $('#movModal').classList.remove('hidden');
 }
+// mostra "Saiu de" só quando a origem da movimentação é Dinheiro
+function updateMovOrigemVis(){
+  const row=$('#m-origemRow'); if(!row) return;
+  row.classList.toggle('hidden', bolsoFromLabel($('#m-de').value)!=='dinheiro');
+}
+$('#m-de') && ($('#m-de').addEventListener('change', updateMovOrigemVis));
 $('#movSave') && ($('#movSave').onclick=async()=>{
   if(writeBlocked()) return;
   const de=bolsoFromLabel($('#m-de').value), para=bolsoFromLabel($('#m-para').value);
@@ -1041,6 +1040,9 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   if(!v||v<=0){ alert(t('nomeObrig')); return; }
   const all=caixaState.movimentos; let rec=caixaState.editMov? all.find(x=>x.id===caixaState.editMov):{};
   rec.de=de; rec.para=para; rec.valor=v; rec.data=$('#m-data').value||hoje(); rec.comentario=$('#m-comentario').value.trim();
+  // custódia de origem só quando SAI do dinheiro
+  if(de==='dinheiro'){ const sel=$('#movModal input[name="m-origem"]:checked'); rec.origemCusto = sel? sel.value : 'tesoureiro'; }
+  else { rec.origemCusto=''; }
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_MOV, rec); markPendingKV('mov', rec.id!=null?rec.id:newId);
   $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();

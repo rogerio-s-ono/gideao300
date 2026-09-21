@@ -694,6 +694,13 @@
       <div><label data-i="data">Data</label><input id="m-data" type="date"></div>
     </div>
     <label data-i="comentario">Comentário</label><input id="m-comentario" placeholder="ex.: Depósito; Bizum Rogério">
+    <div id="m-origemRow" class="hidden">
+      <label data-i="saiuDe">Saiu de (dinheiro)</label>
+      <div class="origem-radio">
+        <label><input type="radio" name="m-origem" value="tesoureiro" checked> <span data-i="origemTesoureiro">Tesoureiro</span></label>
+        <label><input type="radio" name="m-origem" value="pastor"> <span data-i="origemPastor">Pastor</span></label>
+      </div>
+    </div>
     <button class="btn primary" id="movSave" data-i="salvar">Salvar</button>
     <button class="btn danger hidden" id="movDel" data-i="excluir">Excluir</button>
     <button class="btn ghost" id="movCancel" data-i="cancelar">Cancelar</button>
