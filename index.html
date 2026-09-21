@@ -182,6 +182,7 @@
   .toggle input{width:auto}
   #camisaStatusLine .cml-right{display:inline-flex;align-items:center;gap:8px}
   #camisaStatusLine .cml-right b{color:var(--accent)}
+  #camisaStatusLine .cml-date{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
   #camisaStatusLine .cml-shirt{width:20px;height:20px;fill:var(--accent)}
 
   /* grupos do formulario */
@@ -622,7 +623,7 @@
 
     <div class="toggle hidden" id="camisaStatusLine" style="cursor:pointer;margin-top:12px">
       <span data-i="camisaStatus">Estado da camisa</span>:
-      <span class="cml-right"><b id="f-camisa-txt"></b>
+      <span class="cml-right"><b id="f-camisa-txt"></b><span id="f-camisa-date" class="cml-date"></span>
         <svg class="cml-shirt" viewBox="0 0 24 24"><path d="M16 2l4 3-2 3-2-1v15H8V7L6 8 4 5l4-3 2 2h4z"/></svg>
       </span>
     </div>
