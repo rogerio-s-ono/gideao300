@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.31';
+const APP_VERSION = 'v3.32';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1140,6 +1140,7 @@ function custodyPill(kind){
   return `<span class="b ${cls}">${lbl}</span>`;
 }
 let extratoBolso=null;   // bolso atualmente aberto (para voltar ao extrato após editar)
+let extCust={teso:true, pastor:true};   // filtro de custódia no extrato do Dinheiro
 async function openExtrato(bolso){
   extratoBolso=bolso;
   const isCash = (bolso==='dinheiro');
@@ -1160,22 +1161,31 @@ async function openExtrato(bolso){
     if(m.para===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:(+m.valor||0), kind:'mov', refId:m.id });
     if(m.de===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:-(+m.valor||0), kind:'mov', refId:m.id });
   });
-  // ordena CRONOLOGICO crescente para calcular saldo corrente
+  // ordena CRONOLOGICO crescente para calcular saldo corrente (sobre TODOS, saldo total real)
   lanc.sort((a,b)=>toISODate(a.data).localeCompare(toISODate(b.data)));
   let bal=0; lanc.forEach(l=>{ bal+=l.valor; l.bal=bal; });
   const saldoFinal=bal;
+  // filtro de custódia (só no Dinheiro): afeta APENAS a exibição, não o saldo total
+  const custActive = isCash && !(extCust.teso && extCust.pastor);  // filtro ativo se algum desligado
+  let shown = lanc;
+  if(isCash){ shown = lanc.filter(l=>{ if(l.cust==='teso') return extCust.teso; if(l.cust==='pastor') return extCust.pastor; return !custActive; }); }
   // ordem de exibição conforme o toggle (default: recente no topo)
-  if(caixaState.sortDesc) lanc.reverse();
+  if(caixaState.sortDesc) shown=shown.slice().reverse();
   $('#extTitle').textContent=`${t('extrato')} · ${BOLSO_LABEL[bolso]}`;
   $('#extSaldo').textContent=eur(saldoFinal);
+  // controles: label de ordenação + filtros de custódia (só Dinheiro)
+  const sl=$('#extSortLbl'); if(sl) sl.textContent=caixaState.sortDesc? t('maisRecente') : t('maisAntigo');
+  const cf=$('#extCustFilters'); if(cf) cf.classList.toggle('hidden', !isCash);
+  $$('#extCustFilters .cust-toggle').forEach(b=>b.classList.toggle('on', !!extCust[b.dataset.cust]));
   const el=$('#extList');
-  if(!lanc.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
-  else el.innerHTML=lanc.map((l,i)=>{
-    const pos=l.valor>=0; const clk=true;  // todos clicáveis (pag abre Gideão; desp/mov abrem seus modais)
+  if(!shown.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
+  else el.innerHTML=shown.map((l)=>{
+    const pos=l.valor>=0;
     const tag = l.cust ? custodyPill(l.cust) : '';
-    return `<div class="ext-item clickable" data-idx="${i}">
+    const balHtml = custActive ? '' : `<div class="e-bal">${eur(l.bal)}</div>`;  // saldo corrente só sem filtro
+    return `<div class="ext-item clickable" data-idx="${lanc.indexOf(l)}">
       <div><div class="e-d"><span class="ext-tag">${l.tipo}</span>${esc(l.desc)}</div><div class="e-m">${fmtShort(l.data)}</div></div>
-      <div class="e-right">${tag}<div class="e-v ${pos?'pos':'neg'}">${pos?'+':'−'}${eur(Math.abs(l.valor))}</div><div class="e-bal">${eur(l.bal)}</div></div>
+      <div class="e-right">${tag}<div class="e-v ${pos?'pos':'neg'}">${pos?'+':'−'}${eur(Math.abs(l.valor))}</div>${balHtml}</div>
     </div>`;
   }).join('');
   el.querySelectorAll('.ext-item.clickable').forEach(it=>it.onclick=()=>{
@@ -1188,6 +1198,9 @@ async function openExtrato(bolso){
   $('#extratoModal').classList.remove('hidden');
   const sh=$('#extratoModal .sheet'); if(sh) sh.scrollTop=0;
 }
+// ordenação e filtros de custódia do extrato
+$('#extSortBtn') && ($('#extSortBtn').onclick=()=>{ caixaState.sortDesc=!caixaState.sortDesc; if(extratoBolso) openExtrato(extratoBolso); });
+$$('#extCustFilters .cust-toggle').forEach(b=>b.onclick=()=>{ extCust[b.dataset.cust]=!extCust[b.dataset.cust]; if(extratoBolso) openExtrato(extratoBolso); });
 // controla retorno ao extrato após editar a partir dele
 let extReturn=null;
 function backToExtratoIfNeeded(){

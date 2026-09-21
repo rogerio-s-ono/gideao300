@@ -196,6 +196,13 @@
   .lanc-head{display:flex;align-items:center;justify-content:space-between}
   .sort-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer;color:var(--muted);font-size:.78rem}
   .sort-btn svg{width:15px;height:15px;fill:currentColor}
+  .ext-ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+  .ext-cust-filters{display:flex;gap:6px;margin-left:auto}
+  .cust-toggle{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:.78rem;cursor:pointer;background:#fff;color:var(--muted);opacity:.45}
+  .cust-toggle.on{opacity:1;border-color:currentColor}
+  .cust-toggle .cdot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .cust-toggle .cdot.teso{background:#329864} .cust-toggle .cdot.pastor{background:#0050CA}
+  .cust-toggle[data-cust=teso].on{color:#329864} .cust-toggle[data-cust=pastor].on{color:#0050CA}
   /* pagamentos */
   .pay{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:9px 10px;background:var(--soft-grey);border-radius:8px;margin-top:6px;font-size:14px}
   .pay .pay-main{display:flex;align-items:center;gap:8px}
@@ -791,6 +798,16 @@
       <h2 id="extTitle">Extrato</h2>
     </div>
     <div class="ext-saldo"><span data-i="saldoAtual">Saldo atual</span><b id="extSaldo">—</b></div>
+    <div class="ext-ctrls">
+      <button type="button" id="extSortBtn" class="sort-btn" title="Ordenar por data">
+        <svg viewBox="0 0 24 24"><path d="M7 4v13l-3-3-1.4 1.4L8 21l5.4-5.6L12 14l-3 3V4H7zm9 0-5.4 5.6L12 11l3-3v13h2V8l3 3 1.4-1.4L16 4z"/></svg>
+        <span id="extSortLbl"></span>
+      </button>
+      <div class="ext-cust-filters hidden" id="extCustFilters">
+        <button type="button" class="cust-toggle on" data-cust="teso"><span class="cdot teso"></span><span data-i="origemTesoureiro">Tesoureiro</span></button>
+        <button type="button" class="cust-toggle on" data-cust="pastor"><span class="cdot pastor"></span><span data-i="origemPastor">Pastor</span></button>
+      </div>
+    </div>
     <div id="extList"></div>
   </div>
 </div>
