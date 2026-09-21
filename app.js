@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.13';
+const APP_VERSION = 'v3.14';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -873,7 +873,22 @@ $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
   cashSplitOpen=!cashSplitOpen;
   const lines=$('#cashLines'); if(lines) lines.classList.toggle('hidden', !cashSplitOpen);
   const head=$('#cashSplitHead'); if(head) head.classList.toggle('open', cashSplitOpen);
+  if(cashSplitOpen){ gdDiagCustodia(); }
 });
+// DIAGNÓSTICO TEMPORÁRIO — ative com window.GD_DIAG=true no console; mostra a decomposição do dinheiro
+async function gdDiagCustodia(){
+  const ins=await getAll();
+  let nDin=0, somaTeso=0, somaPastor=0, tipos={};
+  ins.forEach(i=>(i.pagamentos||[]).forEach(p=>{
+    if(bolsoDaForma(p.tipo)!=='dinheiro') return;
+    nDin++;
+    const c=payCustody(p);
+    if(c==='teso') somaTeso+=(+p.valor||0); else somaPastor+=(+p.valor||0);
+    const k=(p.tipo||'?')+'/receb='+(p.recebidoPor||'-')+'/entr='+(!!p.entregueTesoureiro);
+    tipos[k]=(tipos[k]||0)+1;
+  }));
+  alert('DIAG dinheiro\npagtos dinheiro: '+nDin+'\nteso='+somaTeso.toFixed(2)+' pastor='+somaPastor.toFixed(2)+'\n\nchaves:\n'+Object.keys(tipos).map(k=>k+' x'+tipos[k]).join('\n'));
+}
 function renderCaixaTabs(){
   $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
 }
