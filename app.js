@@ -3,9 +3,17 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.19';
+const APP_VERSION = 'v2.20';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
-const TIPOS = ['Dinheiro','Cartão/Máquina','Bizum','Cartão AME','Pix','Outro'];
+const TIPOS = ['Cartão','Dinheiro','Outros'];
+// mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
+function bolsoDaForma(tipo){
+  const s=(tipo||'').toLowerCase();
+  if(s==='dinheiro') return 'dinheiro';
+  if(s==='cartão'||s==='cartao'||s.indexOf('cartão/máquina')>=0||s.indexOf('cartao/maquina')>=0||s.indexOf('ame')>=0||s==='pix'||s.indexOf('máquina')>=0||s.indexOf('maquina')>=0) return 'banco';
+  return 'outros'; // Outros, Bizum, e qualquer forma antiga não bancária
+}
+const BOLSOS = ['dinheiro','banco','outros'];
 const EST = { AFAZER:0, EMCONF:1, PRONTA:2, ENTREGUE:3 };
 const estKey = e => ['est0','est1','est2','est3'][e||0];
 const estColor = e => ['var(--grey)','var(--amber)','#7a6a45','var(--green)'][e||0];
@@ -18,7 +26,7 @@ const I18N = {
     novoInscrito:'Novo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Tamanho', nome:'Nome', telefone:'Telefone',
     pagamentos:'Pagamentos (cota 300€)', valor:'Valor (€)', tipo:'Tipo', data:'Data',
-    addPagamento:'+ Pagamento', camisaPronta:'Camisa pronta', camisaEntregue:'Camisa entregue',
+    addPagamento:'+ Pagamento', comentarioOutros:'Comentário (Outros)', camisaPronta:'Camisa pronta', camisaEntregue:'Camisa entregue',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar',
     porTamanho:'Por tamanho (para a gráfica)', financeiro:'Financeiro',
@@ -41,7 +49,7 @@ const I18N = {
     navConfeccao:'Confecção', camisa:'Camisa', camisaStatus:'Estado da camisa',
     est0:'A fazer', est1:'Em confecção', est2:'Pronta', est3:'Entregue',
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
-    avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total',
+    avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
     verConfeccao:'Abrir na Confecção',
     pendPag:'Pendente pagamento', pago:'Pago', alteracoesSalvas:'Alterações salvas',
     semAlteracoes:'Sem alterações', confirmSairConf:'Há alterações não salvas. Sair mesmo assim?',
@@ -58,7 +66,17 @@ const I18N = {
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
     confirmRecarregar:'Isto APAGA tudo (planilha e app) e recarrega os 70 Gideões originais. Usar só para reiniciar os testes. Continuar?',
-    syncOk:'Sincronizado', syncPend:'Pendente', syncOff:'Offline', syncErr:'Erro', syncing:'Sincronizando…'
+    syncOk:'Sincronizado', syncPend:'Pendente', syncOff:'Offline', syncErr:'Erro', syncing:'Sincronizando…',
+    navCaixa:'Caixa', saldoProjeto:'Saldo do projeto', bolsoDinheiro:'Dinheiro', bolsoBanco:'Banco', bolsoOutros:'Outros',
+    conciliacaoBanco:'Conciliação bancária', saldoBancoCalc:'Saldo em banco (calculado)', saldoBancoReal:'Saldo real do banco',
+    diferenca:'Diferença', lancamentos:'Lançamentos', despesas:'Despesas', movimentacoes:'Movimentações',
+    novaDespesa:'Nova despesa', editarDespesa:'Editar despesa', descricao:'Descrição', categoria:'Categoria', pagoDe:'Pago de (bolso)', observacao:'Observação',
+    novaMovimentacao:'Nova movimentação', editarMovimentacao:'Editar movimentação', de:'De', para:'Para', comentario:'Comentário',
+    arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?',
+    extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento',
+    fotosFatura:'Fotos da fatura (até 3)', tirarFoto:'📷 Tirar/anexar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.',
+    fotoSemConexao:'Sem conexão para enviar a foto. Conecte-se à internet e tente salvar novamente (ou remova a foto para salvar sem ela).',
+    fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
   es:{
     appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
@@ -66,7 +84,7 @@ const I18N = {
     novoInscrito:'Nuevo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Talla', nome:'Nombre', telefone:'Teléfono',
     pagamentos:'Pagos (cuota 300€)', valor:'Importe (€)', tipo:'Tipo', data:'Fecha',
-    addPagamento:'+ Pago', camisaPronta:'Camiseta lista', camisaEntregue:'Camiseta entregada',
+    addPagamento:'+ Pago', comentarioOutros:'Comentario (Otros)', camisaPronta:'Camiseta lista', camisaEntregue:'Camiseta entregada',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar',
     porTamanho:'Por talla (para la imprenta)', financeiro:'Finanzas',
@@ -89,7 +107,7 @@ const I18N = {
     navConfeccao:'Confección', camisa:'Camiseta', camisaStatus:'Estado de la camiseta',
     est0:'Por hacer', est1:'En confección', est2:'Lista', est3:'Entregada',
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
-    avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total',
+    avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
     verConfeccao:'Abrir en Confección',
     pendPag:'Pago pendiente', pago:'Pagado', alteracoesSalvas:'Cambios guardados',
     semAlteracoes:'Sin cambios', confirmSairConf:'Hay cambios sin guardar. ¿Salir de todos modos?',
@@ -106,19 +124,33 @@ const I18N = {
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
     confirmRecarregar:'Esto BORRA todo (hoja y app) y recarga los 70 Gedeones originales. Usar solo para reiniciar las pruebas. ¿Continuar?',
-    syncOk:'Sincronizado', syncPend:'Pendiente', syncOff:'Sin conexión', syncErr:'Error', syncing:'Sincronizando…'
+    syncOk:'Sincronizado', syncPend:'Pendiente', syncOff:'Sin conexión', syncErr:'Error', syncing:'Sincronizando…',
+    navCaixa:'Caja', saldoProjeto:'Saldo del proyecto', bolsoDinheiro:'Efectivo', bolsoBanco:'Banco', bolsoOutros:'Otros',
+    conciliacaoBanco:'Conciliación bancaria', saldoBancoCalc:'Saldo en banco (calculado)', saldoBancoReal:'Saldo real del banco',
+    diferenca:'Diferencia', lancamentos:'Movimientos', despesas:'Gastos', movimentacoes:'Traspasos',
+    novaDespesa:'Nuevo gasto', editarDespesa:'Editar gasto', descricao:'Descripción', categoria:'Categoría', pagoDe:'Pagado de (bolsa)', observacao:'Observación',
+    novaMovimentacao:'Nuevo traspaso', editarMovimentacao:'Editar traspaso', de:'De', para:'A', comentario:'Comentario',
+    arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?',
+    extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago',
+    fotosFatura:'Fotos de la factura (hasta 3)', tirarFoto:'📷 Tomar/adjuntar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.',
+    fotoSemConexao:'Sin conexión para enviar la foto. Conéctate a internet e intenta guardar de nuevo (o quita la foto para guardar sin ella).',
+    fotoFalhou:'No se pudo enviar la foto. El gasto NO se guardó. Intenta de nuevo o quita la foto.'
   }
 };
 let lang = localStorage.getItem('lang') || 'pt';
 const t = (k,vars) => { let s=(I18N[lang][k]||k); if(vars) for(const p in vars) s=s.replace('{'+p+'}',vars[p]); return s; };
 
 /* ---------- IndexedDB ---------- */
-const DB_NAME='gideao300', STORE='inscritos';
+const DB_NAME='gideao300', STORE='inscritos', STORE_DESP='despesas', STORE_MOV='movimentos';
 let db;
 function openDB(){
   return new Promise((res,rej)=>{
-    const r=indexedDB.open(DB_NAME,1);
-    r.onupgradeneeded=e=>{ const d=e.target.result; if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE,{keyPath:'id',autoIncrement:true}); };
+    const r=indexedDB.open(DB_NAME,2);
+    r.onupgradeneeded=e=>{ const d=e.target.result;
+      if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains(STORE_DESP)) d.createObjectStore(STORE_DESP,{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains(STORE_MOV)) d.createObjectStore(STORE_MOV,{keyPath:'id',autoIncrement:true});
+    };
     r.onsuccess=e=>{db=e.target.result;res();};
     r.onerror=e=>rej(e);
   });
@@ -128,6 +160,12 @@ function getAll(){ return new Promise((res,rej)=>{ try{ const r=tx('readonly').g
 function put(rec){ return new Promise((res,rej)=>{ try{ const r=tx('readwrite').put(rec); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error||new Error('db_put')); }catch(e){ rej(e); } }); }
 function del(id){ return new Promise((res,rej)=>{ try{ const r=tx('readwrite').delete(id); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error||new Error('db_del')); }catch(e){ rej(e); } }); }
 function clearAll(){ return new Promise((res,rej)=>{ try{ const r=tx('readwrite').clear(); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error||new Error('db_clear')); }catch(e){ rej(e); } }); }
+// helpers genéricos por store (despesas/movimentos)
+function sx(store,mode){ return db.transaction(store,mode).objectStore(store); }
+function sGetAll(store){ return new Promise((res,rej)=>{ try{ const r=sx(store,'readonly').getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error||new Error('db_getAll')); }catch(e){ rej(e); } }); }
+function sPut(store,rec){ return new Promise((res,rej)=>{ try{ const r=sx(store,'readwrite').put(rec); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error||new Error('db_put')); }catch(e){ rej(e); } }); }
+function sDel(store,id){ return new Promise((res,rej)=>{ try{ const r=sx(store,'readwrite').delete(id); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error||new Error('db_del')); }catch(e){ rej(e); } }); }
+function sClear(store){ return new Promise((res,rej)=>{ try{ const r=sx(store,'readwrite').clear(); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error||new Error('db_clear')); }catch(e){ rej(e); } }); }
 
 async function migrate(){
   const all=await getAll();
@@ -155,6 +193,25 @@ const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
 const somaPago=i=>(i.pagamentos||[]).reduce((a,p)=>a+(+p.valor||0),0);
 function statusPag(i){ const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
+// calcula os 3 bolsos (dinheiro/banco/outros), saldo do projeto e formas
+function computeCaixa(inscritos, despesas, movimentos){
+  const bolso={dinheiro:0,banco:0,outros:0};
+  const forma={'Cartão':0,'Dinheiro':0,'Outros':0};
+  // entradas (pagamentos dos Gideões) -> bolso pela forma
+  (inscritos||[]).forEach(i=>(i.pagamentos||[]).forEach(p=>{
+    const v=+p.valor||0; const b=bolsoDaForma(p.tipo); bolso[b]+=v;
+    // consolidação por forma (mapeia antigas para as 3)
+    if(b==='banco') forma['Cartão']+=v; else if(b==='dinheiro') forma['Dinheiro']+=v; else forma['Outros']+=v;
+  }));
+  const arrecadado = bolso.dinheiro+bolso.banco+bolso.outros;
+  // movimentações: realocam entre bolsos (não mudam o total)
+  (movimentos||[]).forEach(m=>{ const v=+m.valor||0; if(bolso[m.de]!==undefined) bolso[m.de]-=v; if(bolso[m.para]!==undefined) bolso[m.para]+=v; });
+  // despesas: saem do bolso escolhido
+  let despTotal=0;
+  (despesas||[]).forEach(d=>{ const v=+d.valor||0; despTotal+=v; const b=d.bolso||'banco'; if(bolso[b]!==undefined) bolso[b]-=v; });
+  const saldoProjeto = arrecadado - despTotal;
+  return { bolso, arrecadado, despTotal, saldoProjeto, forma };
+}
 function hoje(){ const d=new Date(); const off=d.getTimezoneOffset(); const l=new Date(d.getTime()-off*60000); return l.toISOString().slice(0,10); }
 // remove acentos/diacríticos para busca (é->e, ã->a, ç->c, ñ->n...)
 function norm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
@@ -310,10 +367,15 @@ async function renderPainel(){
 }
 
 /* ---------- confecção ---------- */
-const CONF_FILTERS=[['todos','fTodos'],['0','cAfazer'],['1','cEmConf'],['2','cPronta'],['3','cEntregue']];
-function renderConfFilters(){
-  $('#confFilters').innerHTML=CONF_FILTERS.map(([k,l])=>`<div class="chip ${state.confFilter===k?'active':''}" data-f="${k}">${t(l)}</div>`).join('');
-  $$('#confFilters .chip').forEach(c=>c.onclick=()=>{state.confFilter=c.dataset.f;renderConfFilters();renderConfList();});
+// [filtro key, label i18n, classe do badge de cor]
+const CONF_FILTERS=[['todos','fTodos',''],['0','cAfazer','cb-grey'],['1','cEmConf','cb-amber'],['2','cPronta','cb-gold'],['3','cEntregue','cb-green'],['pend','pendPag','cb-red']];
+function renderConfFilters(counts){
+  const cc=counts||{};
+  $('#confFilters').innerHTML=CONF_FILTERS.map(([k,l,cls])=>{
+    const n=(cc[k]!=null)?cc[k]:0;
+    return `<div class="chip ${state.confFilter===k?'active':''}" data-f="${k}">${t(l)} <span class="cbadge ${cls}">${n}</span></div>`;
+  }).join('');
+  $$('#confFilters .chip').forEach(c=>c.onclick=()=>{state.confFilter=c.dataset.f;renderConfeccao();});
 }
 async function renderConfeccao(){
   const all=await getAll();
@@ -322,22 +384,19 @@ async function renderConfeccao(){
     if(statusPag(i)!=='pago'){ pendPagCount++; return; }  // sem pagamento completo -> não entra em nenhuma etapa
     c[i.camisaEstado||0]++;
   });
-  $('#confKpis').innerHTML=`
-    <div class="kpi"><div class="n" style="color:var(--grey)">${c[0]}</div><div class="l">${t('cAfazer')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--amber)">${c[1]}</div><div class="l">${t('cEmConf')}</div></div>
-    <div class="kpi"><div class="n" style="color:#7a6a45">${c[2]}</div><div class="l">${t('cPronta')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--green)">${c[3]}</div><div class="l">${t('cEntregue')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--red)">${pendPagCount}</div><div class="l">${t('pendPag')}</div></div>`;
-  renderConfFilters();
+  // contagens para os badges dos filtros (contador dentro do chip)
+  const counts={ todos: all.length, '0':c[0], '1':c[1], '2':c[2], '3':c[3], pend:pendPagCount };
+  renderConfFilters(counts);
   renderConfList();
-  // resumo por tamanho x estado (para produção): mostra pendentes de produção (a fazer + em confecção) por tamanho
-  const bySize={};
-  all.forEach(i=>{ if(statusPag(i)!=='pago') return; const s=(i.tamanho||'—').trim()||'—'; if(!bySize[s])bySize[s]=[0,0,0,0]; bySize[s][i.camisaEstado||0]++; });
+  // resumo por tamanho x estado (para produção): pagos por tamanho e status
+  const bySize={}; const totCol=[0,0,0,0];
+  all.forEach(i=>{ if(statusPag(i)!=='pago') return; const s=(i.tamanho||'—').trim()||'—'; if(!bySize[s])bySize[s]=[0,0,0,0]; const e=i.camisaEstado||0; bySize[s][e]++; totCol[e]++; });
   const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  const totGeral=totCol[0]+totCol[1]+totCol[2]+totCol[3];
   let html=`<div class="tablewrap"><table class="grid"><thead><tr><th>${t('thTam')}</th><th class="c">${t('cAfazer')}</th><th class="c">${t('cEmConf')}</th><th class="c">${t('cPronta')}</th><th class="c">${t('cEntregue')}</th><th class="c">${t('totalConf')}</th></tr></thead><tbody>`;
   keys.forEach(s=>{const a=bySize[s];const tot=a[0]+a[1]+a[2]+a[3];html+=`<tr><td>${esc(s)}</td><td class="c">${a[0]||''}</td><td class="c">${a[1]||''}</td><td class="c">${a[2]||''}</td><td class="c">${a[3]||''}</td><td class="c"><b>${tot}</b></td></tr>`;});
-  html+=`</tbody></table></div>`;
+  html+=`</tbody><tfoot><tr><td>${t('totalGeral')}</td><td class="c">${totCol[0]}</td><td class="c">${totCol[1]}</td><td class="c">${totCol[2]}</td><td class="c">${totCol[3]}</td><td class="c">${totGeral}</td></tr></tfoot></table></div>`;
   $('#confSize').innerHTML=html;
 }
 async function renderConfList(){
@@ -345,6 +404,8 @@ async function renderConfList(){
   const f=state.confFilter;
   const filtered=all.filter(i=>{
     if(f==='todos') return true;
+    // filtro "pendente de pagamento": Gideões sem pagamento completo
+    if(f==='pend') return statusPag(i)!=='pago';
     // mantém visível qualquer card em edição, para não sumir ao trocar status antes de salvar
     if(i.id in state.confDirty) return true;
     // gate de pagamento: sem pagamento completo não entra em nenhuma etapa (A fazer/Em conf/Pronta/Entregue)
@@ -444,8 +505,20 @@ function setDirtyData(rec, st, val){
 function fmtDate(iso){ if(!iso) return ''; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y}`; }
 const MESES={pt:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'],
              es:['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']};
-function fmtShort(iso){ if(!iso) return ''; const [y,m,dd]=iso.split('-'); return `${dd}/${(MESES[lang]||MESES.pt)[(+m)-1]}`; }
-function fmtFull(iso){ if(!iso) return ''; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y.slice(2)}`; }
+function toISODate(v){
+  if(!v) return '';
+  if(v instanceof Date){ const off=v.getTimezoneOffset(); return new Date(v.getTime()-off*60000).toISOString().slice(0,10); }
+  let s=String(v).trim();
+  // pega só a parte AAAA-MM-DD de um ISO/datetime; se vier com 'T' ou espaço, corta
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[1]+'-'+m[2]+'-'+m[3];
+  // dd/mm/aaaa -> aaaa-mm-dd
+  const b=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(b){ const y=b[3].length===2?'20'+b[3]:b[3]; return y+'-'+b[2].padStart(2,'0')+'-'+b[1].padStart(2,'0'); }
+  return s;
+}
+function fmtShort(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${(MESES[lang]||MESES.pt)[(+p[1])-1]||p[1]}`; }
+function fmtFull(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${p[1]}/${p[0].slice(2)}`; }
 
 function dirtyCount(){ return Object.keys(state.confDirty).length; }
 function updateSaveBtn(){
@@ -491,7 +564,8 @@ async function openModal(id){
   $('#f-numero').value=rec?(rec.numero||''):nextNum;
   $('#f-numero').placeholder=nextNum||'auto';
   fillSelect('#f-tamanho',TAMANHOS,rec?rec.tamanho:'');
-  fillSelect('#p-tipo',TIPOS,'');
+  fillSelect('#p-tipo',TIPOS,'Dinheiro');
+  if($('#p-outros-wrap')){ $('#p-outros-wrap').classList.add('hidden'); $('#p-comentario').value=''; }
   $('#f-nome').value=rec?rec.nome:'';
   $('#f-telefone').value=rec?(rec.telefone||''):'';
   const estAtual = rec?(rec.camisaEstado||0):0;
@@ -524,7 +598,7 @@ function fillSelect(sel,opts,val){
 function renderPays(){
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   const falta=COTA-soma;
-  $('#paysList').innerHTML=state.draftPays.map((p,idx)=>`<div class="pay"><span>${p.valor}€ · ${esc(p.tipo||'—')}${p.data?' · '+p.data:''}</span><button class="del" data-i="${idx}">×</button></div>`).join('');
+  $('#paysList').innerHTML=state.draftPays.map((p,idx)=>`<div class="pay"><span>${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}${p.data?' · '+p.data:''}</span><button class="del" data-i="${idx}">×</button></div>`).join('');
   $$('#paysList .del').forEach(b=>b.onclick=()=>{state.draftPays.splice(+b.dataset.i,1);renderPays();});
   const box=$('#saldoBox');
   if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
@@ -536,12 +610,17 @@ function renderPays(){
 $('#addPay').onclick=()=>{
   const v=parseFloat(($('#p-valor').value||'').replace(',','.'));
   if(!v||v<=0) return;
-  state.draftPays.push({valor:v,tipo:$('#p-tipo').value,data:$('#p-data').value||hoje(),nota:''});
+  const tipo=$('#p-tipo').value;
+  const nota=(tipo==='Outros')? ($('#p-comentario').value||'').trim() : '';
+  state.draftPays.push({valor:v,tipo,data:$('#p-data').value||hoje(),nota});
   const restante=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   $('#p-valor').value = restante>0 ? String(restante) : '';
   $('#p-data').value=hoje();
+  $('#p-comentario').value='';
   renderPays();
 };
+// mostra o campo de comentário só quando "Outros"
+document.addEventListener('change',(e)=>{ if(e.target && e.target.id==='p-tipo'){ $('#p-outros-wrap').classList.toggle('hidden', e.target.value!=='Outros'); } });
 $('#save').onclick=async()=>{
   const nome=$('#f-nome').value.trim();
   if(!nome){ alert(t('nomeObrig')); return; }
@@ -663,15 +742,245 @@ $('#fileRestore').onchange=async e=>{
 $('#btnReset') && ($('#btnReset').onclick=async()=>{ if(!confirm(t('confirmReset'))) return; await clearAll(); await seedIfEmpty(); refresh(); });
 
 /* ---------- navegação / idioma ---------- */
+/* ---------- CAIXA (financeiro, só admin) ---------- */
+const CATEGORIAS=['Camisas','Material','Outros'];
+const BOLSO_LABEL={dinheiro:'Dinheiro',banco:'Banco',outros:'Outros'};
+let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[] };
+function eur(n){ return (Math.round((+n||0)*100)/100).toLocaleString('pt-PT')+' €'; }
+
+async function loadCaixa(){
+  caixaState.despesas = await sGetAll(STORE_DESP);
+  caixaState.movimentos = await sGetAll(STORE_MOV);
+}
+async function renderCaixa(){
+  await loadCaixa();
+  const inscritos = await getAll();
+  const c = computeCaixa(inscritos, caixaState.despesas, caixaState.movimentos);
+  $('#cxSaldoProjeto').textContent = eur(c.saldoProjeto);
+  $('#cxSaldoSub').textContent = `${t('arrecadadoLabel')} ${eur(c.arrecadado)} − ${t('despesasLabel')} ${eur(c.despTotal)}`;
+  $('#cxDinheiro').textContent = eur(c.bolso.dinheiro);
+  $('#cxBanco').textContent = eur(c.bolso.banco);
+  $('#cxOutros').textContent = eur(c.bolso.outros);
+  $('#cxBancoCalc').textContent = eur(c.bolso.banco);
+  // conciliação
+  const realStr=$('#cxBancoReal').value; const real=parseFloat((realStr||'').replace(/[^\d.,-]/g,'').replace(',','.'));
+  const diffEl=$('#cxDiff');
+  if(realStr && !isNaN(real)){ const d=real-c.bolso.banco; diffEl.textContent=eur(d)+(Math.abs(d)<0.005?' ✓':''); diffEl.className=Math.abs(d)<0.005?'diff-ok':'diff-bad'; }
+  else { diffEl.textContent='—'; diffEl.className=''; }
+  renderCaixaTabs(); renderCaixaList(c);
+}
+function renderCaixaTabs(){
+  $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
+}
+function renderCaixaList(){
+  const el=$('#cxList');
+  if(caixaState.tab==='despesas'){
+    const arr=caixaState.despesas.slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+    if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
+    el.innerHTML=arr.map(d=>`<div class="cx-item" data-id="${d.id}" data-k="desp">
+      <div><div class="desc">${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
+      <div class="amt out">−${eur(d.valor)}</div></div>`).join('');
+    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>openDesp(+it.dataset.id));
+  } else {
+    const arr=caixaState.movimentos.slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+    if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
+    el.innerHTML=arr.map(m=>`<div class="cx-item" data-id="${m.id}" data-k="mov">
+      <div><div class="desc">${esc(BOLSO_LABEL[m.de]||m.de)} → ${esc(BOLSO_LABEL[m.para]||m.para)}</div><div class="meta">${fmtShort(m.data)}${m.comentario?' · '+esc(m.comentario):''}</div></div>
+      <div class="amt mov">${eur(m.valor)}</div></div>`).join('');
+    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>openMov(+it.dataset.id));
+  }
+}
+/* --- modal despesa --- */
+function openDesp(id){
+  const d = id? caixaState.despesas.find(x=>x.id===id) : null;
+  caixaState.editDesp = d? d.id : null;
+  $('#despTitle').textContent = d? t('editarDespesa') : t('novaDespesa');
+  $('#d-desc').value = d? (d.descricao||'') : '';
+  $('#d-valor').value = d? d.valor : '';
+  $('#d-data').value = d? (d.data||hoje()) : hoje();
+  fillSelect('#d-categoria', CATEGORIAS, d? d.categoria : 'Camisas');
+  fillSelect('#d-bolso', BOLSOS.map(b=>BOLSO_LABEL[b]), d? BOLSO_LABEL[d.bolso] : 'Banco');
+  $('#d-obs').value = d? (d.obs||'') : '';
+  caixaState.draftFotos = (d && Array.isArray(d.fotos)) ? d.fotos.map(u=>({url:u})) : [];
+  renderDraftFotos();
+  $('#despDel').classList.toggle('hidden', !d);
+  $('#despModal').classList.remove('hidden');
+}
+function bolsoFromLabel(lbl){ for(const b of BOLSOS){ if(BOLSO_LABEL[b]===lbl) return b; } return 'banco'; }
+/* --- fotos de fatura --- */
+function compressImage(file, maxDim, quality){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{ const img=new Image(); img.onload=()=>{
+      let {width:w,height:h}=img; const scale=Math.min(1, maxDim/Math.max(w,h));
+      w=Math.round(w*scale); h=Math.round(h*scale);
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      res(cv.toDataURL('image/jpeg', quality));
+    }; img.onerror=rej; img.src=fr.result; };
+    fr.onerror=rej; fr.readAsDataURL(file);
+  });
+}
+function renderDraftFotos(){
+  const el=$('#d-fotos'); if(!el) return;
+  el.innerHTML=(caixaState.draftFotos||[]).map((f,idx)=>{
+    const src = f.dataUrl || thumbFromUrl(f.url);
+    return `<div class="foto-thumb"><img src="${src}" alt="foto" class="foto-open" data-i="${idx}"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
+  }).join('');
+  el.querySelectorAll('.rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); caixaState.draftFotos.splice(+b.dataset.i,1); renderDraftFotos(); });
+  el.querySelectorAll('.foto-open').forEach(im=>im.onclick=()=>{ const f=caixaState.draftFotos[+im.dataset.i]; openFoto(f); });
+  const addBtn=$('#d-addFoto'); if(addBtn) addBtn.style.display=(caixaState.draftFotos.length>=3)?'none':'block';
+}
+function openFoto(f){
+  if(!f) return;
+  if(f.url){ window.open(f.url, '_blank'); return; }   // foto já no Drive -> abre em nova aba
+  // foto local (ainda não enviada) -> lightbox com o dataUrl
+  const lb=$('#fotoLightbox'), img=$('#fotoLightImg');
+  if(lb && img){ img.src=f.dataUrl; lb.classList.remove('hidden'); }
+}
+function thumbFromUrl(url){ if(!url) return ''; const m=url.match(/\/d\/([^/]+)\//); return m? ('https://drive.google.com/thumbnail?id='+m[1]) : url; }
+$('#fotoLightClose') && ($('#fotoLightClose').onclick=()=>$('#fotoLightbox').classList.add('hidden'));
+$('#fotoLightbox') && ($('#fotoLightbox').addEventListener('click',e=>{ if(e.target.id==='fotoLightbox') $('#fotoLightbox').classList.add('hidden'); }));
+$('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ alert(t('maxFotos')); return; } $('#d-fotoInput').click(); });
+$('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
+  const file=e.target.files && e.target.files[0]; if(!file) return;
+  try{ const dataUrl=await compressImage(file, 1280, 0.7); caixaState.draftFotos.push({dataUrl}); renderDraftFotos(); }
+  catch(err){ alert('Erro ao processar a foto'); }
+  e.target.value='';
+});
+$('#despSave') && ($('#despSave').onclick=async()=>{
+  const desc=$('#d-desc').value.trim(); const v=parseFloat(($('#d-valor').value||'').replace(',','.'));
+  if(!desc||!v||v<=0){ alert(t('nomeObrig')); return; }
+  // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
+  const btn=$('#despSave'); const orig=btn.textContent;
+  // valida upload das fotos ANTES de salvar; se alguma falhar, aborta e avisa (não finge que subiu)
+  const pendentes=caixaState.draftFotos.filter(f=>!f.url && f.dataUrl);
+  if(pendentes.length){
+    if(!ONLINE_ENABLED || !auth.idToken || !navigator.onLine){
+      alert(t('fotoSemConexao'));   // precisa de internet para enviar a foto
+      return;
+    }
+    btn.disabled=true; btn.textContent=t('enviandoFoto');
+    for(const f of pendentes){
+      let d=null, err=null;
+      try{
+        const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:'fatura_'+Date.now()+'.jpg'})}, 45000);
+        try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
+      }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
+      if(!d || !d.ok || !d.url){
+        btn.disabled=false; btn.textContent=orig;
+        alert(t('fotoFalhou') + (err? ('\n('+err+')') : (d && d.error? ('\n('+d.error+')') : '')));
+        return;   // ABORTA o salvamento — foto não subiu, não deixa achar que subiu
+      }
+      f.url=d.url; delete f.dataUrl;   // sucesso confirmado
+    }
+    btn.disabled=false; btn.textContent=orig;
+  }
+  const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
+  rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
+  rec.bolso=bolsoFromLabel($('#d-bolso').value); rec.obs=$('#d-obs').value.trim();
+  rec.fotos=(caixaState.draftFotos||[]).map(f=>f.url).filter(Boolean);
+  rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
+  const newId=await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id!=null?rec.id:newId);
+  $('#despModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
+});
+$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
+$('#despCancel') && ($('#despCancel').onclick=()=>$('#despModal').classList.add('hidden'));
+$('#despBack') && ($('#despBack').onclick=()=>$('#despModal').classList.add('hidden'));
+$('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal') $('#despModal').classList.add('hidden'); });
+/* --- modal movimentação --- */
+function openMov(id){
+  const m = id? caixaState.movimentos.find(x=>x.id===id) : null;
+  caixaState.editMov = m? m.id : null;
+  $('#movTitle').textContent = m? t('editarMovimentacao') : t('novaMovimentacao');
+  fillSelect('#m-de', BOLSOS.map(b=>BOLSO_LABEL[b]), m? BOLSO_LABEL[m.de] : 'Dinheiro');
+  fillSelect('#m-para', BOLSOS.map(b=>BOLSO_LABEL[b]), m? BOLSO_LABEL[m.para] : 'Banco');
+  $('#m-valor').value = m? m.valor : '';
+  $('#m-data').value = m? (m.data||hoje()) : hoje();
+  $('#m-comentario').value = m? (m.comentario||'') : '';
+  $('#movDel').classList.toggle('hidden', !m);
+  $('#movModal').classList.remove('hidden');
+}
+$('#movSave') && ($('#movSave').onclick=async()=>{
+  const de=bolsoFromLabel($('#m-de').value), para=bolsoFromLabel($('#m-para').value);
+  const v=parseFloat(($('#m-valor').value||'').replace(',','.'));
+  if(de===para){ alert('Origem e destino devem ser diferentes.'); return; }
+  if(!v||v<=0){ alert(t('nomeObrig')); return; }
+  const all=caixaState.movimentos; let rec=caixaState.editMov? all.find(x=>x.id===caixaState.editMov):{};
+  rec.de=de; rec.para=para; rec.valor=v; rec.data=$('#m-data').value||hoje(); rec.comentario=$('#m-comentario').value.trim();
+  rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
+  const newId=await sPut(STORE_MOV, rec); markPendingKV('mov', rec.id!=null?rec.id:newId);
+  $('#movModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
+});
+$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
+$('#movCancel') && ($('#movCancel').onclick=()=>$('#movModal').classList.add('hidden'));
+$('#movBack') && ($('#movBack').onclick=()=>$('#movModal').classList.add('hidden'));
+$('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal') $('#movModal').classList.add('hidden'); });
+$('#fabCaixa') && ($('#fabCaixa').onclick=()=>{ caixaState.tab==='despesas'? openDesp(null) : openMov(null); });
+$('#cxBancoReal') && ($('#cxBancoReal').oninput=()=>renderCaixa());
+// marcador de pendência para sync das novas coleções (chave composta)
+function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=1; localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
+
+/* --- Extrato por bolso --- */
+async function openExtrato(bolso){
+  const inscritos=await getAll();
+  const lanc=[]; // {data, tipo, desc, valor(sinal), kind, refId}
+  // entradas (pagamentos que caem neste bolso)
+  inscritos.forEach(i=>(i.pagamentos||[]).forEach((p,idx)=>{
+    if(bolsoDaForma(p.tipo)!==bolso) return;
+    lanc.push({ data:p.data||'', tipo:t('entrada'), desc:`${t('pagamentoDe')} — ${i.nome}${p.tipo==='Outros'&&p.nota?' ('+p.nota+')':''}`, valor:(+p.valor||0), kind:'pag' });
+  }));
+  // despesas pagas deste bolso
+  caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor:-(+d.valor||0), kind:'desp', refId:d.id }); });
+  // movimentações que afetam este bolso
+  caixaState.movimentos.forEach(m=>{
+    if(m.para===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:(+m.valor||0), kind:'mov', refId:m.id });
+    if(m.de===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:-(+m.valor||0), kind:'mov', refId:m.id });
+  });
+  // ordena CRONOLOGICO crescente para calcular saldo corrente
+  lanc.sort((a,b)=>toISODate(a.data).localeCompare(toISODate(b.data)));
+  let bal=0; lanc.forEach(l=>{ bal+=l.valor; l.bal=bal; });
+  const saldoFinal=bal;
+  // exibe recente no topo
+  lanc.reverse();
+  $('#extTitle').textContent=`${t('extrato')} · ${BOLSO_LABEL[bolso]}`;
+  $('#extSaldo').textContent=eur(saldoFinal);
+  const el=$('#extList');
+  if(!lanc.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
+  else el.innerHTML=lanc.map(l=>{
+    const pos=l.valor>=0; const clk=(l.kind==='desp'||l.kind==='mov');
+    return `<div class="ext-item ${clk?'clickable':''}" ${clk?`data-kind="${l.kind}" data-id="${l.refId}"`:''}>
+      <div><div class="e-d"><span class="ext-tag">${l.tipo}</span>${esc(l.desc)}</div><div class="e-m">${fmtShort(l.data)}</div></div>
+      <div class="e-right"><div class="e-v ${pos?'pos':'neg'}">${pos?'+':'−'}${eur(Math.abs(l.valor))}</div><div class="e-bal">${eur(l.bal)}</div></div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.ext-item.clickable').forEach(it=>it.onclick=()=>{
+    const kind=it.dataset.kind, id=+it.dataset.id;
+    $('#extratoModal').classList.add('hidden');
+    if(kind==='desp') openDesp(id); else if(kind==='mov') openMov(id);
+  });
+  $('#extratoModal').classList.remove('hidden');
+  const sh=$('#extratoModal .sheet'); if(sh) sh.scrollTop=0;
+}
+document.addEventListener('click',(e)=>{
+  const b=e.target.closest && e.target.closest('#view-caixa .bolso');
+  if(b && b.dataset.bolso && state.view==='caixa'){ openExtrato(b.dataset.bolso); }
+});
+$('#extBack') && ($('#extBack').onclick=()=>$('#extratoModal').classList.add('hidden'));
+$('#extratoModal') && $('#extratoModal').addEventListener('click',e=>{ if(e.target.id==='extratoModal') $('#extratoModal').classList.add('hidden'); });
+
 function doSetView(v){
   // guarda a posição de scroll da tab atual
   if(state.view){ state.scrollPos = state.scrollPos||{}; state.scrollPos[state.view]=window.scrollY; }
   state.view=v;
-  ['lista','painel','confeccao','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
+  ['lista','painel','confeccao','caixa','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-  $('#fab').style.display=v==='lista'?'block':'none';
+  $('#fab').classList.toggle('hidden', v!=='lista');
+  const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa');
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
+  if(v==='caixa') renderCaixa();
   updateSaveBtn();
   // restaura a posição de scroll específica desta tab
   const y=(state.scrollPos&&state.scrollPos[v])||0;
@@ -791,7 +1100,15 @@ function onGoogleCredential(resp){
   hideLoginGate();
   startAppAfterLogin();
 }
+function isBetaEnv(){ return location.pathname.indexOf('/beta/')>=0 || location.pathname.indexOf('/beta')>=0; }
+function applyEnvBadges(){
+  // versão na tela de login
+  const lv=$('#loginVer'); if(lv) lv.textContent = APP_VERSION;
+  // selo BETA no header (só no ambiente beta)
+  const bb=$('#betaBadge'); if(bb) bb.classList.toggle('hidden', !isBetaEnv());
+}
 function initGoogleLogin(){
+  applyEnvBadges();
   if(!ONLINE_ENABLED){ hideLoginGate(); startAppAfterLogin(); return; }
   // se já temos token de sessão válido, tenta usar (será revalidado no 1º sync)
   const saved = sessionStorage.getItem('gd_idtoken');
@@ -817,6 +1134,7 @@ function applyAdminUI(){
   if(auth.role){ isAdmin = (auth.role==='admin'); }
   else { isAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
+  const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', !isAdmin);
 }
 function logout(){
   sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
@@ -875,19 +1193,52 @@ async function pull(){
   }
   // registros locais novos (criados offline) que ainda não estão no servidor
   for(const i of localAll){ if(!data.inscritos.find(s=>s.id===i.id)){ await put(i); } }
+  // ---- coleções financeiras (despesas/movimentos) ----
+  const pcx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
+  const pendKeys=Object.keys(pcx);
+  await reconcileColl(STORE_DESP, data.despesas||[], 'desp', pendKeys);
+  await reconcileColl(STORE_MOV, data.movimentos||[], 'mov', pendKeys);
   return data;
+}
+async function reconcileColl(store, serverArr, kind, pendKeys){
+  const local=await sGetAll(store);
+  const localById={}; local.forEach(x=>localById[x.id]=x);
+  const pendIds=pendKeys.filter(k=>k.indexOf(kind+':')===0).map(k=>+k.split(':')[1]);
+  const delIds=pendKeys.filter(k=>k.indexOf(kind+'_del:')===0).map(k=>+k.split(':')[1]);
+  await sClear(store);
+  for(const s of serverArr){
+    if(delIds.indexOf(s.id)>=0) continue;                 // apagado localmente (aguarda push do delete)
+    if(pendIds.indexOf(s.id)>=0 && localById[s.id]) await sPut(store, localById[s.id]); // edição local pendente
+    else await sPut(store, s);
+  }
+  // itens locais criados offline ainda não no servidor
+  for(const l of local){ if(!serverArr.find(s=>s.id===l.id) && delIds.indexOf(l.id)<0) await sPut(store, l); }
 }
 async function pushPending(){
   if(!ONLINE_ENABLED || !auth.idToken) return;
-  const ids=pendingIds(); if(!ids.length) return;
-  const all=await getAll();
-  const toSend=all.filter(i=>ids.indexOf(String(i.id))>=0);
-  if(!toSend.length){ clearPending(); return; }
+  const ids=pendingIds();
+  const pcx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
+  const cxKeys=Object.keys(pcx);
+  if(!ids.length && !cxKeys.length) return;
+  const payload={token:CFG.SYNC_TOKEN, idToken:auth.idToken};
+  // inscritos pendentes
+  if(ids.length){ const all=await getAll(); payload.inscritos=all.filter(i=>ids.indexOf(String(i.id))>=0); }
+  // despesas/movimentos pendentes + deleções
+  const despAll=await sGetAll(STORE_DESP), movAll=await sGetAll(STORE_MOV);
+  const despIds=cxKeys.filter(k=>k.indexOf('desp:')===0).map(k=>+k.split(':')[1]);
+  const despDel=cxKeys.filter(k=>k.indexOf('desp_del:')===0).map(k=>+k.split(':')[1]);
+  const movIds=cxKeys.filter(k=>k.indexOf('mov:')===0).map(k=>+k.split(':')[1]);
+  const movDel=cxKeys.filter(k=>k.indexOf('mov_del:')===0).map(k=>+k.split(':')[1]);
+  if(despIds.length) payload.despesas=despAll.filter(d=>despIds.indexOf(d.id)>=0);
+  if(despDel.length) payload.despesasDel=despDel;
+  if(movIds.length) payload.movimentos=movAll.filter(m=>movIds.indexOf(m.id)>=0);
+  if(movDel.length) payload.movimentosDel=movDel;
   const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, inscritos:toSend})});
+    body:JSON.stringify(payload)});
   const data=await r.json();
   if(!data.ok) throw new Error(data.error||'push_failed');
   clearPending();
+  localStorage.removeItem('gd_pending_cx');
   return data;
 }
 async function serverCount(){

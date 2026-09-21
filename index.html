@@ -46,6 +46,9 @@
   #gsiBtn{display:flex;justify-content:center;min-height:44px;margin-top:44px}
   .login-error{margin-top:16px;background:rgba(178,59,59,.22);color:#ff9a9a;border:1px solid rgba(255,120,120,.3);border-radius:10px;padding:11px 14px;font-size:13px;max-width:300px}
   .login-foot{text-align:center;font-size:11px;color:#7d786e;letter-spacing:1px;text-transform:uppercase;padding:18px;border-top:1px solid rgba(192,138,45,.12)}
+  .login-ver{text-align:center;font-size:11px;color:#6b665d;padding:0 0 14px;letter-spacing:.5px}
+  .brand-logo-wrap{position:relative;flex:none;display:inline-flex}
+  .beta-badge{position:absolute;top:-6px;right:-14px;background:var(--accent);color:#141414;font-size:9px;font-weight:700;letter-spacing:.5px;padding:1px 5px;border-radius:6px;transform:rotate(6deg);box-shadow:0 1px 4px rgba(0,0,0,.4)}
 
   header{position:sticky;top:0;z-index:50;background:linear-gradient(120deg,#141414 0%,#1f1c17 55%,#141414 100%);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 3px 14px rgba(0,0,0,.25);border-bottom:1px solid rgba(192,138,45,.35)}
   .brand-logo{height:44px;width:auto;opacity:.96;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));flex:none}
@@ -87,8 +90,15 @@
   .viewtoggle button.active{background:var(--primary);color:#fff}
   .viewtoggle svg{width:20px;height:20px;fill:currentColor}
   .filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px}
-  .chip{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 12px;font-size:13px;color:var(--muted)}
+  .chip{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 12px;font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
   .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .chip .cbadge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;background:var(--soft-grey);color:var(--muted)}
+  .chip.active .cbadge{background:rgba(255,255,255,.22);color:#fff}
+  .cb-grey{background:var(--soft-grey);color:var(--grey)}
+  .cb-amber{background:var(--soft-amber);color:var(--amber)}
+  .cb-gold{background:#efe2c6;color:#7a6a45}
+  .cb-green{background:var(--soft-green);color:var(--green)}
+  .cb-red{background:var(--soft-red);color:var(--red)}
 
   /* list (cards) */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;box-shadow:0 2px 8px rgba(20,20,20,.04);transition:box-shadow .15s}
@@ -112,6 +122,7 @@
   table.grid{border-collapse:collapse;width:100%;font-size:13px;min-width:640px}
   table.grid th{background:var(--primary);color:#fff;font-weight:500;text-align:left;padding:9px 8px;white-space:nowrap;position:sticky;top:0;font-family:var(--sans);letter-spacing:.3px}
   table.grid td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.grid tfoot td{border-top:2px solid var(--accent);border-bottom:0;font-weight:600;background:var(--accent-soft)}
   table.grid tr:nth-child(even) td{background:var(--soft-grey)}
   table.grid tr:active td{background:var(--accent-soft)}
   table.grid .c{text-align:center}
@@ -168,6 +179,50 @@
   .note{font-size:12px;color:var(--muted);margin-top:6px}
   .empty{text-align:center;color:var(--muted);padding:30px 10px}
   .app-version{text-align:center;color:var(--muted);font-size:11px;margin-top:22px;letter-spacing:.3px}
+  /* Caixa */
+  .saldo-hero{background:linear-gradient(135deg,#1a1a1a,#2a2419);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid rgba(192,138,45,.4)}
+  .saldo-hero .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#c9c4ba}
+  .saldo-hero .val{font-family:var(--serif);font-size:38px;font-weight:600;color:var(--accent);line-height:1;margin-top:2px}
+  .saldo-hero .sub{font-size:12px;color:#b8b2a6;margin-top:6px}
+  .bolsos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .bolso{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .bolso .b-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .bolso .b-v{font-family:var(--serif);font-size:22px;font-weight:600}
+  .bolso.dinheiro .b-v{color:var(--green)} .bolso.banco .b-v{color:#2f6db0} .bolso.outros .b-v{color:var(--amber)}
+  .concil{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:6px}
+  .crow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px;border-bottom:1px solid var(--line)}
+  .crow:last-child{border-bottom:0}
+  .mini-in{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:14px;width:120px;text-align:right;font-family:var(--sans)}
+  .diff-ok{color:var(--green);font-weight:600} .diff-bad{color:var(--red);font-weight:600}
+  .tabs2{display:flex;gap:6px;margin:6px 0 10px}
+  .tab2{flex:1;text-align:center;padding:9px;border-radius:20px;border:1px solid var(--line);background:#fff;font-size:13px;color:var(--muted)}
+  .tab2.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .cx-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .cx-item .desc{font-weight:500;font-size:14px}
+  .cx-item .meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .cx-item .amt{font-family:var(--serif);font-size:18px;font-weight:600}
+  .cx-item .amt.out{color:var(--red)} .cx-item .amt.mov{color:#2f6db0}
+  .mov-flow{display:flex;align-items:flex-end;gap:8px;margin:6px 0}
+  .mov-box{flex:1} .mov-box span{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .mov-arrow{color:var(--accent);font-size:22px;padding-bottom:8px}
+  .bolso{cursor:pointer}
+  .ext-saldo{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;font-size:14px}
+  .ext-saldo b{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--accent)}
+  .ext-item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+  .ext-item .e-d{font-weight:500;font-size:14px}
+  .ext-item .e-m{font-size:12px;color:var(--muted);margin-top:2px}
+  .ext-item .e-right{text-align:right;white-space:nowrap}
+  .ext-item .e-v{font-family:var(--serif);font-size:16px;font-weight:600}
+  .ext-item .e-v.pos{color:var(--green)} .ext-item .e-v.neg{color:var(--red)}
+  .ext-item .e-bal{font-size:11px;color:var(--muted);margin-top:2px}
+  .ext-item.clickable{cursor:pointer}
+  .ext-tag{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:600;margin-right:6px}
+  .fotos-grid{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
+  .foto-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#f2f0ea}
+  .foto-thumb img{width:100%;height:100%;object-fit:cover}
+  .foto-thumb .rm{position:absolute;top:2px;right:2px;background:rgba(178,59,59,.9);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:13px;line-height:1;cursor:pointer}
+  .foto-thumb.up{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center}
+  .foto-link{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--accent);margin-top:3px}
   .app-version span{color:var(--accent);font-weight:600}
   .acct{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
   .acct-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;gap:10px}
@@ -247,9 +302,10 @@
     <div id="loginError" class="login-error hidden"></div>
   </div>
   <div class="login-foot" data-i="loginFoot">Acesso restrito aos líderes do projeto</div>
+  <div class="login-ver" id="loginVer"></div>
 </div>
 <header>
-  <img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo">
+  <div class="brand-logo-wrap"><img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo"><span id="betaBadge" class="beta-badge hidden">BETA</span></div>
   <div class="brand">
     <img src="logo-helmet.png" alt="" class="brand-helmet">
     <div class="brand-name" data-i="projeto">Projeto Gideão</div>
@@ -300,11 +356,36 @@
 
   <!-- CONFECCAO -->
   <section id="view-confeccao" class="hidden">
-    <div class="kpis" id="confKpis"></div>
     <div class="filters" id="confFilters"></div>
     <div id="confList"></div>
     <h3 style="margin-top:16px" data-i="porTamanhoConf">Resumo por tamanho</h3>
     <div id="confSize"></div>
+  </section>
+
+  <!-- CAIXA (só admin) -->
+  <section id="view-caixa" class="hidden">
+    <div class="saldo-hero">
+      <div class="lbl" data-i="saldoProjeto">Saldo do projeto</div>
+      <div class="val" id="cxSaldoProjeto">—</div>
+      <div class="sub" id="cxSaldoSub"></div>
+    </div>
+    <div class="bolsos">
+      <div class="bolso dinheiro" data-bolso="dinheiro"><div class="b-v" id="cxDinheiro">—</div><div class="b-l" data-i="bolsoDinheiro">Dinheiro</div></div>
+      <div class="bolso banco" data-bolso="banco"><div class="b-v" id="cxBanco">—</div><div class="b-l" data-i="bolsoBanco">Banco</div></div>
+      <div class="bolso outros" data-bolso="outros"><div class="b-v" id="cxOutros">—</div><div class="b-l" data-i="bolsoOutros">Outros</div></div>
+    </div>
+    <h3 data-i="conciliacaoBanco">Conciliação bancária</h3>
+    <div class="concil">
+      <div class="crow"><span data-i="saldoBancoCalc">Saldo em banco (calculado)</span><b id="cxBancoCalc">—</b></div>
+      <div class="crow"><span data-i="saldoBancoReal">Saldo real do banco</span><input id="cxBancoReal" class="mini-in" inputmode="decimal" placeholder="0"></div>
+      <div class="crow"><span data-i="diferenca">Diferença</span><span id="cxDiff">—</span></div>
+    </div>
+    <h3 data-i="lancamentos" style="margin-top:16px">Lançamentos</h3>
+    <div class="tabs2" id="cxTabs">
+      <div class="tab2 on" data-cx="despesas" data-i="despesas">Despesas</div>
+      <div class="tab2" data-cx="movimentos" data-i="movimentacoes">Movimentações</div>
+    </div>
+    <div id="cxList"></div>
   </section>
 
   <!-- MAIS -->
@@ -342,6 +423,7 @@
 </div>
 
 <button class="fab" id="fab" title="Novo">+</button>
+<button class="fab hidden" id="fabCaixa" title="Novo lançamento">+</button>
 
 <nav>
   <button data-view="lista" class="active">
@@ -355,6 +437,10 @@
   <button data-view="painel">
     <svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zm0 7h6v-5H4zm8 0h6V11h-6zm0-16v5h6V4z"/></svg>
     <span data-i="navPainel">Painel</span>
+  </button>
+  <button data-view="caixa" id="navCaixa" class="hidden">
+    <svg viewBox="0 0 24 24"><path d="M21 7H3V5h18zm0 2v10H3V9zm-6 3a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <span data-i="navCaixa">Caixa</span>
   </button>
   <button data-view="mais">
     <svg viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z"/></svg>
@@ -397,6 +483,7 @@
       <div><label data-i="valor">Valor (€)</label><input id="p-valor" inputmode="decimal" placeholder="300"></div>
       <div><label data-i="tipo">Tipo</label><select id="p-tipo"></select></div>
     </div>
+    <div id="p-outros-wrap" class="hidden"><label data-i="comentarioOutros">Comentário (Outros)</label><input id="p-comentario" placeholder="ex.: Bizum Rogério, Máquina igreja"></div>
     <div class="row2">
       <div><label data-i="data">Data</label><input id="p-data" type="date"></div>
       <div style="display:flex;align-items:flex-end"><button class="btn ok" id="addPay" style="margin:0" data-i="addPagamento">+ Pagamento</button></div>
@@ -434,6 +521,75 @@
     <button class="btn primary" id="fcSave" data-i="salvarESair">Salvar e sair</button>
     <button class="btn danger" id="fcDiscard" data-i="descartarSair">Descartar alterações</button>
     <button class="btn ghost" id="fcCancel" data-i="continuarEditando">Continuar editando</button>
+  </div>
+</div>
+
+<!-- MODAL: nova/editar despesa -->
+<div class="overlay hidden" id="despModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <button id="despBack" class="back-btn" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
+      <h2 id="despTitle" data-i="novaDespesa">Nova despesa</h2>
+    </div>
+    <label data-i="descricao">Descrição</label><input id="d-desc" placeholder="ex.: Camisas — lote 1">
+    <div class="row2">
+      <div><label data-i="valor">Valor (€)</label><input id="d-valor" inputmode="decimal" placeholder="0"></div>
+      <div><label data-i="data">Data</label><input id="d-data" type="date"></div>
+    </div>
+    <div class="row2">
+      <div><label data-i="categoria">Categoria</label><select id="d-categoria"></select></div>
+      <div><label data-i="pagoDe">Pago de (bolso)</label><select id="d-bolso"></select></div>
+    </div>
+    <label data-i="observacao">Observação</label><input id="d-obs" placeholder="nº nota, fornecedor...">
+    <label data-i="fotosFatura">Fotos da fatura (até 3)</label>
+    <div id="d-fotos" class="fotos-grid"></div>
+    <button type="button" class="btn ghost" id="d-addFoto" data-i="tirarFoto">📷 Tirar/anexar foto</button>
+    <input type="file" id="d-fotoInput" accept="image/*" capture="environment" class="hidden">
+    <button class="btn primary" id="despSave" data-i="salvar">Salvar</button>
+    <button class="btn danger hidden" id="despDel" data-i="excluir">Excluir</button>
+    <button class="btn ghost" id="despCancel" data-i="cancelar">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL: nova/editar movimentação -->
+<div class="overlay hidden" id="movModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <button id="movBack" class="back-btn" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
+      <h2 id="movTitle" data-i="novaMovimentacao">Nova movimentação</h2>
+    </div>
+    <div class="mov-flow">
+      <div class="mov-box"><span data-i="de">De</span><select id="m-de"></select></div>
+      <div class="mov-arrow">→</div>
+      <div class="mov-box"><span data-i="para">Para</span><select id="m-para"></select></div>
+    </div>
+    <div class="row2">
+      <div><label data-i="valor">Valor (€)</label><input id="m-valor" inputmode="decimal" placeholder="0"></div>
+      <div><label data-i="data">Data</label><input id="m-data" type="date"></div>
+    </div>
+    <label data-i="comentario">Comentário</label><input id="m-comentario" placeholder="ex.: Depósito; Bizum Rogério">
+    <button class="btn primary" id="movSave" data-i="salvar">Salvar</button>
+    <button class="btn danger hidden" id="movDel" data-i="excluir">Excluir</button>
+    <button class="btn ghost" id="movCancel" data-i="cancelar">Cancelar</button>
+  </div>
+</div>
+
+<!-- EXTRATO por bolso -->
+<div class="overlay hidden" id="extratoModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <button id="extBack" class="back-btn" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
+      <h2 id="extTitle">Extrato</h2>
+    </div>
+    <div class="ext-saldo"><span data-i="saldoAtual">Saldo atual</span><b id="extSaldo">—</b></div>
+    <div id="extList"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="fotoLightbox" style="align-items:center;z-index:150">
+  <div style="position:relative;max-width:96%;max-height:92%">
+    <img id="fotoLightImg" src="" alt="foto" style="max-width:100%;max-height:88vh;border-radius:10px;display:block">
+    <button id="fotoLightClose" style="position:absolute;top:-14px;right:-14px;background:var(--accent);color:#141414;border:0;border-radius:50%;width:34px;height:34px;font-size:20px;font-weight:700">×</button>
   </div>
 </div>
 
