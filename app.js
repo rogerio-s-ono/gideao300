@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.28';
+const APP_VERSION = 'v3.29';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -28,6 +28,8 @@ const I18N = {
     pagamentos:'Pagamentos (cota 300€)', valor:'Valor (€)', tipo:'Tipo', data:'Data',
     addPagamento:'+ Pagamento', comentarioOutros:'Comentário (Outros)', camisaPronta:'Camisa pronta', camisaEntregue:'Camisa entregue',
     adicionarPagamento:'Adicionar pagamento', adicionarEstePagamento:'Adicionar este pagamento',
+    comentarioObrigatorio:'Para o tipo "Outros", informe um comentário.',
+    maisRecente:'Mais recente', maisAntigo:'Mais antigo',
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar',
@@ -102,6 +104,8 @@ const I18N = {
     pagamentos:'Pagos (cuota 300€)', valor:'Importe (€)', tipo:'Tipo', data:'Fecha',
     addPagamento:'+ Pago', comentarioOutros:'Comentario (Otros)', camisaPronta:'Camiseta lista', camisaEntregue:'Camiseta entregada',
     adicionarPagamento:'Añadir pago', adicionarEstePagamento:'Añadir este pago',
+    comentarioObrigatorio:'Para el tipo "Otros", indica un comentario.',
+    maisRecente:'Más reciente', maisAntigo:'Más antiguo',
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar',
@@ -755,6 +759,7 @@ $('#addPay').onclick=()=>{
   if(!v||v<=0) return;
   const tipo=$('#p-tipo').value;
   const nota=(tipo==='Outros')? ($('#p-comentario').value||'').trim() : '';
+  if(tipo==='Outros' && !nota){ alert(t('comentarioObrigatorio')); const c=$('#p-comentario'); if(c) c.focus(); return; }
   const pay={valor:v,tipo,data:$('#p-data').value||hoje(),nota};
   if(tipo==='Dinheiro'){
     const rb=$('#p-receb-wrap input[name="p-recebido"]:checked');
@@ -904,7 +909,7 @@ $('#btnReset') && ($('#btnReset').onclick=async()=>{ if(!confirm(t('confirmReset
 /* ---------- CAIXA (financeiro, só admin) ---------- */
 const CATEGORIAS=['Camisas','Material','Outros'];
 const BOLSO_LABEL={dinheiro:'Dinheiro',banco:'Banco',outros:'Outros'};
-let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[] };
+let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], sortDesc:true };
 function eur(n){ return (Math.round((+n||0)*100)/100).toLocaleString('pt-PT')+' €'; }
 
 async function loadCaixa(){
@@ -939,18 +944,21 @@ $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
 });
 function renderCaixaTabs(){
   $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
+  const lbl=$('#cxSortLbl'); if(lbl) lbl.textContent = caixaState.sortDesc? t('maisRecente') : t('maisAntigo');
 }
+$('#cxSortBtn') && ($('#cxSortBtn').onclick=()=>{ caixaState.sortDesc=!caixaState.sortDesc; renderCaixa(); });
 function renderCaixaList(){
   const el=$('#cxList');
+  const cmpDate=(a,b)=>{ const r=(a.data||'').localeCompare(b.data||''); return caixaState.sortDesc? -r : r; };
   if(caixaState.tab==='despesas'){
-    const arr=caixaState.despesas.slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+    const arr=caixaState.despesas.slice().sort(cmpDate);
     if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
     el.innerHTML=arr.map(d=>`<div class="cx-item" data-id="${d.id}" data-k="desp">
       <div><div class="desc">${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
       <div class="amt out">−${eur(d.valor)}</div></div>`).join('');
     el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>openDesp(+it.dataset.id));
   } else {
-    const arr=caixaState.movimentos.slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+    const arr=caixaState.movimentos.slice().sort(cmpDate);
     if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
     el.innerHTML=arr.map(m=>`<div class="cx-item" data-id="${m.id}" data-k="mov">
       <div><div class="desc">${esc(BOLSO_LABEL[m.de]||m.de)} → ${esc(BOLSO_LABEL[m.para]||m.para)}</div><div class="meta">${fmtShort(m.data)}${m.comentario?' · '+esc(m.comentario):''}</div></div>
@@ -1156,8 +1164,8 @@ async function openExtrato(bolso){
   lanc.sort((a,b)=>toISODate(a.data).localeCompare(toISODate(b.data)));
   let bal=0; lanc.forEach(l=>{ bal+=l.valor; l.bal=bal; });
   const saldoFinal=bal;
-  // exibe recente no topo
-  lanc.reverse();
+  // ordem de exibição conforme o toggle (default: recente no topo)
+  if(caixaState.sortDesc) lanc.reverse();
   $('#extTitle').textContent=`${t('extrato')} · ${BOLSO_LABEL[bolso]}`;
   $('#extSaldo').textContent=eur(saldoFinal);
   const el=$('#extList');

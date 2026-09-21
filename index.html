@@ -193,6 +193,9 @@
   .num-wrap input{flex:1}
   .num-free{flex:none;width:40px;height:40px;border:1px solid var(--line);border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent)}
   .num-free svg{width:18px;height:18px;fill:currentColor}
+  .lanc-head{display:flex;align-items:center;justify-content:space-between}
+  .sort-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer;color:var(--muted);font-size:.78rem}
+  .sort-btn svg{width:15px;height:15px;fill:currentColor}
   /* pagamentos */
   .pay{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:9px 10px;background:var(--soft-grey);border-radius:8px;margin-top:6px;font-size:14px}
   .pay .pay-main{display:flex;align-items:center;gap:8px}
@@ -485,7 +488,13 @@
       <div class="crow"><span data-i="saldoBancoReal">Saldo real do banco</span><input id="cxBancoReal" class="mini-in" inputmode="decimal" placeholder="0"></div>
       <div class="crow"><span data-i="diferenca">Diferença</span><span id="cxDiff">—</span></div>
     </div>
-    <h3 data-i="lancamentos" style="margin-top:16px">Lançamentos</h3>
+    <div class="lanc-head" style="margin-top:16px">
+      <h3 data-i="lancamentos" style="margin:0">Lançamentos</h3>
+      <button type="button" id="cxSortBtn" class="sort-btn" title="Ordenar por data" aria-label="Ordenar por data">
+        <svg viewBox="0 0 24 24"><path d="M7 4v13l-3-3-1.4 1.4L8 21l5.4-5.6L12 14l-3 3V4H7zm9 0-5.4 5.6L12 11l3-3v13h2V8l3 3 1.4-1.4L16 4z"/></svg>
+        <span id="cxSortLbl" class="sort-lbl"></span>
+      </button>
+    </div>
     <div class="tabs2" id="cxTabs">
       <div class="tab2 on" data-cx="despesas" data-i="despesas">Despesas</div>
       <div class="tab2" data-cx="movimentos" data-i="movimentacoes">Movimentações</div>
