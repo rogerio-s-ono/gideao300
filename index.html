@@ -241,6 +241,13 @@
   .access-row .who .em{font-size:12px;color:var(--muted,#888);word-break:break-all}
   .access-row .edit-btn{background:none;border:none;padding:6px;cursor:pointer;color:var(--muted,#888)}
   .access-row .edit-btn svg{width:20px;height:20px;fill:currentColor}
+  .viewas-wrap{display:flex;align-items:center;gap:8px;margin:8px 0 4px;padding:8px 10px;background:var(--soft,#f4f2ee);border:1px solid var(--line);border-radius:10px}
+  .viewas-wrap label{margin:0;font-size:13px;font-weight:600}
+  .viewas-wrap select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+  #impersonateBanner{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;background:var(--amber);color:#fff;padding:8px 12px;font-size:13px;font-weight:600}
+  #impersonateBanner svg{width:18px;height:18px;fill:currentColor;flex:none}
+  #impersonateBanner span{flex:1}
+  #impersonateBanner button{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer}
   .acc-alert{background:var(--soft-red);color:var(--red);border:1px solid var(--red);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:600;margin:4px 0}
   .btn.danger.confirm{background:var(--red);color:#fff;font-weight:700}
   .btn.busy{opacity:.6;pointer-events:none}
@@ -307,6 +314,11 @@
 </style>
 </head>
 <body>
+<div id="impersonateBanner" class="hidden">
+  <svg viewBox="0 0 24 24"><path d="M12 5c-5 0-9 4.5-10 7 1 2.5 5 7 10 7s9-4.5 10-7c-1-2.5-5-7-10-7zm0 11a4 4 0 110-8 4 4 0 010 8zm0-2a2 2 0 100-4 2 2 0 000 4z"/></svg>
+  <span id="impersonateMsg">Vendo como</span>
+  <button id="impersonateExit" data-i="voltarPerfil">Voltar ao meu perfil</button>
+</div>
 <div id="loginGate">
   <div class="login-topbar">
     <img src="logo-cf-light.png" alt="Casa Fuerte Church" class="login-church">
@@ -441,6 +453,14 @@
       <button class="btn add-fab" id="btnAddAccess" title="Adicionar" aria-label="Adicionar">
         <svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
       </button>
+    </div>
+    <div class="viewas-wrap hidden" id="viewAsWrap">
+      <label data-i="verComo">Ver como</label>
+      <select id="viewAsSelect">
+        <option value="admin" data-i="verComoEu">Admin (eu)</option>
+        <option value="tesoureiro" data-i="papelTesoureiro">Tesoureiro</option>
+        <option value="user" data-i="papelUser">Usuário</option>
+      </select>
     </div>
     <p class="note" data-i="acessosNota">Quem pode entrar no app. As mudanças valem no próximo login.</p>
     <div id="accessGroups"></div>

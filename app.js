@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.4';
+const APP_VERSION = 'v3.5';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -67,6 +67,8 @@ const I18N = {
     recarregarBase:'Recarregar base original (zera tudo)',
     navAcessos:'Acessos', acessosNota:'Quem pode entrar no app. As mudanças valem no próximo login.',
     grupoAdmins:'Administradores', grupoUsers:'Usuários', grupoTesoureiros:'Tesoureiros',
+    verComo:'Ver como', verComoEu:'Admin (eu)', vendoComo:'Vendo como: {r}', voltarPerfil:'Voltar ao meu perfil',
+    verComoBloqueio:'Você está no modo "Ver como". Saia dele para poder editar.',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
     perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', papelTesoureiro:'Tesoureiro', adicionar:'Adicionar', remover:'Remover',
     processando:'Processando…', confirmarRemocao:'Confirmar remoção',
@@ -133,6 +135,8 @@ const I18N = {
     recarregarBase:'Recargar base original (borra todo)',
     navAcessos:'Accesos', acessosNota:'Quién puede entrar en la app. Los cambios valen en el próximo inicio de sesión.',
     grupoAdmins:'Administradores', grupoUsers:'Usuarios', grupoTesoureiros:'Tesoreros',
+    verComo:'Ver como', verComoEu:'Admin (yo)', vendoComo:'Viendo como: {r}', voltarPerfil:'Volver a mi perfil',
+    verComoBloqueio:'Estás en modo "Ver como". Sal de él para poder editar.',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
     perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', papelTesoureiro:'Tesorero', adicionar:'Añadir', remover:'Quitar',
     processando:'Procesando…', confirmarRemocao:'Confirmar eliminación',
@@ -638,6 +642,7 @@ $('#addPay').onclick=()=>{
 // mostra o campo de comentário só quando "Outros"
 document.addEventListener('change',(e)=>{ if(e.target && e.target.id==='p-tipo'){ $('#p-outros-wrap').classList.toggle('hidden', e.target.value!=='Outros'); } });
 $('#save').onclick=async()=>{
+  if(writeBlocked()) return;
   const nome=$('#f-nome').value.trim();
   if(!nome){ alert(t('nomeObrig')); return; }
   const all=await getAll();
@@ -865,6 +870,7 @@ $('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
   e.target.value='';
 });
 $('#despSave') && ($('#despSave').onclick=async()=>{
+  if(writeBlocked()) return;
   const desc=$('#d-desc').value.trim(); const v=parseFloat(($('#d-valor').value||'').replace(',','.'));
   if(!desc||!v||v<=0){ alert(t('nomeObrig')); return; }
   // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
@@ -919,6 +925,7 @@ function openMov(id){
   $('#movModal').classList.remove('hidden');
 }
 $('#movSave') && ($('#movSave').onclick=async()=>{
+  if(writeBlocked()) return;
   const de=bolsoFromLabel($('#m-de').value), para=bolsoFromLabel($('#m-para').value);
   const v=parseFloat(($('#m-valor').value||'').replace(',','.'));
   if(de===para){ alert('Origem e destino devem ser diferentes.'); return; }
@@ -1096,7 +1103,9 @@ async function registerSWWithUpdate(){
 /* ---------- v2: config, login Google (GIS) e sincronização ---------- */
 const CFG = window.GIDEAO_CONFIG || {};
 const ONLINE_ENABLED = !!(CFG.SHEET_WEBAPP_URL && CFG.GOOGLE_CLIENT_ID);
-let auth = { idToken:null, email:null, role:null };
+let auth = { idToken:null, email:null, role:null, realAdmin:false, viewAs:null };
+// "Ver como" NAO persiste entre recarregamentos (sai ao dar reload) — limpa flag antiga
+try{ sessionStorage.removeItem('gd_viewas'); }catch(e){}
 
 function parseJwt(tok){ try{ return JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }catch(e){ return {}; } }
 
@@ -1146,16 +1155,56 @@ function initGoogleLogin(){
 function showLoginGate(){ $('#loginGate').classList.remove('hidden'); }
 function hideLoginGate(){ $('#loginGate').classList.add('hidden'); }
 function applyAdminUI(){
-  // admin = papel vindo do servidor (aba Admin da planilha); fallback: config.js ADMIN_EMAILS
-  let isAdmin;
-  if(auth.role){ isAdmin = (auth.role==='admin'); }
-  else { isAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
-  // tesoureiro OU admin veem a Caixa (financeiro)
-  const isCaixa = isAdmin || (auth.role==='tesoureiro');
+  // papel REAL (do servidor; fallback config.js). O gating usa o papel EFETIVO (pode ser "ver como").
+  let realIsAdmin;
+  if(auth.role){ realIsAdmin = (auth.role==='admin'); }
+  else { realIsAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
+  auth.realAdmin = realIsAdmin;
+  const eff = effectiveRole();                 // 'admin' | 'tesoureiro' | 'user'
+  const isAdmin = (eff==='admin');
+  const isCaixa = isAdmin || (eff==='tesoureiro');
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
   const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', !isCaixa);
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
+  renderImpersonateUI();
   if(isAdmin) loadUsers();
+}
+/* ---------- "Ver como" (impersonate visual — só admin) ---------- */
+// papel efetivo = o simulado (se admin real ativou "ver como"), senao o real
+function effectiveRole(){
+  if(auth.realAdmin && auth.viewAs && auth.viewAs!=='admin') return auth.viewAs;
+  return auth.role || (auth.realAdmin?'admin':'user');
+}
+function isImpersonating(){ return !!(auth.realAdmin && auth.viewAs && auth.viewAs!=='admin'); }
+function setViewAs(role){
+  if(!auth.realAdmin) return;                  // só admin real
+  auth.viewAs = (role && role!=='admin') ? role : null;
+  applyAdminUI();
+  // se a aba atual deixou de ser visivel no papel simulado, volta para a lista
+  const cur=state.view;
+  if((cur==='acessos' && effectiveRole()!=='admin') || (cur==='caixa' && effectiveRole()==='user')){ setView('lista'); }
+  updateSaveBtn && updateSaveBtn();
+}
+function renderImpersonateUI(){
+  // seletor "Ver como" (topo da aba Acessos) — só quando admin real
+  const sel=$('#viewAsSelect');
+  if(sel){ sel.value = auth.viewAs || 'admin'; }
+  const wrap=$('#viewAsWrap'); if(wrap) wrap.classList.toggle('hidden', !auth.realAdmin);
+  // banner fixo
+  const b=$('#impersonateBanner');
+  if(b){
+    if(isImpersonating()){
+      const lbl = auth.viewAs==='tesoureiro'?t('papelTesoureiro'):t('papelUser');
+      $('#impersonateMsg').textContent = t('vendoComo',{r:lbl});
+      b.classList.remove('hidden');
+      document.body.classList.add('has-imp');
+    } else { b.classList.add('hidden'); document.body.classList.remove('has-imp'); }
+  }
+}
+// bloqueia escrita enquanto "vendo como" (evita gravar como admin achando que é o papel simulado)
+function writeBlocked(){
+  if(isImpersonating()){ alert(t('verComoBloqueio')); return true; }
+  return false;
 }
 
 /* ---------- Acessos: gestao de usuarios (so admin) ---------- */
@@ -1495,6 +1544,8 @@ $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
   }catch(e){ setSync('err'); alert('Erro: '+e.message); }
 });
 $('#btnAddAccess') && ($('#btnAddAccess').onclick=()=>openAccessModal(null));
+$('#viewAsSelect') && ($('#viewAsSelect').onchange=(e)=>setViewAs(e.target.value));
+$('#impersonateExit') && ($('#impersonateExit').onclick=()=>setViewAs('admin'));
 $('#accSave') && ($('#accSave').onclick=accSave);
 $('#accDel') && ($('#accDel').onclick=accRemove);
 $('#accCancel') && ($('#accCancel').onclick=closeAccessModal);
