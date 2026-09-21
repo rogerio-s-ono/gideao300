@@ -227,13 +227,20 @@
   .acct{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
   .acct-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;gap:10px}
   .acct-row b{font-weight:600;text-align:right;word-break:break-all}
-  .user-add{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-  .user-add input{flex:1;min-width:160px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:14px}
-  .user-add select{padding:8px;border:1px solid var(--line);border-radius:8px;font-size:14px}
-  .users-list{display:flex;flex-direction:column;gap:6px}
-  .user-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)}
-  .user-row .user-email{flex:1;min-width:140px;word-break:break-all;font-size:14px}
-  .user-row .btn{padding:4px 10px;font-size:12px}
+  .acessos-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .acessos-head h3{margin:0}
+  .add-fab{width:40px;height:40px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .add-fab svg{width:22px;height:22px;fill:currentColor}
+  .access-group{margin-top:16px}
+  .access-group-title{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#888);margin:0 0 6px 2px}
+  .access-card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .access-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line)}
+  .access-row:first-child{border-top:none}
+  .access-row .who{flex:1;min-width:0}
+  .access-row .who .nm{font-weight:600;font-size:14px}
+  .access-row .who .em{font-size:12px;color:var(--muted,#888);word-break:break-all}
+  .access-row .edit-btn{background:none;border:none;padding:6px;cursor:pointer;color:var(--muted,#888)}
+  .access-row .edit-btn svg{width:20px;height:20px;fill:currentColor}
   #syncStatus.ok{color:var(--green)} #syncStatus.pend{color:var(--amber)} #syncStatus.off{color:var(--grey)} #syncStatus.err{color:var(--red)}
   /* banner de atualização */
   #updateBanner{position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:var(--primary);color:#fff;border:1px solid rgba(192,138,45,.5);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:720px;margin:0 auto;font-size:14px}
@@ -411,19 +418,6 @@
         <button class="btn ghost" id="btnPushAll" data-i="enviarBase">Enviar base completa à planilha</button>
         <button class="btn danger" id="btnReloadBase" data-i="recarregarBase">Recarregar base original (zera tudo)</button>
       </div>
-      <h3 data-i="gerirUsuarios" style="margin-top:18px">Usuários</h3>
-      <div class="acct" id="usersBox">
-        <div class="user-add">
-          <input type="email" id="newUserEmail" placeholder="email@gmail.com" autocomplete="off">
-          <select id="newUserRole">
-            <option value="user" data-i="papelUser">Usuário</option>
-            <option value="admin" data-i="papelAdmin">Admin</option>
-          </select>
-          <button class="btn ghost" id="btnAddUser" data-i="adicionar">Adicionar</button>
-        </div>
-        <div id="usersList" class="users-list"></div>
-        <p class="note" id="usersMsg" data-i="usuariosNota">Quem pode entrar no app. As mudanças valem no próximo login.</p>
-      </div>
     </div>
     <h3 data-i="dadosBackup" style="margin-top:18px">Dados e backup</h3>
     <button class="btn ghost" id="btnExportXlsx" data-i="exportarExcel">Exportar Excel (CSV)</button>
@@ -433,6 +427,18 @@
     <button class="btn ghost" id="btnImprimir" data-i="imprimirPdf" style="margin-top:14px">Imprimir / PDF</button>
     <p class="note" data-i="backupNota">O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.</p>
     <div class="app-version">Casa Fuerte · Projeto Gideão 300 — <span id="appVersion"></span></div>
+  </section>
+
+  <!-- ACESSOS (gestão de usuários — só admin) -->
+  <section id="view-acessos" class="hidden">
+    <div class="acessos-head">
+      <h3 data-i="navAcessos">Acessos</h3>
+      <button class="btn add-fab" id="btnAddAccess" title="Adicionar" aria-label="Adicionar">
+        <svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
+      </button>
+    </div>
+    <p class="note" data-i="acessosNota">Quem pode entrar no app. As mudanças valem no próximo login.</p>
+    <div id="accessGroups"></div>
   </section>
 </main>
 
@@ -462,6 +468,10 @@
   <button data-view="caixa" id="navCaixa" class="hidden">
     <svg viewBox="0 0 24 24"><path d="M21 7H3V5h18zm0 2v10H3V9zm-6 3a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
     <span data-i="navCaixa">Caixa</span>
+  </button>
+  <button data-view="acessos" id="navAcessos" class="hidden">
+    <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 10-4-4 4 4 0 004 4zm-8 1a3 3 0 10-3-3 3 3 0 003 3zm0 2c-2.7 0-6 1.34-6 4v2h7v-2c0-1 .36-1.86.97-2.57C9.3 14.15 8.6 14 8 14zm8 0c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+    <span data-i="navAcessos">Acessos</span>
   </button>
   <button data-view="mais">
     <svg viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z"/></svg>
@@ -592,6 +602,29 @@
     <button class="btn primary" id="movSave" data-i="salvar">Salvar</button>
     <button class="btn danger hidden" id="movDel" data-i="excluir">Excluir</button>
     <button class="btn ghost" id="movCancel" data-i="cancelar">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL de usuário (Acessos) -->
+<div class="overlay hidden" id="accessModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <button id="accBack" class="back-btn" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
+      <h2 id="accTitle" data-i="novoUsuario">Novo usuário</h2>
+    </div>
+    <label data-i="email">Email</label>
+    <input id="acc-email" type="email" inputmode="email" autocomplete="off" placeholder="email@gmail.com">
+    <label data-i="nome">Nome</label>
+    <input id="acc-nome" placeholder="Nome (opcional)">
+    <label data-i="perfil">Perfil</label>
+    <select id="acc-role">
+      <option value="user" data-i="papelUser">Usuário</option>
+      <option value="admin" data-i="papelAdmin">Admin</option>
+    </select>
+    <p class="note hidden" id="accError"></p>
+    <button class="btn primary" id="accSave" data-i="salvar">Salvar</button>
+    <button class="btn danger hidden" id="accDel" data-i="remover">Remover</button>
+    <button class="btn ghost" id="accCancel" data-i="cancelar">Cancelar</button>
   </div>
 </div>
 

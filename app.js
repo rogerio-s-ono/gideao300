@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.1';
+const APP_VERSION = 'v3.2';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -65,9 +65,10 @@ const I18N = {
     conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', admin:'Admin',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
-    gerirUsuarios:'Usuários', papelUser:'Usuário', papelAdmin:'Admin', adicionar:'Adicionar', remover:'Remover',
-    tornarAdmin:'Tornar admin', tornarUser:'Tornar usuário',
-    usuariosNota:'Quem pode entrar no app. As mudanças valem no próximo login.',
+    navAcessos:'Acessos', acessosNota:'Quem pode entrar no app. As mudanças valem no próximo login.',
+    grupoAdmins:'Administradores', grupoUsers:'Usuários',
+    novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
+    perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', adicionar:'Adicionar', remover:'Remover',
     confirmRemoverUser:'Remover o acesso de {e}?',
     errJaExiste:'Este email já está na lista.', errEmailInvalido:'Email inválido.',
     errUltimoAdmin:'Não é possível: precisa haver ao menos um admin.', errUserFalhou:'Falha ao atualizar usuários.',
@@ -129,9 +130,10 @@ const I18N = {
     conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', admin:'Admin',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
-    gerirUsuarios:'Usuarios', papelUser:'Usuario', papelAdmin:'Admin', adicionar:'Añadir', remover:'Quitar',
-    tornarAdmin:'Hacer admin', tornarUser:'Hacer usuario',
-    usuariosNota:'Quién puede entrar en la app. Los cambios valen en el próximo inicio de sesión.',
+    navAcessos:'Accesos', acessosNota:'Quién puede entrar en la app. Los cambios valen en el próximo inicio de sesión.',
+    grupoAdmins:'Administradores', grupoUsers:'Usuarios',
+    novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
+    perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', adicionar:'Añadir', remover:'Quitar',
     confirmRemoverUser:'¿Quitar el acceso de {e}?',
     errJaExiste:'Este correo ya está en la lista.', errEmailInvalido:'Correo inválido.',
     errUltimoAdmin:'No es posible: debe haber al menos un admin.', errUserFalhou:'Error al actualizar usuarios.',
@@ -986,13 +988,14 @@ function doSetView(v){
   // guarda a posição de scroll da tab atual
   if(state.view){ state.scrollPos = state.scrollPos||{}; state.scrollPos[state.view]=window.scrollY; }
   state.view=v;
-  ['lista','painel','confeccao','caixa','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
+  ['lista','painel','confeccao','caixa','acessos','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   $('#fab').classList.toggle('hidden', v!=='lista');
   const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa');
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
+  if(v==='acessos') loadUsers();
   updateSaveBtn();
   // restaura a posição de scroll específica desta tab
   const y=(state.scrollPos&&state.scrollPos[v])||0;
@@ -1147,10 +1150,14 @@ function applyAdminUI(){
   else { isAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
   const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', !isAdmin);
+  const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
   if(isAdmin) loadUsers();
 }
 
-/* ---------- gestao de usuarios (tela de Admin) ---------- */
+/* ---------- Acessos: gestao de usuarios (so admin) ---------- */
+let accessUsers=[];          // cache da ultima lista
+let accEditing=null;         // email em edicao (null = novo)
+
 async function usersApi(action, extra){
   const body=Object.assign({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:action}, extra||{});
   const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
@@ -1158,41 +1165,73 @@ async function usersApi(action, extra){
   if(!data.ok) throw new Error(data.error||'admin_failed');
   return data;
 }
-function renderUsers(users){
-  const el=$('#usersList'); if(!el) return;
-  el.innerHTML=(users||[]).map(u=>{
-    const isAdm=u.role==='admin';
-    const roleLbl=isAdm?t('papelAdmin'):t('papelUser');
-    const toggleLbl=isAdm?t('tornarUser'):t('tornarAdmin');
-    return `<div class="user-row" data-email="${esc(u.email)}">
-      <span class="user-email">${esc(u.email)}</span>
-      <span class="b ${isAdm?'pago':'parcial'}">${roleLbl}</span>
-      <button class="btn ghost user-toggle" data-role="${isAdm?'user':'admin'}">${toggleLbl}</button>
-      <button class="btn danger user-rm">${t('remover')}</button>
+function renderAccess(){
+  const box=$('#accessGroups'); if(!box) return;
+  const admins=accessUsers.filter(u=>u.role==='admin');
+  const users =accessUsers.filter(u=>u.role!=='admin');
+  const group=(title,arr)=>{
+    if(!arr.length) return '';
+    const rows=arr.map(u=>`<div class="access-row" data-email="${esc(u.email)}">
+      <div class="who">
+        ${u.nome?`<div class="nm">${esc(u.nome)}</div>`:''}
+        <div class="em">${esc(u.email)}</div>
+      </div>
+      <button class="edit-btn" aria-label="${t('editar')}" title="${t('editar')}">
+        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      </button>
+    </div>`).join('');
+    return `<div class="access-group">
+      <p class="access-group-title">${title} (${arr.length})</p>
+      <div class="access-card">${rows}</div>
     </div>`;
-  }).join('');
-  el.querySelectorAll('.user-toggle').forEach(b=>b.onclick=async()=>{
-    const email=b.closest('.user-row').dataset.email;
-    await usersMutate('setRole',{email:email, role:b.dataset.role});
+  };
+  box.innerHTML = group(t('grupoAdmins'),admins) + group(t('grupoUsers'),users);
+  box.querySelectorAll('.access-row .edit-btn').forEach(b=>b.onclick=()=>{
+    const email=b.closest('.access-row').dataset.email;
+    openAccessModal(accessUsers.find(u=>u.email===email)||null);
   });
-  el.querySelectorAll('.user-rm').forEach(b=>b.onclick=async()=>{
-    const email=b.closest('.user-row').dataset.email;
-    if(!confirm(t('confirmRemoverUser',{e:email}))) return;
-    await usersMutate('removeUser',{email:email});
-  });
-}
-function usersError(code){
-  const m={already_exists:'errJaExiste',invalid_email:'errEmailInvalido',last_admin:'errUltimoAdmin'}[code]||'errUserFalhou';
-  const el=$('#usersMsg'); if(el) el.textContent=t(m);
 }
 async function loadUsers(){
   if(!ONLINE_ENABLED||!auth.idToken) return;
-  try{ const d=await usersApi('listUsers'); renderUsers(d.users); }
+  try{ const d=await usersApi('listUsers'); accessUsers=d.users||[]; renderAccess(); }
   catch(e){ /* silencioso: mantem lista anterior */ }
 }
-async function usersMutate(action, extra){
-  try{ const d=await usersApi(action, extra); renderUsers(d.users); const el=$('#usersMsg'); if(el) el.textContent=t('usuariosNota'); }
-  catch(e){ usersError(String(e.message)); }
+function accSetError(code){
+  const el=$('#accError'); if(!el) return;
+  if(!code){ el.classList.add('hidden'); el.textContent=''; return; }
+  const m={already_exists:'errJaExiste',invalid_email:'errEmailInvalido',last_admin:'errUltimoAdmin'}[code]||'errUserFalhou';
+  el.textContent=t(m); el.classList.remove('hidden');
+}
+function openAccessModal(u){
+  accEditing = u ? u.email : null;
+  accSetError(null);
+  $('#accTitle').textContent = u ? t('editarUsuario') : t('novoUsuario');
+  const em=$('#acc-email'); em.value = u ? u.email : ''; em.disabled = !!u;   // email read-only ao editar
+  $('#acc-nome').value = u ? (u.nome||'') : '';
+  $('#acc-role').value = u ? u.role : 'user';
+  $('#accDel').classList.toggle('hidden', !u);   // Remover so ao editar
+  $('#accSave').textContent = u ? t('salvar') : t('adicionar');
+  $('#accessModal').classList.remove('hidden');
+}
+function closeAccessModal(){ $('#accessModal').classList.add('hidden'); accEditing=null; }
+async function accSave(){
+  const email=(accEditing || ($('#acc-email').value||'').trim().toLowerCase());
+  const nome=($('#acc-nome').value||'').trim();
+  const role=$('#acc-role').value||'user';
+  if(!email || email.indexOf('@')<0){ accSetError('invalid_email'); return; }
+  const action = accEditing ? 'setRole' : 'addUser';
+  try{
+    const d=await usersApi(action,{email:email, role:role, nome:nome});
+    accessUsers=d.users||accessUsers; renderAccess(); closeAccessModal();
+  }catch(e){ accSetError(String(e.message)); }
+}
+async function accRemove(){
+  if(!accEditing) return;
+  if(!confirm(t('confirmRemoverUser',{e:accEditing}))) return;
+  try{
+    const d=await usersApi('removeUser',{email:accEditing});
+    accessUsers=d.users||accessUsers; renderAccess(); closeAccessModal();
+  }catch(e){ accSetError(String(e.message)); }
 }
 
 function logout(){
@@ -1431,13 +1470,10 @@ $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
     setSync('ok'); refresh(); alert('OK — base recarregada ('+base.length+')');
   }catch(e){ setSync('err'); alert('Erro: '+e.message); }
 });
-$('#btnAddUser') && ($('#btnAddUser').onclick=async()=>{
-  const emEl=$('#newUserEmail'), roEl=$('#newUserRole');
-  const email=(emEl && emEl.value||'').trim().toLowerCase();
-  const role=(roEl && roEl.value)||'user';
-  if(!email || email.indexOf('@')<0){ usersError('invalid_email'); return; }
-  await usersMutate('addUser',{email:email, role:role});
-  if(emEl) emEl.value='';
-});
+$('#btnAddAccess') && ($('#btnAddAccess').onclick=()=>openAccessModal(null));
+$('#accSave') && ($('#accSave').onclick=accSave);
+$('#accDel') && ($('#accDel').onclick=accRemove);
+$('#accCancel') && ($('#accCancel').onclick=closeAccessModal);
+$('#accBack') && ($('#accBack').onclick=closeAccessModal);
 
 (function(){ initGoogleLogin(); })();
