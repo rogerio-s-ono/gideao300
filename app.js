@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.5';
+const APP_VERSION = 'v3.6';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -69,6 +69,9 @@ const I18N = {
     grupoAdmins:'Administradores', grupoUsers:'Usuários', grupoTesoureiros:'Tesoureiros',
     verComo:'Ver como', verComoEu:'Admin (eu)', vendoComo:'Vendo como: {r}', voltarPerfil:'Voltar ao meu perfil',
     verComoBloqueio:'Você está no modo "Ver como". Saia dele para poder editar.',
+    entregueTesoureiro:'Entregue ao tesoureiro', detalheDinheiro:'Detalhe do Dinheiro',
+    comPastores:'Com pastores', comTesoureiro:'Com tesoureiro',
+    saiuDe:'Saiu de (dinheiro)', origemPastor:'Pastor', origemTesoureiro:'Tesoureiro',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
     perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', papelTesoureiro:'Tesoureiro', adicionar:'Adicionar', remover:'Remover',
     processando:'Processando…', confirmarRemocao:'Confirmar remoção',
@@ -137,6 +140,9 @@ const I18N = {
     grupoAdmins:'Administradores', grupoUsers:'Usuarios', grupoTesoureiros:'Tesoreros',
     verComo:'Ver como', verComoEu:'Admin (yo)', vendoComo:'Viendo como: {r}', voltarPerfil:'Volver a mi perfil',
     verComoBloqueio:'Estás en modo "Ver como". Sal de él para poder editar.',
+    entregueTesoureiro:'Entregado al tesorero', detalheDinheiro:'Detalle del Efectivo',
+    comPastores:'Con pastores', comTesoureiro:'Con tesorero',
+    saiuDe:'Salió de (efectivo)', origemPastor:'Pastor', origemTesoureiro:'Tesorero',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
     perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', papelTesoureiro:'Tesorero', adicionar:'Añadir', remover:'Quitar',
     processando:'Procesando…', confirmarRemocao:'Confirmar eliminación',
@@ -224,13 +230,33 @@ function computeCaixa(inscritos, despesas, movimentos){
     if(b==='banco') forma['Cartão']+=v; else if(b==='dinheiro') forma['Dinheiro']+=v; else forma['Outros']+=v;
   }));
   const arrecadado = bolso.dinheiro+bolso.banco+bolso.outros;
+  // --- item 7: quebra do DINHEIRO por custódia (com pastores vs com tesoureiro) ---
+  // entradas em dinheiro: entregue ao tesoureiro -> teso; senao -> pastor
+  var cashPastor=0, cashTeso=0;
+  (inscritos||[]).forEach(i=>(i.pagamentos||[]).forEach(p=>{
+    if(bolsoDaForma(p.tipo)!=='dinheiro') return;
+    var v=+p.valor||0;
+    if(p.entregueTesoureiro) cashTeso+=v; else cashPastor+=v;
+  }));
+  // despesas em dinheiro: reduzem a custódia de origem (pastor/tesoureiro; default tesoureiro)
+  (despesas||[]).forEach(d=>{
+    if((d.bolso||'banco')!=='dinheiro') return;
+    var v=+d.valor||0;
+    if(d.origemCusto==='pastor') cashPastor-=v; else cashTeso-=v;
+  });
+  // movimentações que SAEM do dinheiro (ex.: depósito no banco) saem do "com tesoureiro" primeiro, depois pastor
+  (movimentos||[]).forEach(m=>{
+    var v=+m.valor||0;
+    if(m.de==='dinheiro'){ var fromTeso=Math.min(cashTeso, v); cashTeso-=fromTeso; cashPastor-=(v-fromTeso); }
+    if(m.para==='dinheiro'){ cashTeso+=v; }  // entrada em dinheiro via movimentação vai p/ tesoureiro
+  });
   // movimentações: realocam entre bolsos (não mudam o total)
   (movimentos||[]).forEach(m=>{ const v=+m.valor||0; if(bolso[m.de]!==undefined) bolso[m.de]-=v; if(bolso[m.para]!==undefined) bolso[m.para]+=v; });
   // despesas: saem do bolso escolhido
   let despTotal=0;
   (despesas||[]).forEach(d=>{ const v=+d.valor||0; despTotal+=v; const b=d.bolso||'banco'; if(bolso[b]!==undefined) bolso[b]-=v; });
   const saldoProjeto = arrecadado - despTotal;
-  return { bolso, arrecadado, despTotal, saldoProjeto, forma };
+  return { bolso, arrecadado, despTotal, saldoProjeto, forma, cashPastor:cashPastor, cashTeso:cashTeso };
 }
 function hoje(){ const d=new Date(); const off=d.getTimezoneOffset(); const l=new Date(d.getTime()-off*60000); return l.toISOString().slice(0,10); }
 // remove acentos/diacríticos para busca (é->e, ã->a, ç->c, ñ->n...)
@@ -618,8 +644,30 @@ function fillSelect(sel,opts,val){
 function renderPays(){
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   const falta=COTA-soma;
-  $('#paysList').innerHTML=state.draftPays.map((p,idx)=>`<div class="pay"><span>${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}${p.data?' · '+p.data:''}</span><button class="del" data-i="${idx}">×</button></div>`).join('');
+  const canDeliver = (effectiveRole()==='admin' || effectiveRole()==='tesoureiro') && !isImpersonating();
+  $('#paysList').innerHTML=state.draftPays.map((p,idx)=>{
+    const isCash = (p.tipo==='Dinheiro');
+    let deliverRow='';
+    if(isCash){
+      const on = !!p.entregueTesoureiro;
+      const dt = on && p.dataEntregaTesoureiro ? ' · '+fmtShort(p.dataEntregaTesoureiro) : '';
+      deliverRow = `<label class="pay-deliver${on?' on':''}">
+        <input type="checkbox" class="pdeliver" data-i="${idx}" ${on?'checked':''} ${canDeliver?'':'disabled'}>
+        <span>${t('entregueTesoureiro')}</span><span class="pd-date">${on?dt.replace(' · ',''):'—'}</span>
+      </label>`;
+    }
+    return `<div class="pay">
+      <div class="pay-main"><span>${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}${p.data?' · '+p.data:''}</span><button class="del" data-i="${idx}">×</button></div>
+      ${deliverRow}
+    </div>`;
+  }).join('');
   $$('#paysList .del').forEach(b=>b.onclick=()=>{state.draftPays.splice(+b.dataset.i,1);renderPays();});
+  $$('#paysList .pdeliver').forEach(cb=>cb.onchange=()=>{
+    const i=+cb.dataset.i; const p=state.draftPays[i];
+    if(cb.checked){ p.entregueTesoureiro=true; p.dataEntregaTesoureiro=hoje(); }
+    else { p.entregueTesoureiro=false; p.dataEntregaTesoureiro=''; }
+    renderPays();
+  });
   const box=$('#saldoBox');
   if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
@@ -782,6 +830,10 @@ async function renderCaixa(){
   $('#cxDinheiro').textContent = eur(c.bolso.dinheiro);
   $('#cxBanco').textContent = eur(c.bolso.banco);
   $('#cxOutros').textContent = eur(c.bolso.outros);
+  // item 7: quebra do dinheiro por custódia
+  const cp=$('#cashPastor'); if(cp) cp.textContent=eur(c.cashPastor||0);
+  const ct=$('#cashTeso'); if(ct) ct.textContent=eur(c.cashTeso||0);
+  renderCashDrill(inscritos);
   $('#cxBancoCalc').textContent = eur(c.bolso.banco);
   // conciliação
   const realStr=$('#cxBancoReal').value; const real=parseFloat((realStr||'').replace(/[^\d.,-]/g,'').replace(',','.'));
@@ -790,6 +842,35 @@ async function renderCaixa(){
   else { diffEl.textContent='—'; diffEl.className=''; }
   renderCaixaTabs(); renderCaixaList(c);
 }
+let cashDrillOpen=false;
+function renderCashDrill(inscritos){
+  const el=$('#cashDrill'); if(!el) return;
+  // pagamentos em dinheiro
+  const items=[];
+  (inscritos||[]).forEach(i=>(i.pagamentos||[]).forEach(p=>{
+    if(bolsoDaForma(p.tipo)!=='dinheiro') return;
+    const teso=!!p.entregueTesoureiro;
+    items.push({tipo:'in', nome:i.nome||t('semNumero'), valor:+p.valor||0, teso:teso,
+      st: teso ? (t('entregueTesoureiro')+(p.dataEntregaTesoureiro?' '+fmtShort(p.dataEntregaTesoureiro):'')) : t('comPastores')});
+  }));
+  // despesas em dinheiro (saídas) por origem
+  (caixaState.despesas||[]).forEach(d=>{
+    if((d.bolso||'banco')!=='dinheiro') return;
+    const pastor=(d.origemCusto==='pastor');
+    items.push({tipo:'out', nome:d.descricao||'—', valor:-(+d.valor||0), teso:!pastor,
+      st: (pastor?t('origemPastor'):t('origemTesoureiro'))});
+  });
+  if(!items.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
+  el.innerHTML=items.map(it=>`<div class="cs-di">
+    <span><span class="cdot ${it.teso?'teso':'pastor'}"></span>${esc(it.nome)} <span class="st">${esc(it.st)}</span></span>
+    <b>${it.valor<0?'−':''}${eur(Math.abs(it.valor))}</b>
+  </div>`).join('');
+}
+$('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
+  cashDrillOpen=!cashDrillOpen;
+  const d=$('#cashDrill'); if(d) d.classList.toggle('hidden', !cashDrillOpen);
+  const ch=$('#cashChev'); if(ch) ch.textContent=cashDrillOpen?'▴':'▾';
+});
 function renderCaixaTabs(){
   $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
 }
@@ -821,6 +902,10 @@ function openDesp(id){
   $('#d-data').value = d? (d.data||hoje()) : hoje();
   fillSelect('#d-categoria', CATEGORIAS, d? d.categoria : 'Camisas');
   fillSelect('#d-bolso', BOLSOS.map(b=>BOLSO_LABEL[b]), d? BOLSO_LABEL[d.bolso] : 'Banco');
+  // origem de custódia (só quando bolso = Dinheiro): pastor/tesoureiro
+  const orig = (d && d.origemCusto==='pastor') ? 'pastor' : 'tesoureiro';
+  $$('#despModal input[name="d-origem"]').forEach(r=>{ r.checked=(r.value===orig); });
+  updateOrigemVis();
   $('#d-obs').value = d? (d.obs||'') : '';
   caixaState.draftFotos = (d && Array.isArray(d.fotos)) ? d.fotos.map(u=>({url:u})) : [];
   renderDraftFotos();
@@ -828,6 +913,13 @@ function openDesp(id){
   $('#despModal').classList.remove('hidden');
 }
 function bolsoFromLabel(lbl){ for(const b of BOLSOS){ if(BOLSO_LABEL[b]===lbl) return b; } return 'banco'; }
+// mostra o seletor "Saiu de" só quando o bolso da despesa é Dinheiro
+function updateOrigemVis(){
+  const row=$('#d-origemRow'); if(!row) return;
+  const b=bolsoFromLabel($('#d-bolso').value);
+  row.classList.toggle('hidden', b!=='dinheiro');
+}
+$('#d-bolso') && ($('#d-bolso').addEventListener('change', updateOrigemVis));
 /* --- fotos de fatura --- */
 function compressImage(file, maxDim, quality){
   return new Promise((res,rej)=>{
@@ -902,6 +994,9 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
   rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
   rec.bolso=bolsoFromLabel($('#d-bolso').value); rec.obs=$('#d-obs').value.trim();
+  // origem de custódia só faz sentido para dinheiro; senao limpa
+  if(rec.bolso==='dinheiro'){ const sel=$('#despModal input[name="d-origem"]:checked'); rec.origemCusto = sel? sel.value : 'tesoureiro'; }
+  else { rec.origemCusto=''; }
   rec.fotos=(caixaState.draftFotos||[]).map(f=>f.url).filter(Boolean);
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id!=null?rec.id:newId);

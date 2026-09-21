@@ -248,6 +248,23 @@
   #impersonateBanner svg{width:18px;height:18px;fill:currentColor;flex:none}
   #impersonateBanner span{flex:1}
   #impersonateBanner button{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer}
+  .cash-split{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+  .cs-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;cursor:pointer;font-size:.95rem}
+  .cs-chev{color:var(--muted,#888)}
+  .cs-lines{margin-top:8px}
+  .cs-line{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:.92rem}
+  .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:1px}
+  .cdot.pastor{background:#0050CA} .cdot.teso{background:#329864}
+  .cs-drill{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+  .cs-di{display:flex;justify-content:space-between;font-size:.84rem;padding:4px 0;border-bottom:1px solid var(--line)}
+  .cs-di:last-child{border-bottom:none}
+  .cs-di .st{font-size:.74rem;color:var(--muted,#888)}
+  .origem-radio{display:flex;gap:12px;margin-top:6px}
+  .origem-radio label{display:flex;align-items:center;gap:6px;font-size:.9rem;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+  .pay-deliver{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.85rem;color:#329864}
+  .pay-deliver input{width:16px;height:16px;accent-color:#329864}
+  .pay-deliver .pd-date{margin-left:auto;color:var(--muted,#888);font-size:.8rem}
+  .pay .pay-main{display:flex;justify-content:space-between;align-items:center}
   .acc-alert{background:var(--soft-red);color:var(--red);border:1px solid var(--red);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:600;margin:4px 0}
   .btn.danger.confirm{background:var(--red);color:#fff;font-weight:700}
   .btn.busy{opacity:.6;pointer-events:none}
@@ -404,6 +421,17 @@
       <div class="bolso dinheiro" data-bolso="dinheiro"><div class="b-v" id="cxDinheiro">—</div><div class="b-l" data-i="bolsoDinheiro">Dinheiro</div></div>
       <div class="bolso banco" data-bolso="banco"><div class="b-v" id="cxBanco">—</div><div class="b-l" data-i="bolsoBanco">Banco</div></div>
       <div class="bolso outros" data-bolso="outros"><div class="b-v" id="cxOutros">—</div><div class="b-l" data-i="bolsoOutros">Outros</div></div>
+    </div>
+    <div class="cash-split" id="cashSplit">
+      <div class="cs-head" id="cashSplitHead">
+        <span data-i="detalheDinheiro">Detalhe do Dinheiro</span>
+        <span class="cs-chev" id="cashChev">▾</span>
+      </div>
+      <div class="cs-lines">
+        <div class="cs-line"><span><span class="cdot pastor"></span><span data-i="comPastores">Com pastores</span></span><b id="cashPastor">—</b></div>
+        <div class="cs-line"><span><span class="cdot teso"></span><span data-i="comTesoureiro">Com tesoureiro</span></span><b id="cashTeso">—</b></div>
+      </div>
+      <div class="cs-drill hidden" id="cashDrill"></div>
     </div>
     <h3 data-i="conciliacaoBanco">Conciliação bancária</h3>
     <div class="concil">
@@ -595,6 +623,13 @@
     <div class="row2">
       <div><label data-i="categoria">Categoria</label><select id="d-categoria"></select></div>
       <div><label data-i="pagoDe">Pago de (bolso)</label><select id="d-bolso"></select></div>
+    </div>
+    <div id="d-origemRow" class="hidden">
+      <label data-i="saiuDe">Saiu de (dinheiro)</label>
+      <div class="origem-radio">
+        <label><input type="radio" name="d-origem" value="tesoureiro" checked> <span data-i="origemTesoureiro">Tesoureiro</span></label>
+        <label><input type="radio" name="d-origem" value="pastor"> <span data-i="origemPastor">Pastor</span></label>
+      </div>
     </div>
     <label data-i="observacao">Observação</label><input id="d-obs" placeholder="nº nota, fornecedor...">
     <label data-i="fotosFatura">Fotos da fatura (até 3)</label>
