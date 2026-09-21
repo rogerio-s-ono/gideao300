@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.3';
+const APP_VERSION = 'v3.4';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -66,9 +66,9 @@ const I18N = {
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
     navAcessos:'Acessos', acessosNota:'Quem pode entrar no app. As mudanças valem no próximo login.',
-    grupoAdmins:'Administradores', grupoUsers:'Usuários',
+    grupoAdmins:'Administradores', grupoUsers:'Usuários', grupoTesoureiros:'Tesoureiros',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
-    perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', adicionar:'Adicionar', remover:'Remover',
+    perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', papelTesoureiro:'Tesoureiro', adicionar:'Adicionar', remover:'Remover',
     processando:'Processando…', confirmarRemocao:'Confirmar remoção',
     confirmRemoverUser:'Remover o acesso de {e}?',
     errJaExiste:'Este email já está na lista.', errEmailInvalido:'Email inválido.',
@@ -132,9 +132,9 @@ const I18N = {
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
     navAcessos:'Accesos', acessosNota:'Quién puede entrar en la app. Los cambios valen en el próximo inicio de sesión.',
-    grupoAdmins:'Administradores', grupoUsers:'Usuarios',
+    grupoAdmins:'Administradores', grupoUsers:'Usuarios', grupoTesoureiros:'Tesoreros',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
-    perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', adicionar:'Añadir', remover:'Quitar',
+    perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', papelTesoureiro:'Tesorero', adicionar:'Añadir', remover:'Quitar',
     processando:'Procesando…', confirmarRemocao:'Confirmar eliminación',
     confirmRemoverUser:'¿Quitar el acceso de {e}?',
     errJaExiste:'Este correo ya está en la lista.', errEmailInvalido:'Correo inválido.',
@@ -1150,8 +1150,10 @@ function applyAdminUI(){
   let isAdmin;
   if(auth.role){ isAdmin = (auth.role==='admin'); }
   else { isAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
+  // tesoureiro OU admin veem a Caixa (financeiro)
+  const isCaixa = isAdmin || (auth.role==='tesoureiro');
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
-  const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', !isAdmin);
+  const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', !isCaixa);
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
   if(isAdmin) loadUsers();
 }
@@ -1171,7 +1173,8 @@ async function usersApi(action, extra){
 function renderAccess(){
   const box=$('#accessGroups'); if(!box) return;
   const admins=accessUsers.filter(u=>u.role==='admin');
-  const users =accessUsers.filter(u=>u.role!=='admin');
+  const tesos =accessUsers.filter(u=>u.role==='tesoureiro');
+  const users =accessUsers.filter(u=>u.role!=='admin' && u.role!=='tesoureiro');
   const group=(title,arr)=>{
     if(!arr.length) return '';
     const rows=arr.map(u=>`<div class="access-row" data-email="${esc(u.email)}">
@@ -1188,7 +1191,7 @@ function renderAccess(){
       <div class="access-card">${rows}</div>
     </div>`;
   };
-  box.innerHTML = group(t('grupoAdmins'),admins) + group(t('grupoUsers'),users);
+  box.innerHTML = group(t('grupoAdmins'),admins) + group(t('grupoTesoureiros'),tesos) + group(t('grupoUsers'),users);
   box.querySelectorAll('.access-row .edit-btn').forEach(b=>b.onclick=()=>{
     const email=b.closest('.access-row').dataset.email;
     openAccessModal(accessUsers.find(u=>u.email===email)||null);
