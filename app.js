@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.2';
+const APP_VERSION = 'v3.3';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -69,6 +69,7 @@ const I18N = {
     grupoAdmins:'Administradores', grupoUsers:'Usuários',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
     perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', adicionar:'Adicionar', remover:'Remover',
+    processando:'Processando…', confirmarRemocao:'Confirmar remoção',
     confirmRemoverUser:'Remover o acesso de {e}?',
     errJaExiste:'Este email já está na lista.', errEmailInvalido:'Email inválido.',
     errUltimoAdmin:'Não é possível: precisa haver ao menos um admin.', errUserFalhou:'Falha ao atualizar usuários.',
@@ -134,6 +135,7 @@ const I18N = {
     grupoAdmins:'Administradores', grupoUsers:'Usuarios',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
     perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', adicionar:'Añadir', remover:'Quitar',
+    processando:'Procesando…', confirmarRemocao:'Confirmar eliminación',
     confirmRemoverUser:'¿Quitar el acceso de {e}?',
     errJaExiste:'Este correo ya está en la lista.', errEmailInvalido:'Correo inválido.',
     errUltimoAdmin:'No es posible: debe haber al menos un admin.', errUserFalhou:'Error al actualizar usuarios.',
@@ -1157,6 +1159,7 @@ function applyAdminUI(){
 /* ---------- Acessos: gestao de usuarios (so admin) ---------- */
 let accessUsers=[];          // cache da ultima lista
 let accEditing=null;         // email em edicao (null = novo)
+let accConfirmingDel=false;  // 2 estagios para remover
 
 async function usersApi(action, extra){
   const body=Object.assign({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:action}, extra||{});
@@ -1204,34 +1207,52 @@ function accSetError(code){
 }
 function openAccessModal(u){
   accEditing = u ? u.email : null;
+  accConfirmingDel = false;
   accSetError(null);
   $('#accTitle').textContent = u ? t('editarUsuario') : t('novoUsuario');
   const em=$('#acc-email'); em.value = u ? u.email : ''; em.disabled = !!u;   // email read-only ao editar
   $('#acc-nome').value = u ? (u.nome||'') : '';
   $('#acc-role').value = u ? u.role : 'user';
-  $('#accDel').classList.toggle('hidden', !u);   // Remover so ao editar
+  const del=$('#accDel'); del.classList.toggle('hidden', !u); del.textContent=t('remover'); del.classList.remove('confirm');
   $('#accSave').textContent = u ? t('salvar') : t('adicionar');
   $('#accessModal').classList.remove('hidden');
 }
-function closeAccessModal(){ $('#accessModal').classList.add('hidden'); accEditing=null; }
+function closeAccessModal(){ $('#accessModal').classList.add('hidden'); accEditing=null; accConfirmingDel=false; }
+function accBusy(btnSel, on){
+  const b=$(btnSel); if(!b) return;
+  b.classList.toggle('busy', on);
+  if(on){ b.dataset.txt=b.textContent; b.textContent=t('processando'); }
+  else if(b.dataset.txt!==undefined){ b.textContent=b.dataset.txt; delete b.dataset.txt; }
+}
 async function accSave(){
   const email=(accEditing || ($('#acc-email').value||'').trim().toLowerCase());
   const nome=($('#acc-nome').value||'').trim();
   const role=$('#acc-role').value||'user';
   if(!email || email.indexOf('@')<0){ accSetError('invalid_email'); return; }
   const action = accEditing ? 'setRole' : 'addUser';
+  accSetError(null); accBusy('#accSave', true);
   try{
     const d=await usersApi(action,{email:email, role:role, nome:nome});
     accessUsers=d.users||accessUsers; renderAccess(); closeAccessModal();
-  }catch(e){ accSetError(String(e.message)); }
+  }catch(e){ accSetError(String(e.message)); }   // erro fica visivel, modal permanece aberto
+  finally{ accBusy('#accSave', false); }
 }
 async function accRemove(){
   if(!accEditing) return;
-  if(!confirm(t('confirmRemoverUser',{e:accEditing}))) return;
+  const del=$('#accDel');
+  // 1º clique: pede confirmacao IN-MODAL (botao vira "Confirmar remoção"); 2º clique: executa
+  if(!accConfirmingDel){
+    accConfirmingDel=true;
+    del.textContent=t('confirmarRemocao');
+    del.classList.add('confirm');
+    return;
+  }
+  accSetError(null); accBusy('#accDel', true);
   try{
     const d=await usersApi('removeUser',{email:accEditing});
     accessUsers=d.users||accessUsers; renderAccess(); closeAccessModal();
-  }catch(e){ accSetError(String(e.message)); }
+  }catch(e){ accSetError(String(e.message)); accConfirmingDel=false; del.textContent=t('remover'); del.classList.remove('confirm'); }
+  finally{ accBusy('#accDel', false); }
 }
 
 function logout(){
