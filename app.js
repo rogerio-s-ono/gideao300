@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.8';
+const APP_VERSION = 'v3.9';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -70,7 +70,7 @@ const I18N = {
     verComo:'Ver como', verComoEu:'Admin (eu)', vendoComo:'Vendo como: {r}', voltarPerfil:'Voltar ao meu perfil',
     verComoBloqueio:'Você está no modo "Ver como". Saia dele para poder editar.',
     entregueTesoureiro:'Entregue ao tesoureiro', detalheDinheiro:'Detalhe do Dinheiro',
-    recebidoPor:'Recebido por', recebidoDireto:'Recebido pelo tesoureiro', detalheCustodia:'Detalhe por custódia',
+    recebidoPor:'Recebido por', recebidoDireto:'Recebido pelo tesoureiro', detalheCustodia:'Detalhe por custódia', custodia:'Custódia',
     comPastores:'Com pastores', comTesoureiro:'Com tesoureiro',
     saiuDe:'Saiu de (dinheiro)', origemPastor:'Pastor', origemTesoureiro:'Tesoureiro',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
@@ -142,7 +142,7 @@ const I18N = {
     verComo:'Ver como', verComoEu:'Admin (yo)', vendoComo:'Viendo como: {r}', voltarPerfil:'Volver a mi perfil',
     verComoBloqueio:'Estás en modo "Ver como". Sal de él para poder editar.',
     entregueTesoureiro:'Entregado al tesorero', detalheDinheiro:'Detalle del Efectivo',
-    recebidoPor:'Recibido por', recebidoDireto:'Recibido por el tesorero', detalheCustodia:'Detalle por custodia',
+    recebidoPor:'Recibido por', recebidoDireto:'Recibido por el tesorero', detalheCustodia:'Detalle por custodia', custodia:'Custodia',
     comPastores:'Con pastores', comTesoureiro:'Con tesorero',
     saiuDe:'Salió de (efectivo)', origemPastor:'Pastor', origemTesoureiro:'Tesorero',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
