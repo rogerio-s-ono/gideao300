@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.10';
+const APP_VERSION = 'v3.11';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1171,6 +1171,7 @@ async function refresh(){
   if(state.view==='lista') await renderList();
   else if(state.view==='painel') await renderPainel();
   else if(state.view==='confeccao') await renderConfeccao();
+  else if(state.view==='caixa') await renderCaixa();
 }
 
 /* ---------- atualização (via version.json — confiável) ---------- */
