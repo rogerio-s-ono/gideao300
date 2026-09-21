@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.18';
+const APP_VERSION = 'v3.19';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -572,6 +572,8 @@ function toISODate(v){
 }
 function fmtShort(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${(MESES[lang]||MESES.pt)[(+p[1])-1]||p[1]}`; }
 function fmtFull(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${p[1]}/${p[0].slice(2)}`; }
+// dd/mês-abrev/aa (ex.: 21/set/26)
+function fmtDMY(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; const mes=(MESES[lang]||MESES.pt)[(+p[1])-1]||p[1]; return `${p[2]}/${mes}/${p[0].slice(2)}`; }
 
 function dirtyCount(){ return Object.keys(state.confDirty).length; }
 function updateSaveBtn(){
@@ -629,6 +631,8 @@ async function openModal(id){
   $('#f-revisar').checked=rec?!!rec.aRevisar:false;
   $('#f-obs').value=rec?(rec.observacoes||''):'';
   $('#f-orig').textContent=rec?(rec.textoOriginal||'—'):'—';
+  updateRevisarVis();
+  updateCamisaStatusVis(rec);
   const restanteOpen=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   $('#p-valor').value = restanteOpen>0 ? String(restanteOpen) : ''; $('#p-data').value=hoje();
   $('#del').classList.toggle('hidden', !rec);
@@ -649,28 +653,62 @@ function formDirty(){ return state.formSnapshot!==undefined && state.formSnapsho
 function fillSelect(sel,opts,val){
   $(sel).innerHTML=opts.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o||'—'}</option>`).join('');
 }
+// edita a data (campo 'data' ou 'dataEntregaTesoureiro') de um pagamento via seletor nativo
+function editPayDate(idx, field){
+  const p=state.draftPays[idx]; if(!p) return;
+  const inp=document.createElement('input'); inp.type='date';
+  inp.value = toISODate(p[field]||hoje());
+  inp.style.position='fixed'; inp.style.left='-9999px';
+  document.body.appendChild(inp);
+  inp.onchange=()=>{ if(inp.value){ p[field]=inp.value; renderPays(); } document.body.removeChild(inp); };
+  inp.oncancel=()=>{ try{document.body.removeChild(inp);}catch(e){} };
+  inp.focus(); if(inp.showPicker){ try{ inp.showPicker(); }catch(e){ inp.click(); } } else inp.click();
+}
+// item 7: Revisar aparece se há texto na Observação OU já está marcado
+function updateRevisarVis(){
+  const line=$('#revisarLine'); if(!line) return;
+  const hasObs=!!($('#f-obs').value||'').trim();
+  const marked=$('#f-revisar').checked;
+  line.classList.toggle('hidden', !(hasObs || marked));
+}
+// item 8: Estado da camisa aparece só quando pago (>=COTA) E já salvo (editando registro existente)
+function updateCamisaStatusVis(rec){
+  const line=$('#camisaStatusLine'); if(!line) return;
+  const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
+  const pagoESalvo = !!rec && soma>=COTA;
+  line.classList.toggle('hidden', !pagoESalvo);
+}
+$('#f-obs') && ($('#f-obs').addEventListener('input', updateRevisarVis));
+
 function renderPays(){
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   const falta=COTA-soma;
   const canDeliver = (effectiveRole()==='admin' || effectiveRole()==='tesoureiro') && !isImpersonating();
+  const calSvg='<svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm12 7v10H5V9h14z"/></svg>';
   $('#paysList').innerHTML=state.draftPays.map((p,idx)=>{
     const isCash = (p.tipo==='Dinheiro');
+    const dPay = p.data ? fmtDMY(p.data) : fmtDMY(hoje());
     let deliverRow='';
     if(isCash){
       const recebPastor = (p.recebidoPor!=='tesoureiro'); // default pastor
       if(recebPastor){
         const on = !!p.entregueTesoureiro;
-        const dt = on && p.dataEntregaTesoureiro ? fmtShort(p.dataEntregaTesoureiro) : '—';
-        deliverRow = `<label class="pay-deliver${on?' on':''}">
+        const dEntr = on && p.dataEntregaTesoureiro ? fmtDMY(p.dataEntregaTesoureiro) : '';
+        deliverRow = `<div class="pay-deliver">
           <input type="checkbox" class="pdeliver" data-i="${idx}" ${on?'checked':''} ${canDeliver?'':'disabled'}>
-          <span>${t('entregueTesoureiro')}</span><span class="pd-date">${on?dt:'—'}</span>
-        </label>`;
+          <span>${t('entregueTesoureiro')}</span>
+          ${on?`<span class="pay-date pdeldate" data-i="${idx}">${calSvg}${dEntr}</span>`:''}
+        </div>`;
       } else {
-        deliverRow = `<div class="pay-deliver on"><span>${t('recebidoDireto')}</span></div>`;
+        deliverRow = `<div class="pay-deliver"><span>${t('recebidoDireto')}</span></div>`;
       }
     }
     return `<div class="pay">
-      <div class="pay-main"><span>${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}${p.data?' · '+p.data:''}</span><button class="del" data-i="${idx}">×</button></div>
+      <div class="pay-main">
+        <span class="vt">${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}</span>
+        <span class="pay-date pdate" data-i="${idx}">${calSvg}${dPay}</span>
+        <button class="del" data-i="${idx}">×</button>
+      </div>
       ${deliverRow}
     </div>`;
   }).join('');
@@ -681,6 +719,10 @@ function renderPays(){
     else { p.entregueTesoureiro=false; p.dataEntregaTesoureiro=''; }
     renderPays();
   });
+  // editar data do pagamento
+  $$('#paysList .pdate').forEach(el=>el.onclick=()=>editPayDate(+el.dataset.i,'data'));
+  // editar data de entrega
+  $$('#paysList .pdeldate').forEach(el=>el.onclick=()=>editPayDate(+el.dataset.i,'dataEntregaTesoureiro'));
   const box=$('#saldoBox');
   if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
