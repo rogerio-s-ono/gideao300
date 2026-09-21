@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.15';
+const APP_VERSION = 'v3.16';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -879,13 +879,11 @@ $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
 async function gdDiagCustodia(){
   const ins=await getAll();
   const c=computeCaixa(ins, caixaState.despesas, caixaState.movimentos);
-  const domP=$('#cashPastor')?$('#cashPastor').textContent:'(sem elem)';
-  const domT=$('#cashTeso')?$('#cashTeso').textContent:'(sem elem)';
-  alert('DIAG v2\ncomputeCaixa -> cashTeso='+(c.cashTeso||0).toFixed(2)+'  cashPastor='+(c.cashPastor||0).toFixed(2)
-    +'\nbolso.dinheiro='+(c.bolso.dinheiro||0).toFixed(2)
-    +'\ndespesas carregadas: '+((caixaState.despesas||[]).length)
-    +'\nmovimentos carregados: '+((caixaState.movimentos||[]).length)
-    +'\n\nNO ECRA (DOM):\n#cashTeso="'+domT+'"\n#cashPastor="'+domP+'"');
+  var movs=(caixaState.movimentos||[]).map(function(m){return m.de+'->'+m.para+' '+(+m.valor||0);}).join('\n');
+  var desp=(caixaState.despesas||[]).map(function(d){return (d.bolso||'?')+' '+(+d.valor||0)+' orig='+(d.origemCusto||'-');}).join('\n');
+  alert('DIAG v3\ncashTeso='+(c.cashTeso||0).toFixed(2)+' cashPastor='+(c.cashPastor||0).toFixed(2)
+    +'\n\nMOVIMENTOS ('+(caixaState.movimentos||[]).length+'):\n'+movs
+    +'\n\nDESPESAS ('+(caixaState.despesas||[]).length+'):\n'+desp);
 }
 function renderCaixaTabs(){
   $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
