@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.21';
+const APP_VERSION = 'v3.22';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -674,19 +674,19 @@ function renderPays(){
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   const falta=COTA-soma;
   const canDeliver = (effectiveRole()==='admin' || effectiveRole()==='tesoureiro') && !isImpersonating();
+  const calSvg='<svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm12 7v10H5V9h14z"/></svg>';
+  const dateChip=(idx,field,iso)=>`<span class="pay-date"><span class="dc-ico">${calSvg}</span><span class="dc-txt">${fmtDMY(iso)}</span><input type="date" class="dc-in" data-i="${idx}" data-f="${field}" value="${toISODate(iso)}"></span>`;
   $('#paysList').innerHTML=state.draftPays.map((p,idx)=>{
     const isCash = (p.tipo==='Dinheiro');
-    const dPay = toISODate(p.data||hoje());
     let deliverRow='';
     if(isCash){
       const recebPastor = (p.recebidoPor!=='tesoureiro'); // default pastor
       if(recebPastor){
         const on = !!p.entregueTesoureiro;
-        const dEntr = toISODate(p.dataEntregaTesoureiro||hoje());
         deliverRow = `<div class="pay-deliver">
           <input type="checkbox" class="pdeliver" data-i="${idx}" ${on?'checked':''} ${canDeliver?'':'disabled'}>
           <span>${t('entregueTesoureiro')}</span>
-          ${on?`<input type="date" class="pay-date-in pdeldate" data-i="${idx}" value="${dEntr}">`:''}
+          ${on?dateChip(idx,'dataEntregaTesoureiro',p.dataEntregaTesoureiro||hoje()):''}
         </div>`;
       } else {
         deliverRow = `<div class="pay-deliver"><span>${t('recebidoDireto')}</span></div>`;
@@ -695,7 +695,7 @@ function renderPays(){
     return `<div class="pay">
       <div class="pay-main">
         <span class="vt">${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}</span>
-        <input type="date" class="pay-date-in pdate" data-i="${idx}" value="${dPay}">
+        ${dateChip(idx,'data',p.data||hoje())}
         <button class="del" data-i="${idx}">×</button>
       </div>
       ${deliverRow}
@@ -708,10 +708,8 @@ function renderPays(){
     else { p.entregueTesoureiro=false; p.dataEntregaTesoureiro=''; }
     renderPays();
   });
-  // editar data do pagamento (input date nativo)
-  $$('#paysList .pdate').forEach(el=>el.onchange=()=>{ if(el.value){ state.draftPays[+el.dataset.i].data=el.value; } });
-  // editar data de entrega (input date nativo)
-  $$('#paysList .pdeldate').forEach(el=>el.onchange=()=>{ if(el.value){ state.draftPays[+el.dataset.i].dataEntregaTesoureiro=el.value; } });
+  // editar datas (input date transparente sobreposto ao texto)
+  $$('#paysList .dc-in').forEach(el=>el.onchange=()=>{ if(el.value){ state.draftPays[+el.dataset.i][el.dataset.f]=el.value; renderPays(); } });
   const box=$('#saldoBox');
   if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
