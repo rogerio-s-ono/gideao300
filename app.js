@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.6';
+const APP_VERSION = 'v3.7';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -860,11 +860,16 @@ function renderCashDrill(inscritos){
     items.push({tipo:'out', nome:d.descricao||'—', valor:-(+d.valor||0), teso:!pastor,
       st: (pastor?t('origemPastor'):t('origemTesoureiro'))});
   });
-  if(!items.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
-  el.innerHTML=items.map(it=>`<div class="cs-di">
-    <span><span class="cdot ${it.teso?'teso':'pastor'}"></span>${esc(it.nome)} <span class="st">${esc(it.st)}</span></span>
-    <b>${it.valor<0?'−':''}${eur(Math.abs(it.valor))}</b>
-  </div>`).join('');
+  if(!items.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
+  else {
+    el.innerHTML=items.map(it=>`<div class="cs-di">
+      <span><span class="cdot ${it.teso?'teso':'pastor'}"></span>${esc(it.nome)} <span class="st">${esc(it.st)}</span></span>
+      <b>${it.valor<0?'−':''}${eur(Math.abs(it.valor))}</b>
+    </div>`).join('');
+  }
+  // mantem a visibilidade coerente com o estado (renderCaixa roda em cada sync)
+  el.classList.toggle('hidden', !cashDrillOpen);
+  const ch=$('#cashChev'); if(ch) ch.textContent=cashDrillOpen?'▴':'▾';
 }
 $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
   cashDrillOpen=!cashDrillOpen;
