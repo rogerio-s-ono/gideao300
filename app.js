@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.11';
+const APP_VERSION = 'v3.12';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -27,6 +27,8 @@ const I18N = {
     numero:'Número', tamanho:'Tamanho', nome:'Nome', telefone:'Telefone',
     pagamentos:'Pagamentos (cota 300€)', valor:'Valor (€)', tipo:'Tipo', data:'Data',
     addPagamento:'+ Pagamento', comentarioOutros:'Comentário (Outros)', camisaPronta:'Camisa pronta', camisaEntregue:'Camisa entregue',
+    adicionarPagamento:'Adicionar pagamento', adicionarEstePagamento:'Adicionar este pagamento',
+    pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar',
     porTamanho:'Por tamanho (para a gráfica)', financeiro:'Financeiro',
@@ -99,6 +101,8 @@ const I18N = {
     numero:'Número', tamanho:'Talla', nome:'Nombre', telefone:'Teléfono',
     pagamentos:'Pagos (cuota 300€)', valor:'Importe (€)', tipo:'Tipo', data:'Fecha',
     addPagamento:'+ Pago', comentarioOutros:'Comentario (Otros)', camisaPronta:'Camiseta lista', camisaEntregue:'Camiseta entregada',
+    adicionarPagamento:'Añadir pago', adicionarEstePagamento:'Añadir este pago',
+    pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar',
     porTamanho:'Por talla (para la imprenta)', financeiro:'Finanzas',
@@ -626,7 +630,7 @@ async function openModal(id){
   $('#f-orig').textContent=rec?(rec.textoOriginal||'—'):'—';
   const restanteOpen=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   $('#p-valor').value = restanteOpen>0 ? String(restanteOpen) : ''; $('#p-data').value=hoje();
-  $('#del').style.display=rec?'block':'none';
+  $('#del').classList.toggle('hidden', !rec);
   renderPays();
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
@@ -708,6 +712,13 @@ $('#save').onclick=async()=>{
   if(writeBlocked()) return;
   const nome=$('#f-nome').value.trim();
   if(!nome){ alert(t('nomeObrig')); return; }
+  // reforço defensivo: valor de pagamento digitado mas NÃO adicionado
+  // (ignora o "restante" auto-preenchido — só avisa se o usuário digitou algo diferente)
+  const pv=parseFloat(($('#p-valor').value||'').replace(',','.'));
+  const restanteAtual=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
+  if(pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
+    if(confirm(t('pagamentoNaoAdicionado'))){ $('#addPay').click(); }
+  }
   const all=await getAll();
   let rec=state.editing?all.find(x=>x.id===state.editing):{cota:COTA,textoOriginal:''};
   rec.numero=$('#f-numero').value.trim();
