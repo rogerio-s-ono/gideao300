@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.22';
+const APP_VERSION = 'v3.23';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -506,10 +506,7 @@ async function renderConfList(){
     updateSaveBtn(); renderConfList();
   });
   // clicar na data/ícone abre o seletor
-  $$('#confList .dchip').forEach(ch=>ch.onclick=(ev)=>{
-    const inp=ch.querySelector('.dl-input');
-    if(inp.showPicker) inp.showPicker(); else inp.focus();
-  });
+  // (a data usa input date transparente sobreposto — o toque abre o calendário nativo direto)
   // clicar no nome -> abre o card editável na aba Gideões
   $$('#confList .conf-name-link').forEach(nm=>nm.onclick=(ev)=>{
     ev.stopPropagation();
