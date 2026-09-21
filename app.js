@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.12';
+const APP_VERSION = 'v3.13';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -242,7 +242,8 @@ function computeCaixa(inscritos, despesas, movimentos){
   (inscritos||[]).forEach(i=>(i.pagamentos||[]).forEach(p=>{
     if(bolsoDaForma(p.tipo)!=='dinheiro') return;
     var v=+p.valor||0;
-    if(p.entregueTesoureiro) cashTeso+=v; else cashPastor+=v;
+    // mesma regra da etiqueta (payCustody): tesoureiro se recebido direto OU já entregue
+    if(payCustody(p)==='teso') cashTeso+=v; else cashPastor+=v;
   }));
   // despesas em dinheiro: reduzem a custódia de origem (pastor/tesoureiro; default tesoureiro)
   (despesas||[]).forEach(d=>{
