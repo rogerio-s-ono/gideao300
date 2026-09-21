@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.27';
+const APP_VERSION = 'v3.28';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -608,6 +608,29 @@ async function saveConf(){
 }
 
 /* ---------- modal ---------- */
+// menor número livre (primeiro buraco >=1); usados = números já existentes
+async function nextFreeNumber(){
+  const all=await getAll();
+  const used=new Set(all.map(x=>parseInt(x.numero)).filter(x=>!isNaN(x)));
+  let n=1; while(used.has(n)) n++; return n;
+}
+// maior + 1 (default)
+async function maxPlusOneNumber(){
+  const all=await getAll();
+  const nums=all.map(x=>parseInt(x.numero)).filter(x=>!isNaN(x));
+  return nums.length? Math.max(...nums)+1 : 1;
+}
+// mostra o botão "buscar livre" só quando o campo está vazio
+function updateNumFreeBtn(){
+  const b=$('#f-num-free'); if(!b) return;
+  b.classList.toggle('hidden', !!($('#f-numero').value||'').trim());
+}
+$('#f-numero') && ($('#f-numero').addEventListener('input', updateNumFreeBtn));
+$('#f-num-free') && ($('#f-num-free').onclick=async()=>{
+  const n=await nextFreeNumber();
+  $('#f-numero').value=String(n).padStart(2,'0');
+  updateNumFreeBtn();
+});
 async function openModal(id){
   const all=await getAll();
   let rec=id?all.find(x=>x.id===id):null;
@@ -622,6 +645,7 @@ async function openModal(id){
   }
   $('#f-numero').value=rec?(rec.numero||''):nextNum;
   $('#f-numero').placeholder=nextNum||'auto';
+  updateNumFreeBtn();
   fillSelect('#f-tamanho',TAMANHOS,rec?rec.tamanho:'');
   fillSelect('#p-tipo',TIPOS,'Dinheiro');
   if($('#p-outros-wrap')){ $('#p-outros-wrap').classList.add('hidden'); $('#p-comentario').value=''; }
@@ -761,6 +785,7 @@ $('#save').onclick=async()=>{
   const all=await getAll();
   let rec=state.editing?all.find(x=>x.id===state.editing):{cota:COTA,textoOriginal:''};
   rec.numero=$('#f-numero').value.trim();
+  if(!rec.numero){ const n=await maxPlusOneNumber(); rec.numero=String(n).padStart(2,'0'); }
   rec.nome=nome;
   rec.telefone=$('#f-telefone').value.trim();
   rec.tamanho=$('#f-tamanho').value;

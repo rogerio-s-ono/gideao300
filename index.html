@@ -189,6 +189,10 @@
   .grp{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px;background:#fbfaf7}
   .grp .gh{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
   .pay-sub{margin-top:10px;border:1px dashed var(--line);border-radius:9px;padding:10px;background:#fff}
+  .num-wrap{display:flex;align-items:center;gap:6px}
+  .num-wrap input{flex:1}
+  .num-free{flex:none;width:40px;height:40px;border:1px solid var(--line);border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent)}
+  .num-free svg{width:18px;height:18px;fill:currentColor}
   /* pagamentos */
   .pay{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:9px 10px;background:var(--soft-grey);border-radius:8px;margin-top:6px;font-size:14px}
   .pay .pay-main{display:flex;align-items:center;gap:8px}
@@ -589,7 +593,14 @@
       <div class="gh" data-i="camisa">Camisa</div>
       <div class="row2">
         <div><label data-i="tamanho">Tamanho</label><select id="f-tamanho"></select></div>
-        <div><label data-i="numero">Número</label><input id="f-numero" inputmode="numeric" placeholder="auto"></div>
+        <div><label data-i="numero">Número</label>
+          <div class="num-wrap">
+            <input id="f-numero" inputmode="numeric" placeholder="auto">
+            <button type="button" id="f-num-free" class="num-free hidden" title="Buscar número livre" aria-label="Buscar número livre">
+              <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1114 9.5 4.5 4.5 0 019.5 14z"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
