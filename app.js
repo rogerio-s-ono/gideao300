@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.25';
+const APP_VERSION = 'v3.26';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -629,7 +629,11 @@ async function openModal(id){
   $('#f-nome').value=rec?rec.nome:'';
   $('#f-telefone').value=rec?(rec.telefone||''):'';
   const estAtual = rec?(rec.camisaEstado||0):0;
-  $('#f-camisa-txt').textContent=t(estKey(estAtual));
+  let camTxt = t(estKey(estAtual));
+  if(estAtual===EST.ENTREGUE && rec && rec.datas && rec.datas[EST.ENTREGUE]){
+    camTxt += ' · ' + fmtDMY(rec.datas[EST.ENTREGUE]);
+  }
+  $('#f-camisa-txt').textContent=camTxt;
   $('#f-camisa-txt').style.color=estColor(estAtual);
   $('#camisaStatusLine').dataset.pid = rec?rec.id:'';
   $('#f-revisar').checked=rec?!!rec.aRevisar:false;
