@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.14';
+const APP_VERSION = 'v3.15';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -878,16 +878,14 @@ $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
 // DIAGNÓSTICO TEMPORÁRIO — ative com window.GD_DIAG=true no console; mostra a decomposição do dinheiro
 async function gdDiagCustodia(){
   const ins=await getAll();
-  let nDin=0, somaTeso=0, somaPastor=0, tipos={};
-  ins.forEach(i=>(i.pagamentos||[]).forEach(p=>{
-    if(bolsoDaForma(p.tipo)!=='dinheiro') return;
-    nDin++;
-    const c=payCustody(p);
-    if(c==='teso') somaTeso+=(+p.valor||0); else somaPastor+=(+p.valor||0);
-    const k=(p.tipo||'?')+'/receb='+(p.recebidoPor||'-')+'/entr='+(!!p.entregueTesoureiro);
-    tipos[k]=(tipos[k]||0)+1;
-  }));
-  alert('DIAG dinheiro\npagtos dinheiro: '+nDin+'\nteso='+somaTeso.toFixed(2)+' pastor='+somaPastor.toFixed(2)+'\n\nchaves:\n'+Object.keys(tipos).map(k=>k+' x'+tipos[k]).join('\n'));
+  const c=computeCaixa(ins, caixaState.despesas, caixaState.movimentos);
+  const domP=$('#cashPastor')?$('#cashPastor').textContent:'(sem elem)';
+  const domT=$('#cashTeso')?$('#cashTeso').textContent:'(sem elem)';
+  alert('DIAG v2\ncomputeCaixa -> cashTeso='+(c.cashTeso||0).toFixed(2)+'  cashPastor='+(c.cashPastor||0).toFixed(2)
+    +'\nbolso.dinheiro='+(c.bolso.dinheiro||0).toFixed(2)
+    +'\ndespesas carregadas: '+((caixaState.despesas||[]).length)
+    +'\nmovimentos carregados: '+((caixaState.movimentos||[]).length)
+    +'\n\nNO ECRA (DOM):\n#cashTeso="'+domT+'"\n#cashPastor="'+domP+'"');
 }
 function renderCaixaTabs(){
   $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
