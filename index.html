@@ -248,17 +248,14 @@
   #impersonateBanner svg{width:18px;height:18px;fill:currentColor;flex:none}
   #impersonateBanner span{flex:1}
   #impersonateBanner button{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer}
-  .cash-split{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
-  .cs-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;cursor:pointer;font-size:.95rem}
-  .cs-chev{color:var(--muted,#888)}
-  .cs-lines{margin-top:8px}
+  .cash-inline{margin:10px 0}
+  .cash-toggle{display:inline-flex;align-items:center;gap:6px;font-size:.86rem;color:var(--blue,#1174e6);cursor:pointer;font-weight:600;padding:6px 2px}
+  .cs-chev{transition:transform .15s}
+  .cash-toggle.open .cs-chev{transform:rotate(180deg)}
+  .cs-lines{margin-top:6px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--soft,#f4f2ee)}
   .cs-line{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:.92rem}
   .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:1px}
   .cdot.pastor{background:#0050CA} .cdot.teso{background:#329864}
-  .cs-drill{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
-  .cs-di{display:flex;justify-content:space-between;font-size:.84rem;padding:4px 0;border-bottom:1px solid var(--line)}
-  .cs-di:last-child{border-bottom:none}
-  .cs-di .st{font-size:.74rem;color:var(--muted,#888)}
   #d-origemRow{margin:10px 0 4px}
   #d-origemRow>label{display:block;margin-bottom:6px}
   .origem-radio{display:flex;gap:10px;flex-wrap:wrap}
@@ -426,15 +423,12 @@
       <div class="bolso outros" data-bolso="outros"><div class="b-v" id="cxOutros">—</div><div class="b-l" data-i="bolsoOutros">Outros</div></div>
     </div>
     <div class="cash-split" id="cashSplit">
-      <div class="cs-head" id="cashSplitHead">
-        <span data-i="detalheDinheiro">Detalhe do Dinheiro</span>
-        <span class="cs-chev" id="cashChev">▾</span>
-      </div>
-      <div class="cs-lines">
+    <div class="cash-inline" id="cashSplit">
+      <span class="cash-toggle" id="cashSplitHead" data-i="detalheCustodia">Detalhe por custódia <span class="cs-chev" id="cashChev">▾</span></span>
+      <div class="cs-lines hidden" id="cashLines">
         <div class="cs-line"><span><span class="cdot pastor"></span><span data-i="comPastores">Com pastores</span></span><b id="cashPastor">—</b></div>
         <div class="cs-line"><span><span class="cdot teso"></span><span data-i="comTesoureiro">Com tesoureiro</span></span><b id="cashTeso">—</b></div>
       </div>
-      <div class="cs-drill hidden" id="cashDrill"></div>
     </div>
     <h3 data-i="conciliacaoBanco">Conciliação bancária</h3>
     <div class="concil">
@@ -571,6 +565,13 @@
       <div><label data-i="tipo">Tipo</label><select id="p-tipo"></select></div>
     </div>
     <div id="p-outros-wrap" class="hidden"><label data-i="comentarioOutros">Comentário (Outros)</label><input id="p-comentario" placeholder="ex.: Bizum Rogério, Máquina igreja"></div>
+    <div id="p-receb-wrap" class="hidden">
+      <label data-i="recebidoPor">Recebido por</label>
+      <div class="origem-radio">
+        <label><input type="radio" name="p-recebido" value="pastor" checked> <span data-i="origemPastor">Pastor</span></label>
+        <label><input type="radio" name="p-recebido" value="tesoureiro"> <span data-i="origemTesoureiro">Tesoureiro</span></label>
+      </div>
+    </div>
     <div class="row2">
       <div><label data-i="data">Data</label><input id="p-data" type="date"></div>
       <div style="display:flex;align-items:flex-end"><button class="btn ok" id="addPay" style="margin:0" data-i="addPagamento">+ Pagamento</button></div>

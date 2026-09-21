@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.7';
+const APP_VERSION = 'v3.8';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -70,6 +70,7 @@ const I18N = {
     verComo:'Ver como', verComoEu:'Admin (eu)', vendoComo:'Vendo como: {r}', voltarPerfil:'Voltar ao meu perfil',
     verComoBloqueio:'Você está no modo "Ver como". Saia dele para poder editar.',
     entregueTesoureiro:'Entregue ao tesoureiro', detalheDinheiro:'Detalhe do Dinheiro',
+    recebidoPor:'Recebido por', recebidoDireto:'Recebido pelo tesoureiro', detalheCustodia:'Detalhe por custódia',
     comPastores:'Com pastores', comTesoureiro:'Com tesoureiro',
     saiuDe:'Saiu de (dinheiro)', origemPastor:'Pastor', origemTesoureiro:'Tesoureiro',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
@@ -141,6 +142,7 @@ const I18N = {
     verComo:'Ver como', verComoEu:'Admin (yo)', vendoComo:'Viendo como: {r}', voltarPerfil:'Volver a mi perfil',
     verComoBloqueio:'Estás en modo "Ver como". Sal de él para poder editar.',
     entregueTesoureiro:'Entregado al tesorero', detalheDinheiro:'Detalle del Efectivo',
+    recebidoPor:'Recibido por', recebidoDireto:'Recibido por el tesorero', detalheCustodia:'Detalle por custodia',
     comPastores:'Con pastores', comTesoureiro:'Con tesorero',
     saiuDe:'Salió de (efectivo)', origemPastor:'Pastor', origemTesoureiro:'Tesorero',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
@@ -612,6 +614,7 @@ async function openModal(id){
   fillSelect('#f-tamanho',TAMANHOS,rec?rec.tamanho:'');
   fillSelect('#p-tipo',TIPOS,'Dinheiro');
   if($('#p-outros-wrap')){ $('#p-outros-wrap').classList.add('hidden'); $('#p-comentario').value=''; }
+  if($('#p-receb-wrap')){ $('#p-receb-wrap').classList.remove('hidden'); const pr=$('#p-receb-wrap input[value="pastor"]'); if(pr) pr.checked=true; }
   $('#f-nome').value=rec?rec.nome:'';
   $('#f-telefone').value=rec?(rec.telefone||''):'';
   const estAtual = rec?(rec.camisaEstado||0):0;
@@ -649,12 +652,17 @@ function renderPays(){
     const isCash = (p.tipo==='Dinheiro');
     let deliverRow='';
     if(isCash){
-      const on = !!p.entregueTesoureiro;
-      const dt = on && p.dataEntregaTesoureiro ? ' · '+fmtShort(p.dataEntregaTesoureiro) : '';
-      deliverRow = `<label class="pay-deliver${on?' on':''}">
-        <input type="checkbox" class="pdeliver" data-i="${idx}" ${on?'checked':''} ${canDeliver?'':'disabled'}>
-        <span>${t('entregueTesoureiro')}</span><span class="pd-date">${on?dt.replace(' · ',''):'—'}</span>
-      </label>`;
+      const recebPastor = (p.recebidoPor!=='tesoureiro'); // default pastor
+      if(recebPastor){
+        const on = !!p.entregueTesoureiro;
+        const dt = on && p.dataEntregaTesoureiro ? fmtShort(p.dataEntregaTesoureiro) : '—';
+        deliverRow = `<label class="pay-deliver${on?' on':''}">
+          <input type="checkbox" class="pdeliver" data-i="${idx}" ${on?'checked':''} ${canDeliver?'':'disabled'}>
+          <span>${t('entregueTesoureiro')}</span><span class="pd-date">${on?dt:'—'}</span>
+        </label>`;
+      } else {
+        deliverRow = `<div class="pay-deliver on"><span>${t('recebidoDireto')}</span></div>`;
+      }
     }
     return `<div class="pay">
       <div class="pay-main"><span>${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}${p.data?' · '+p.data:''}</span><button class="del" data-i="${idx}">×</button></div>
@@ -680,7 +688,14 @@ $('#addPay').onclick=()=>{
   if(!v||v<=0) return;
   const tipo=$('#p-tipo').value;
   const nota=(tipo==='Outros')? ($('#p-comentario').value||'').trim() : '';
-  state.draftPays.push({valor:v,tipo,data:$('#p-data').value||hoje(),nota});
+  const pay={valor:v,tipo,data:$('#p-data').value||hoje(),nota};
+  if(tipo==='Dinheiro'){
+    const rb=$('#p-receb-wrap input[name="p-recebido"]:checked');
+    pay.recebidoPor = rb? rb.value : 'pastor';
+    // se recebido direto pelo tesoureiro, já conta como entregue
+    if(pay.recebidoPor==='tesoureiro'){ pay.entregueTesoureiro=true; pay.dataEntregaTesoureiro=pay.data; }
+  }
+  state.draftPays.push(pay);
   const restante=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   $('#p-valor').value = restante>0 ? String(restante) : '';
   $('#p-data').value=hoje();
@@ -688,7 +703,7 @@ $('#addPay').onclick=()=>{
   renderPays();
 };
 // mostra o campo de comentário só quando "Outros"
-document.addEventListener('change',(e)=>{ if(e.target && e.target.id==='p-tipo'){ $('#p-outros-wrap').classList.toggle('hidden', e.target.value!=='Outros'); } });
+document.addEventListener('change',(e)=>{ if(e.target && e.target.id==='p-tipo'){ $('#p-outros-wrap').classList.toggle('hidden', e.target.value!=='Outros'); const rw=$('#p-receb-wrap'); if(rw) rw.classList.toggle('hidden', e.target.value!=='Dinheiro'); } });
 $('#save').onclick=async()=>{
   if(writeBlocked()) return;
   const nome=$('#f-nome').value.trim();
@@ -722,7 +737,7 @@ $('#camisaStatusLine').onclick=()=>{
   state.confHighlight=pid?+pid:null;
   setView('confeccao');
 };
-function closeModal(){ $('#modal').classList.add('hidden'); state.editing=null; state.draftPays=[]; state.formSnapshot=undefined; }
+function closeModal(){ $('#modal').classList.add('hidden'); state.editing=null; state.draftPays=[]; state.formSnapshot=undefined; backToExtratoIfNeeded(); }
 // fecha o modal do Gideão; se houver alterações não salvas, pergunta antes
 function tryCloseModal(){
   if(formDirty()){ $('#formConfirm').classList.remove('hidden'); }
@@ -833,7 +848,6 @@ async function renderCaixa(){
   // item 7: quebra do dinheiro por custódia
   const cp=$('#cashPastor'); if(cp) cp.textContent=eur(c.cashPastor||0);
   const ct=$('#cashTeso'); if(ct) ct.textContent=eur(c.cashTeso||0);
-  renderCashDrill(inscritos);
   $('#cxBancoCalc').textContent = eur(c.bolso.banco);
   // conciliação
   const realStr=$('#cxBancoReal').value; const real=parseFloat((realStr||'').replace(/[^\d.,-]/g,'').replace(',','.'));
@@ -842,39 +856,11 @@ async function renderCaixa(){
   else { diffEl.textContent='—'; diffEl.className=''; }
   renderCaixaTabs(); renderCaixaList(c);
 }
-let cashDrillOpen=false;
-function renderCashDrill(inscritos){
-  const el=$('#cashDrill'); if(!el) return;
-  // pagamentos em dinheiro
-  const items=[];
-  (inscritos||[]).forEach(i=>(i.pagamentos||[]).forEach(p=>{
-    if(bolsoDaForma(p.tipo)!=='dinheiro') return;
-    const teso=!!p.entregueTesoureiro;
-    items.push({tipo:'in', nome:i.nome||t('semNumero'), valor:+p.valor||0, teso:teso,
-      st: teso ? (t('entregueTesoureiro')+(p.dataEntregaTesoureiro?' '+fmtShort(p.dataEntregaTesoureiro):'')) : t('comPastores')});
-  }));
-  // despesas em dinheiro (saídas) por origem
-  (caixaState.despesas||[]).forEach(d=>{
-    if((d.bolso||'banco')!=='dinheiro') return;
-    const pastor=(d.origemCusto==='pastor');
-    items.push({tipo:'out', nome:d.descricao||'—', valor:-(+d.valor||0), teso:!pastor,
-      st: (pastor?t('origemPastor'):t('origemTesoureiro'))});
-  });
-  if(!items.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
-  else {
-    el.innerHTML=items.map(it=>`<div class="cs-di">
-      <span><span class="cdot ${it.teso?'teso':'pastor'}"></span>${esc(it.nome)} <span class="st">${esc(it.st)}</span></span>
-      <b>${it.valor<0?'−':''}${eur(Math.abs(it.valor))}</b>
-    </div>`).join('');
-  }
-  // mantem a visibilidade coerente com o estado (renderCaixa roda em cada sync)
-  el.classList.toggle('hidden', !cashDrillOpen);
-  const ch=$('#cashChev'); if(ch) ch.textContent=cashDrillOpen?'▴':'▾';
-}
+let cashSplitOpen=false;
 $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
-  cashDrillOpen=!cashDrillOpen;
-  const d=$('#cashDrill'); if(d) d.classList.toggle('hidden', !cashDrillOpen);
-  const ch=$('#cashChev'); if(ch) ch.textContent=cashDrillOpen?'▴':'▾';
+  cashSplitOpen=!cashSplitOpen;
+  const lines=$('#cashLines'); if(lines) lines.classList.toggle('hidden', !cashSplitOpen);
+  const head=$('#cashSplitHead'); if(head) head.classList.toggle('open', cashSplitOpen);
 });
 function renderCaixaTabs(){
   $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
@@ -1005,12 +991,12 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   rec.fotos=(caixaState.draftFotos||[]).map(f=>f.url).filter(Boolean);
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id!=null?rec.id:newId);
-  $('#despModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
+  $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
 });
-$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
+$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
 $('#despCancel') && ($('#despCancel').onclick=()=>$('#despModal').classList.add('hidden'));
 $('#despBack') && ($('#despBack').onclick=()=>$('#despModal').classList.add('hidden'));
-$('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal') $('#despModal').classList.add('hidden'); });
+$('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal'){ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); } });
 /* --- modal movimentação --- */
 function openMov(id){
   const m = id? caixaState.movimentos.find(x=>x.id===id) : null;
@@ -1034,28 +1020,45 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   rec.de=de; rec.para=para; rec.valor=v; rec.data=$('#m-data').value||hoje(); rec.comentario=$('#m-comentario').value.trim();
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_MOV, rec); markPendingKV('mov', rec.id!=null?rec.id:newId);
-  $('#movModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
+  $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
 });
-$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
+$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
 $('#movCancel') && ($('#movCancel').onclick=()=>$('#movModal').classList.add('hidden'));
 $('#movBack') && ($('#movBack').onclick=()=>$('#movModal').classList.add('hidden'));
-$('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal') $('#movModal').classList.add('hidden'); });
+$('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); } });
 $('#fabCaixa') && ($('#fabCaixa').onclick=()=>{ caixaState.tab==='despesas'? openDesp(null) : openMov(null); });
 $('#cxBancoReal') && ($('#cxBancoReal').oninput=()=>renderCaixa());
 // marcador de pendência para sync das novas coleções (chave composta)
 function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=1; localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
 
 /* --- Extrato por bolso --- */
+// custódia derivada de um pagamento em dinheiro: 'teso' | 'pastor'
+function payCustody(p){
+  if(p.recebidoPor==='tesoureiro') return 'teso';
+  if(p.entregueTesoureiro) return 'teso';
+  return 'pastor';
+}
+function custodyPill(kind){
+  const cls = kind==='teso' ? 'teso' : 'pastor';
+  const lbl = kind==='teso' ? t('origemTesoureiro') : t('origemPastor');
+  return `<span class="cust ${cls}">${lbl}</span>`;
+}
+let extratoBolso=null;   // bolso atualmente aberto (para voltar ao extrato após editar)
 async function openExtrato(bolso){
+  extratoBolso=bolso;
+  const isCash = (bolso==='dinheiro');
   const inscritos=await getAll();
-  const lanc=[]; // {data, tipo, desc, valor(sinal), kind, refId}
+  const lanc=[]; // {data, tipo, desc, valor(sinal), kind, refId, cust, gid, pidx}
   // entradas (pagamentos que caem neste bolso)
   inscritos.forEach(i=>(i.pagamentos||[]).forEach((p,idx)=>{
     if(bolsoDaForma(p.tipo)!==bolso) return;
-    lanc.push({ data:p.data||'', tipo:t('entrada'), desc:`${t('pagamentoDe')} — ${i.nome}${p.tipo==='Outros'&&p.nota?' ('+p.nota+')':''}`, valor:(+p.valor||0), kind:'pag' });
+    lanc.push({ data:p.data||'', tipo:t('entrada'),
+      desc:`${t('pagamentoDe')} — ${i.nome}${p.tipo==='Outros'&&p.nota?' ('+p.nota+')':''}`,
+      valor:(+p.valor||0), kind:'pag', gid:i.id, pidx:idx,
+      cust: isCash? payCustody(p) : null });
   }));
   // despesas pagas deste bolso
-  caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor:-(+d.valor||0), kind:'desp', refId:d.id }); });
+  caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor:-(+d.valor||0), kind:'desp', refId:d.id, cust: isCash? (d.origemCusto==='pastor'?'pastor':'teso') : null }); });
   // movimentações que afetam este bolso
   caixaState.movimentos.forEach(m=>{
     if(m.para===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:(+m.valor||0), kind:'mov', refId:m.id });
@@ -1071,20 +1074,28 @@ async function openExtrato(bolso){
   $('#extSaldo').textContent=eur(saldoFinal);
   const el=$('#extList');
   if(!lanc.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
-  else el.innerHTML=lanc.map(l=>{
-    const pos=l.valor>=0; const clk=(l.kind==='desp'||l.kind==='mov');
-    return `<div class="ext-item ${clk?'clickable':''}" ${clk?`data-kind="${l.kind}" data-id="${l.refId}"`:''}>
-      <div><div class="e-d"><span class="ext-tag">${l.tipo}</span>${esc(l.desc)}</div><div class="e-m">${fmtShort(l.data)}</div></div>
+  else el.innerHTML=lanc.map((l,i)=>{
+    const pos=l.valor>=0; const clk=true;  // todos clicáveis (pag abre Gideão; desp/mov abrem seus modais)
+    const tag = l.cust ? custodyPill(l.cust) : '';
+    return `<div class="ext-item clickable" data-idx="${i}">
+      <div><div class="e-d"><span class="ext-tag">${l.tipo}</span>${esc(l.desc)}${tag}</div><div class="e-m">${fmtShort(l.data)}</div></div>
       <div class="e-right"><div class="e-v ${pos?'pos':'neg'}">${pos?'+':'−'}${eur(Math.abs(l.valor))}</div><div class="e-bal">${eur(l.bal)}</div></div>
     </div>`;
   }).join('');
   el.querySelectorAll('.ext-item.clickable').forEach(it=>it.onclick=()=>{
-    const kind=it.dataset.kind, id=+it.dataset.id;
+    const l=lanc[+it.dataset.idx]; if(!l) return;
     $('#extratoModal').classList.add('hidden');
-    if(kind==='desp') openDesp(id); else if(kind==='mov') openMov(id);
+    if(l.kind==='desp'){ extReturn=bolso; openDesp(l.refId); }
+    else if(l.kind==='mov'){ extReturn=bolso; openMov(l.refId); }
+    else if(l.kind==='pag'){ extReturn=bolso; openModal(l.gid, l.pidx); }   // edita o Gideão; volta ao extrato ao sair
   });
   $('#extratoModal').classList.remove('hidden');
   const sh=$('#extratoModal .sheet'); if(sh) sh.scrollTop=0;
+}
+// controla retorno ao extrato após editar a partir dele
+let extReturn=null;
+function backToExtratoIfNeeded(){
+  if(extReturn){ const b=extReturn; extReturn=null; openExtrato(b); }
 }
 document.addEventListener('click',(e)=>{
   const b=e.target.closest && e.target.closest('#view-caixa .bolso');
