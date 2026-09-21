@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.9';
+const APP_VERSION = 'v3.10';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1039,9 +1039,9 @@ function payCustody(p){
   return 'pastor';
 }
 function custodyPill(kind){
-  const cls = kind==='teso' ? 'teso' : 'pastor';
+  const cls = kind==='teso' ? 'cust-teso' : 'cust-pastor';
   const lbl = kind==='teso' ? t('origemTesoureiro') : t('origemPastor');
-  return `<span class="cust ${cls}">${lbl}</span>`;
+  return `<span class="b ${cls}">${lbl}</span>`;
 }
 let extratoBolso=null;   // bolso atualmente aberto (para voltar ao extrato após editar)
 async function openExtrato(bolso){
@@ -1078,8 +1078,8 @@ async function openExtrato(bolso){
     const pos=l.valor>=0; const clk=true;  // todos clicáveis (pag abre Gideão; desp/mov abrem seus modais)
     const tag = l.cust ? custodyPill(l.cust) : '';
     return `<div class="ext-item clickable" data-idx="${i}">
-      <div><div class="e-d"><span class="ext-tag">${l.tipo}</span>${esc(l.desc)}${tag}</div><div class="e-m">${fmtShort(l.data)}</div></div>
-      <div class="e-right"><div class="e-v ${pos?'pos':'neg'}">${pos?'+':'−'}${eur(Math.abs(l.valor))}</div><div class="e-bal">${eur(l.bal)}</div></div>
+      <div><div class="e-d"><span class="ext-tag">${l.tipo}</span>${esc(l.desc)}</div><div class="e-m">${fmtShort(l.data)}</div></div>
+      <div class="e-right">${tag}<div class="e-v ${pos?'pos':'neg'}">${pos?'+':'−'}${eur(Math.abs(l.valor))}</div><div class="e-bal">${eur(l.bal)}</div></div>
     </div>`;
   }).join('');
   el.querySelectorAll('.ext-item.clickable').forEach(it=>it.onclick=()=>{
