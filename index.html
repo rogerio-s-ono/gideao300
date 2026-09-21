@@ -180,6 +180,9 @@
   .action-bar .act.hidden{display:none}
   .toggle{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--soft-grey);border-radius:10px;margin-top:8px}
   .toggle input{width:auto}
+  #camisaStatusLine .cml-right{display:inline-flex;align-items:center;gap:8px}
+  #camisaStatusLine .cml-right b{color:var(--accent)}
+  #camisaStatusLine .cml-shirt{width:20px;height:20px;fill:var(--accent)}
 
   /* grupos do formulario */
   .grp{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px;background:#fbfaf7}
@@ -618,8 +621,10 @@
     <div class="toggle hidden" id="revisarLine"><span data-i="aRevisar">A revisar</span><input type="checkbox" id="f-revisar"></div>
 
     <div class="toggle hidden" id="camisaStatusLine" style="cursor:pointer;margin-top:12px">
-      <span><span data-i="camisaStatus">Estado da camisa</span>: <b id="f-camisa-txt"></b></span>
-      <span style="color:var(--accent);font-size:13px" data-i="verConfeccao">Abrir na Confecção</span>
+      <span data-i="camisa">Camisa</span>:
+      <span class="cml-right"><b id="f-camisa-txt"></b>
+        <svg class="cml-shirt" viewBox="0 0 24 24"><path d="M16 2l4 3-2 3-2-1v15H8V7L6 8 4 5l4-3 2 2h4z"/></svg>
+      </span>
     </div>
 
     <div class="modal-divider"></div>
