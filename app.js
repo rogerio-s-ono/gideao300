@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.17';
+const APP_VERSION = 'v3.18';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -74,7 +74,7 @@ const I18N = {
     entregueTesoureiro:'Entregue ao tesoureiro', detalheDinheiro:'Detalhe do Dinheiro',
     recebidoPor:'Recebido por', recebidoDireto:'Recebido pelo tesoureiro', detalheCustodia:'Detalhe por custódia', custodia:'Custódia',
     comPastores:'Com pastores', comTesoureiro:'Com tesoureiro',
-    saiuDe:'Saiu de (dinheiro)', origemPastor:'Pastor', origemTesoureiro:'Tesoureiro',
+    saiuDe:'Saiu de (dinheiro)', saiuDeCustodia:'Saiu da custódia (dinheiro)', origemPastor:'Pastor', origemTesoureiro:'Tesoureiro',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
     perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', papelTesoureiro:'Tesoureiro', adicionar:'Adicionar', remover:'Remover',
     processando:'Processando…', confirmarRemocao:'Confirmar remoção',
@@ -148,7 +148,7 @@ const I18N = {
     entregueTesoureiro:'Entregado al tesorero', detalheDinheiro:'Detalle del Efectivo',
     recebidoPor:'Recibido por', recebidoDireto:'Recibido por el tesorero', detalheCustodia:'Detalle por custodia', custodia:'Custodia',
     comPastores:'Con pastores', comTesoureiro:'Con tesorero',
-    saiuDe:'Salió de (efectivo)', origemPastor:'Pastor', origemTesoureiro:'Tesorero',
+    saiuDe:'Salió de (efectivo)', saiuDeCustodia:'Salió de la custodia (efectivo)', origemPastor:'Pastor', origemTesoureiro:'Tesorero',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
     perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', papelTesoureiro:'Tesorero', adicionar:'Añadir', remover:'Quitar',
     processando:'Procesando…', confirmarRemocao:'Confirmar eliminación',

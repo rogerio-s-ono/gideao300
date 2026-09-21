@@ -660,7 +660,7 @@
       <div><label data-i="pagoDe">Pago de (bolso)</label><select id="d-bolso"></select></div>
     </div>
     <div id="d-origemRow" class="hidden">
-      <label data-i="saiuDe">Saiu de (dinheiro)</label>
+      <label data-i="saiuDeCustodia">Saiu da custódia (dinheiro)</label>
       <div class="origem-radio">
         <label><input type="radio" name="d-origem" value="tesoureiro" checked> <span data-i="origemTesoureiro">Tesoureiro</span></label>
         <label><input type="radio" name="d-origem" value="pastor"> <span data-i="origemPastor">Pastor</span></label>
@@ -689,18 +689,18 @@
       <div class="mov-arrow">→</div>
       <div class="mov-box"><span data-i="para">Para</span><select id="m-para"></select></div>
     </div>
-    <div class="row2">
-      <div><label data-i="valor">Valor (€)</label><input id="m-valor" inputmode="decimal" placeholder="0"></div>
-      <div><label data-i="data">Data</label><input id="m-data" type="date"></div>
-    </div>
-    <label data-i="comentario">Comentário</label><input id="m-comentario" placeholder="ex.: Depósito; Bizum Rogério">
     <div id="m-origemRow" class="hidden">
-      <label data-i="saiuDe">Saiu de (dinheiro)</label>
+      <label data-i="saiuDeCustodia">Saiu da custódia (dinheiro)</label>
       <div class="origem-radio">
         <label><input type="radio" name="m-origem" value="tesoureiro" checked> <span data-i="origemTesoureiro">Tesoureiro</span></label>
         <label><input type="radio" name="m-origem" value="pastor"> <span data-i="origemPastor">Pastor</span></label>
       </div>
     </div>
+    <div class="row2">
+      <div><label data-i="valor">Valor (€)</label><input id="m-valor" inputmode="decimal" placeholder="0"></div>
+      <div><label data-i="data">Data</label><input id="m-data" type="date"></div>
+    </div>
+    <label data-i="comentario">Comentário</label><input id="m-comentario" placeholder="ex.: Depósito; Bizum Rogério">
     <button class="btn primary" id="movSave" data-i="salvar">Salvar</button>
     <button class="btn danger hidden" id="movDel" data-i="excluir">Excluir</button>
     <button class="btn ghost" id="movCancel" data-i="cancelar">Cancelar</button>
