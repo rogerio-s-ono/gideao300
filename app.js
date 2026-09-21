@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.20';
+const APP_VERSION = 'v3.21';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -654,16 +654,6 @@ function fillSelect(sel,opts,val){
   $(sel).innerHTML=opts.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o||'—'}</option>`).join('');
 }
 // edita a data (campo 'data' ou 'dataEntregaTesoureiro') de um pagamento via seletor nativo
-function editPayDate(idx, field){
-  const p=state.draftPays[idx]; if(!p) return;
-  const inp=document.createElement('input'); inp.type='date';
-  inp.value = toISODate(p[field]||hoje());
-  inp.style.position='fixed'; inp.style.left='-9999px';
-  document.body.appendChild(inp);
-  inp.onchange=()=>{ if(inp.value){ p[field]=inp.value; renderPays(); } document.body.removeChild(inp); };
-  inp.oncancel=()=>{ try{document.body.removeChild(inp);}catch(e){} };
-  inp.focus(); if(inp.showPicker){ try{ inp.showPicker(); }catch(e){ inp.click(); } } else inp.click();
-}
 // item 7: Revisar aparece se há texto na Observação OU já está marcado
 function updateRevisarVis(){
   const line=$('#revisarLine'); if(!line) return;
@@ -684,20 +674,19 @@ function renderPays(){
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   const falta=COTA-soma;
   const canDeliver = (effectiveRole()==='admin' || effectiveRole()==='tesoureiro') && !isImpersonating();
-  const calSvg='<svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm12 7v10H5V9h14z"/></svg>';
   $('#paysList').innerHTML=state.draftPays.map((p,idx)=>{
     const isCash = (p.tipo==='Dinheiro');
-    const dPay = p.data ? fmtDMY(p.data) : fmtDMY(hoje());
+    const dPay = toISODate(p.data||hoje());
     let deliverRow='';
     if(isCash){
       const recebPastor = (p.recebidoPor!=='tesoureiro'); // default pastor
       if(recebPastor){
         const on = !!p.entregueTesoureiro;
-        const dEntr = on && p.dataEntregaTesoureiro ? fmtDMY(p.dataEntregaTesoureiro) : '';
+        const dEntr = toISODate(p.dataEntregaTesoureiro||hoje());
         deliverRow = `<div class="pay-deliver">
           <input type="checkbox" class="pdeliver" data-i="${idx}" ${on?'checked':''} ${canDeliver?'':'disabled'}>
           <span>${t('entregueTesoureiro')}</span>
-          ${on?`<span class="pay-date pdeldate" data-i="${idx}">${calSvg}${dEntr}</span>`:''}
+          ${on?`<input type="date" class="pay-date-in pdeldate" data-i="${idx}" value="${dEntr}">`:''}
         </div>`;
       } else {
         deliverRow = `<div class="pay-deliver"><span>${t('recebidoDireto')}</span></div>`;
@@ -706,7 +695,7 @@ function renderPays(){
     return `<div class="pay">
       <div class="pay-main">
         <span class="vt">${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}</span>
-        <span class="pay-date pdate" data-i="${idx}">${calSvg}${dPay}</span>
+        <input type="date" class="pay-date-in pdate" data-i="${idx}" value="${dPay}">
         <button class="del" data-i="${idx}">×</button>
       </div>
       ${deliverRow}
@@ -719,10 +708,10 @@ function renderPays(){
     else { p.entregueTesoureiro=false; p.dataEntregaTesoureiro=''; }
     renderPays();
   });
-  // editar data do pagamento
-  $$('#paysList .pdate').forEach(el=>el.onclick=()=>editPayDate(+el.dataset.i,'data'));
-  // editar data de entrega
-  $$('#paysList .pdeldate').forEach(el=>el.onclick=()=>editPayDate(+el.dataset.i,'dataEntregaTesoureiro'));
+  // editar data do pagamento (input date nativo)
+  $$('#paysList .pdate').forEach(el=>el.onchange=()=>{ if(el.value){ state.draftPays[+el.dataset.i].data=el.value; } });
+  // editar data de entrega (input date nativo)
+  $$('#paysList .pdeldate').forEach(el=>el.onchange=()=>{ if(el.value){ state.draftPays[+el.dataset.i].dataEntregaTesoureiro=el.value; } });
   const box=$('#saldoBox');
   if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
