@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.24';
+const APP_VERSION = 'v2.25';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -62,7 +62,7 @@ const I18N = {
     novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…',
     loginSub:'Entre com sua conta Google autorizada', loginFoot:'Acesso restrito aos líderes do projeto',
     naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
-    conta:'Conta e sincronização', usuario:'Usuário', sincronizacao:'Sincronização', admin:'Admin',
+    conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', admin:'Admin',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
     confirmRecarregar:'Isto APAGA tudo (planilha e app) e recarrega os 70 Gideões originais. Usar só para reiniciar os testes. Continuar?',
@@ -120,7 +120,7 @@ const I18N = {
     novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…',
     loginSub:'Entra con tu cuenta Google autorizada', loginFoot:'Acceso restringido a los líderes del proyecto',
     naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
-    conta:'Cuenta y sincronización', usuario:'Usuario', sincronizacao:'Sincronización', admin:'Admin',
+    conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', admin:'Admin',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
     confirmRecarregar:'Esto BORRA todo (hoja y app) y recarga los 70 Gedeones originales. Usar solo para reiniciar las pruebas. ¿Continuar?',
@@ -1328,6 +1328,7 @@ async function startAppAfterLogin(){
   applyLang();
   applyViewMode();
   const vEl=$('#appVersion'); if(vEl) vEl.textContent=APP_VERSION;
+  const avEl=$('#acctVersion'); if(avEl) avEl.textContent=APP_VERSION;
   const emEl=$('#acctEmail'); if(emEl) emEl.textContent=auth.email||'—';
   applyAdminUI();
   setView('lista');
