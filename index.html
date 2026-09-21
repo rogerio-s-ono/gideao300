@@ -227,6 +227,13 @@
   .acct{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
   .acct-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;gap:10px}
   .acct-row b{font-weight:600;text-align:right;word-break:break-all}
+  .user-add{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .user-add input{flex:1;min-width:160px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+  .user-add select{padding:8px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+  .users-list{display:flex;flex-direction:column;gap:6px}
+  .user-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)}
+  .user-row .user-email{flex:1;min-width:140px;word-break:break-all;font-size:14px}
+  .user-row .btn{padding:4px 10px;font-size:12px}
   #syncStatus.ok{color:var(--green)} #syncStatus.pend{color:var(--amber)} #syncStatus.off{color:var(--grey)} #syncStatus.err{color:var(--red)}
   /* banner de atualização */
   #updateBanner{position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:var(--primary);color:#fff;border:1px solid rgba(192,138,45,.5);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:720px;margin:0 auto;font-size:14px}
@@ -403,6 +410,19 @@
         <button class="btn ghost" id="btnSyncNow" data-i="sincronizarAgora">Sincronizar agora</button>
         <button class="btn ghost" id="btnPushAll" data-i="enviarBase">Enviar base completa à planilha</button>
         <button class="btn danger" id="btnReloadBase" data-i="recarregarBase">Recarregar base original (zera tudo)</button>
+      </div>
+      <h3 data-i="gerirUsuarios" style="margin-top:18px">Usuários</h3>
+      <div class="acct" id="usersBox">
+        <div class="user-add">
+          <input type="email" id="newUserEmail" placeholder="email@gmail.com" autocomplete="off">
+          <select id="newUserRole">
+            <option value="user" data-i="papelUser">Usuário</option>
+            <option value="admin" data-i="papelAdmin">Admin</option>
+          </select>
+          <button class="btn ghost" id="btnAddUser" data-i="adicionar">Adicionar</button>
+        </div>
+        <div id="usersList" class="users-list"></div>
+        <p class="note" id="usersMsg" data-i="usuariosNota">Quem pode entrar no app. As mudanças valem no próximo login.</p>
       </div>
     </div>
     <h3 data-i="dadosBackup" style="margin-top:18px">Dados e backup</h3>

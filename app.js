@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.0';
+const APP_VERSION = 'v3.1';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -65,6 +65,12 @@ const I18N = {
     conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', admin:'Admin',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
+    gerirUsuarios:'Usuários', papelUser:'Usuário', papelAdmin:'Admin', adicionar:'Adicionar', remover:'Remover',
+    tornarAdmin:'Tornar admin', tornarUser:'Tornar usuário',
+    usuariosNota:'Quem pode entrar no app. As mudanças valem no próximo login.',
+    confirmRemoverUser:'Remover o acesso de {e}?',
+    errJaExiste:'Este email já está na lista.', errEmailInvalido:'Email inválido.',
+    errUltimoAdmin:'Não é possível: precisa haver ao menos um admin.', errUserFalhou:'Falha ao atualizar usuários.',
     confirmRecarregar:'Isto APAGA tudo (planilha e app) e recarrega os 70 Gideões originais. Usar só para reiniciar os testes. Continuar?',
     syncOk:'Sincronizado', syncPend:'Pendente', syncOff:'Offline', syncErr:'Erro', syncing:'Sincronizando…',
     navCaixa:'Caixa', saldoProjeto:'Saldo do projeto', bolsoDinheiro:'Dinheiro', bolsoBanco:'Banco', bolsoOutros:'Outros',
@@ -123,6 +129,12 @@ const I18N = {
     conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', admin:'Admin',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
+    gerirUsuarios:'Usuarios', papelUser:'Usuario', papelAdmin:'Admin', adicionar:'Añadir', remover:'Quitar',
+    tornarAdmin:'Hacer admin', tornarUser:'Hacer usuario',
+    usuariosNota:'Quién puede entrar en la app. Los cambios valen en el próximo inicio de sesión.',
+    confirmRemoverUser:'¿Quitar el acceso de {e}?',
+    errJaExiste:'Este correo ya está en la lista.', errEmailInvalido:'Correo inválido.',
+    errUltimoAdmin:'No es posible: debe haber al menos un admin.', errUserFalhou:'Error al actualizar usuarios.',
     confirmRecarregar:'Esto BORRA todo (hoja y app) y recarga los 70 Gedeones originales. Usar solo para reiniciar las pruebas. ¿Continuar?',
     syncOk:'Sincronizado', syncPend:'Pendiente', syncOff:'Sin conexión', syncErr:'Error', syncing:'Sincronizando…',
     navCaixa:'Caja', saldoProjeto:'Saldo del proyecto', bolsoDinheiro:'Efectivo', bolsoBanco:'Banco', bolsoOutros:'Otros',
@@ -1135,7 +1147,54 @@ function applyAdminUI(){
   else { isAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
   const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', !isAdmin);
+  if(isAdmin) loadUsers();
 }
+
+/* ---------- gestao de usuarios (tela de Admin) ---------- */
+async function usersApi(action, extra){
+  const body=Object.assign({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:action}, extra||{});
+  const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+  const data=await r.json();
+  if(!data.ok) throw new Error(data.error||'admin_failed');
+  return data;
+}
+function renderUsers(users){
+  const el=$('#usersList'); if(!el) return;
+  el.innerHTML=(users||[]).map(u=>{
+    const isAdm=u.role==='admin';
+    const roleLbl=isAdm?t('papelAdmin'):t('papelUser');
+    const toggleLbl=isAdm?t('tornarUser'):t('tornarAdmin');
+    return `<div class="user-row" data-email="${esc(u.email)}">
+      <span class="user-email">${esc(u.email)}</span>
+      <span class="b ${isAdm?'pago':'parcial'}">${roleLbl}</span>
+      <button class="btn ghost user-toggle" data-role="${isAdm?'user':'admin'}">${toggleLbl}</button>
+      <button class="btn danger user-rm">${t('remover')}</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.user-toggle').forEach(b=>b.onclick=async()=>{
+    const email=b.closest('.user-row').dataset.email;
+    await usersMutate('setRole',{email:email, role:b.dataset.role});
+  });
+  el.querySelectorAll('.user-rm').forEach(b=>b.onclick=async()=>{
+    const email=b.closest('.user-row').dataset.email;
+    if(!confirm(t('confirmRemoverUser',{e:email}))) return;
+    await usersMutate('removeUser',{email:email});
+  });
+}
+function usersError(code){
+  const m={already_exists:'errJaExiste',invalid_email:'errEmailInvalido',last_admin:'errUltimoAdmin'}[code]||'errUserFalhou';
+  const el=$('#usersMsg'); if(el) el.textContent=t(m);
+}
+async function loadUsers(){
+  if(!ONLINE_ENABLED||!auth.idToken) return;
+  try{ const d=await usersApi('listUsers'); renderUsers(d.users); }
+  catch(e){ /* silencioso: mantem lista anterior */ }
+}
+async function usersMutate(action, extra){
+  try{ const d=await usersApi(action, extra); renderUsers(d.users); const el=$('#usersMsg'); if(el) el.textContent=t('usuariosNota'); }
+  catch(e){ usersError(String(e.message)); }
+}
+
 function logout(){
   sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
   auth={idToken:null,email:null};
@@ -1371,6 +1430,14 @@ $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
     }
     setSync('ok'); refresh(); alert('OK — base recarregada ('+base.length+')');
   }catch(e){ setSync('err'); alert('Erro: '+e.message); }
+});
+$('#btnAddUser') && ($('#btnAddUser').onclick=async()=>{
+  const emEl=$('#newUserEmail'), roEl=$('#newUserRole');
+  const email=(emEl && emEl.value||'').trim().toLowerCase();
+  const role=(roEl && roEl.value)||'user';
+  if(!email || email.indexOf('@')<0){ usersError('invalid_email'); return; }
+  await usersMutate('addUser',{email:email, role:role});
+  if(emEl) emEl.value='';
 });
 
 (function(){ initGoogleLogin(); })();
