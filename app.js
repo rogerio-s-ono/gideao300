@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v2.21';
+const APP_VERSION = 'v2.22';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1050,13 +1050,46 @@ function showUpdateBanner(){
   $('#updateBtn').onclick=async()=>{
     $('#updateBtn').disabled=true;
     $('#updateBtn').textContent=t('atualizando');
+    // fallback: se por algum motivo o SW nao trocar de controle, recarrega mesmo assim
+    const hardReload=()=>{ setTimeout(()=>{ location.reload(); }, 200); };
     try{
-      // limpa caches e atualiza o service worker para garantir código novo
-      if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
-      if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.update().catch(()=>{}))); }
-    }catch(e){}
-    // recarrega forçando rede
-    setTimeout(()=>{ location.reload(); }, 300);
+      if(!('serviceWorker' in navigator)){ hardReload(); return; }
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(!reg){ hardReload(); return; }
+      // garante que buscamos o SW novo (pode ainda nao ter sido detectado)
+      try{ await reg.update(); }catch(e){}
+
+      // funcao que ativa o SW em espera e agenda o reload no controllerchange
+      const activateWaiting=(sw)=>{
+        if(!sw) return false;
+        // recarrega assim que o SW novo assumir o controle (evita reload com shell antigo)
+        // flag evita reload duplo (controllerchange pode disparar mais de uma vez)
+        if(!sessionStorage.getItem('gd_updating')){
+          sessionStorage.setItem('gd_updating','1');
+          navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+            location.reload();
+          });
+        }
+        sw.postMessage('skipWaiting');
+        return true;
+      };
+
+      if(reg.waiting){
+        // SW novo ja esperando -> ativa agora
+        activateWaiting(reg.waiting);
+        // fallback de seguranca se controllerchange nao vier (ex.: iOS teimoso)
+        setTimeout(()=>{ if(sessionStorage.getItem('gd_updating')){ sessionStorage.removeItem('gd_updating'); location.reload(); } }, 3500);
+      } else if(reg.installing){
+        // SW novo ainda instalando -> espera terminar e entao ativa
+        reg.installing.addEventListener('statechange', function(){
+          if(this.state==='installed' && reg.waiting){ activateWaiting(reg.waiting); }
+        });
+        setTimeout(hardReload, 4000);
+      } else {
+        // nenhum SW novo (mesma versao de codigo, so version.json mudou): reload simples
+        hardReload();
+      }
+    }catch(e){ hardReload(); }
   };
 }
 async function checkVersion(){
@@ -1068,6 +1101,8 @@ async function checkVersion(){
   }catch(e){ /* offline: ignora */ }
 }
 async function registerSWWithUpdate(){
+  // limpa flag de atualizacao (se o reload ja ocorreu, ela nao deve persistir)
+  try{ sessionStorage.removeItem('gd_updating'); }catch(e){}
   try{ await navigator.serviceWorker.register('sw.js'); }catch(e){}
   // detecção de versão por polling do version.json (independe do timing do SW)
   checkVersion();
