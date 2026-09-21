@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.19';
+const APP_VERSION = 'v3.20';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -728,7 +728,7 @@ function renderPays(){
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
   else { box.style.background='var(--soft-grey)';box.style.color='var(--grey)';box.textContent=t('saldoPend'); }
   // esconde a área de adicionar pagamento quando a cota já está completa
-  const ap=$('#addPayArea'); if(ap) ap.classList.toggle('hidden', soma>=COTA);
+  const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', soma>=COTA);
 }
 $('#addPay').onclick=()=>{
   const v=parseFloat(($('#p-valor').value||'').replace(',','.'));
