@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.32';
+const APP_VERSION = 'v3.33';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -86,6 +86,7 @@ const I18N = {
     confirmRecarregar:'Isto APAGA tudo (planilha e app) e recarrega os 70 Gideões originais. Usar só para reiniciar os testes. Continuar?',
     syncOk:'Sincronizado', syncPend:'Pendente', syncOff:'Offline', syncErr:'Erro', syncing:'Sincronizando…',
     navCaixa:'Caixa', saldoProjeto:'Saldo do projeto', bolsoDinheiro:'Dinheiro', bolsoBanco:'Banco', bolsoOutros:'Outros',
+    somenteLeitura:'Somente leitura',
     conciliacaoBanco:'Conciliação bancária', saldoBancoCalc:'Saldo em banco (calculado)', saldoBancoReal:'Saldo real do banco',
     diferenca:'Diferença', lancamentos:'Lançamentos', despesas:'Despesas', movimentacoes:'Movimentações',
     novaDespesa:'Nova despesa', editarDespesa:'Editar despesa', descricao:'Descrição', categoria:'Categoria', pagoDe:'Pago de (bolso)', observacao:'Observação',
@@ -162,6 +163,7 @@ const I18N = {
     confirmRecarregar:'Esto BORRA todo (hoja y app) y recarga los 70 Gedeones originales. Usar solo para reiniciar las pruebas. ¿Continuar?',
     syncOk:'Sincronizado', syncPend:'Pendiente', syncOff:'Sin conexión', syncErr:'Error', syncing:'Sincronizando…',
     navCaixa:'Caja', saldoProjeto:'Saldo del proyecto', bolsoDinheiro:'Efectivo', bolsoBanco:'Banco', bolsoOutros:'Otros',
+    somenteLeitura:'Solo lectura',
     conciliacaoBanco:'Conciliación bancaria', saldoBancoCalc:'Saldo en banco (calculado)', saldoBancoReal:'Saldo real del banco',
     diferenca:'Diferencia', lancamentos:'Movimientos', despesas:'Gastos', movimentacoes:'Traspasos',
     novaDespesa:'Nuevo gasto', editarDespesa:'Editar gasto', descricao:'Descripción', categoria:'Categoría', pagoDe:'Pagado de (bolsa)', observacao:'Observación',
@@ -928,12 +930,8 @@ async function renderCaixa(){
   // item 7: quebra do dinheiro por custódia
   const cp=$('#cashPastor'); if(cp) cp.textContent=eur(c.cashPastor||0);
   const ct=$('#cashTeso'); if(ct) ct.textContent=eur(c.cashTeso||0);
-  $('#cxBancoCalc').textContent = eur(c.bolso.banco);
-  // conciliação
-  const realStr=$('#cxBancoReal').value; const real=parseFloat((realStr||'').replace(/[^\d.,-]/g,'').replace(',','.'));
-  const diffEl=$('#cxDiff');
-  if(realStr && !isNaN(real)){ const d=real-c.bolso.banco; diffEl.textContent=eur(d)+(Math.abs(d)<0.005?' ✓':''); diffEl.className=Math.abs(d)<0.005?'diff-ok':'diff-bad'; }
-  else { diffEl.textContent='—'; diffEl.className=''; }
+  // selo somente-leitura para o user
+  const ro=$('#cxReadonly'); if(ro) ro.classList.toggle('hidden', !auth.caixaRO);
   renderCaixaTabs(); renderCaixaList(c);
 }
 let cashSplitOpen=false;
@@ -985,6 +983,13 @@ function openDesp(id){
   renderDraftFotos();
   $('#despDel').classList.toggle('hidden', !d);
   $('#despModal').classList.remove('hidden');
+  applyModalRO('#despModal', auth.caixaRO, ['#despSave','#despDel','#d-addFoto']);
+}
+// modo somente-leitura para modais da Caixa: desabilita campos e esconde botoes de acao
+function applyModalRO(modalSel, ro, actionBtns){
+  const m=$(modalSel); if(!m) return;
+  m.querySelectorAll('input,select,textarea').forEach(el=>{ el.disabled=ro; });
+  (actionBtns||[]).forEach(sel=>{ const b=$(sel); if(b) b.classList.toggle('hidden', ro); });
 }
 function bolsoFromLabel(lbl){ for(const b of BOLSOS){ if(BOLSO_LABEL[b]===lbl) return b; } return 'banco'; }
 // mostra o seletor "Saiu de" só quando o bolso da despesa é Dinheiro
@@ -1096,6 +1101,7 @@ function openMov(id){
   updateMovOrigemVis();
   $('#movDel').classList.toggle('hidden', !m);
   $('#movModal').classList.remove('hidden');
+  applyModalRO('#movModal', auth.caixaRO, ['#movSave','#movDel']);
 }
 // mostra "Saiu de" só quando a origem da movimentação é Dinheiro
 function updateMovOrigemVis(){
@@ -1123,7 +1129,6 @@ $('#movCancel') && ($('#movCancel').onclick=()=>$('#movModal').classList.add('hi
 $('#movBack') && ($('#movBack').onclick=()=>$('#movModal').classList.add('hidden'));
 $('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); } });
 $('#fabCaixa') && ($('#fabCaixa').onclick=()=>{ caixaState.tab==='despesas'? openDesp(null) : openMov(null); });
-$('#cxBancoReal') && ($('#cxBancoReal').oninput=()=>renderCaixa());
 // marcador de pendência para sync das novas coleções (chave composta)
 function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=1; localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
 
@@ -1220,7 +1225,7 @@ function doSetView(v){
   ['lista','painel','confeccao','caixa','acessos','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   $('#fab').classList.toggle('hidden', v!=='lista');
-  const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa');
+  const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa' || auth.caixaRO);
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
@@ -1385,9 +1390,10 @@ function applyAdminUI(){
   auth.realAdmin = realIsAdmin;
   const eff = effectiveRole();                 // 'admin' | 'tesoureiro' | 'user'
   const isAdmin = (eff==='admin');
-  const isCaixa = isAdmin || (eff==='tesoureiro');
+  const isCaixaEdit = isAdmin || (eff==='tesoureiro');   // edita a Caixa
+  auth.caixaRO = !isCaixaEdit;                            // user = Caixa somente leitura
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
-  const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', !isCaixa);
+  const navC=$('#navCaixa'); if(navC) navC.classList.remove('hidden');   // Caixa visível a todos (user = read-only)
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
   renderImpersonateUI();
   if(isAdmin) loadUsers();
