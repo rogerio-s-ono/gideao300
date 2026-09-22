@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.39';
+const APP_VERSION = 'v3.40';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -971,17 +971,28 @@ function renderCaixaList(){
   if(caixaState.tab==='despesas'){
     const arr=caixaState.despesas.slice().sort(cmpDate);
     if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
-    el.innerHTML=arr.map(d=>`<div class="cx-item" data-id="${d.id}" data-k="desp">
+    el.innerHTML=arr.map(d=>`<div class="cx-item" data-id="${d.id}" data-k="desp:${d.id}">
       <div><div class="desc">${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
       <div class="amt out">−${eur(d.valor)}</div></div>`).join('');
-    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>openDesp(+it.dataset.id));
+    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>{ cxHighlight=it.dataset.k; openDesp(+it.dataset.id); });
   } else {
     const arr=caixaState.movimentos.slice().sort(cmpDate);
     if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
-    el.innerHTML=arr.map(m=>`<div class="cx-item" data-id="${m.id}" data-k="mov">
+    el.innerHTML=arr.map(m=>`<div class="cx-item" data-id="${m.id}" data-k="mov:${m.id}">
       <div><div class="desc">${esc(BOLSO_LABEL[m.de]||m.de)} → ${esc(BOLSO_LABEL[m.para]||m.para)}</div><div class="meta">${fmtShort(m.data)}${m.comentario?' · '+esc(m.comentario):''}</div></div>
       <div class="amt mov">${eur(m.valor)}</div></div>`).join('');
-    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>openMov(+it.dataset.id));
+    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>{ cxHighlight=it.dataset.k; openMov(+it.dataset.id); });
+  }
+  // highlight + scroll do lançamento de onde viemos (ao voltar do modal)
+  if(cxHighlight){
+    const item=el.querySelector(`.cx-item[data-k="${cxHighlight}"]`);
+    if(item){
+      item.classList.add('hl');
+      requestAnimationFrame(()=>{ try{ item.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){ item.scrollIntoView(); } });
+      const k=cxHighlight;
+      setTimeout(()=>{ const i2=el.querySelector(`.cx-item[data-k="${k}"]`); if(i2) i2.classList.remove('hl'); }, 3000);
+    }
+    cxHighlight=null;
   }
 }
 /* --- modal despesa --- */
@@ -1166,6 +1177,7 @@ function custodyPill(kind){
 }
 let extratoBolso=null;   // bolso atualmente aberto (para voltar ao extrato após editar)
 let extHighlight=null;   // chave do lançamento a destacar ao voltar ao extrato
+let cxHighlight=null;    // chave do lançamento a destacar na lista de Lançamentos (despesas/movimentos)
 let extCust={teso:true, pastor:true};   // filtro de custódia no extrato do Dinheiro
 async function openExtrato(bolso){
   extratoBolso=bolso;
