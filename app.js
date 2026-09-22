@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.33';
+const APP_VERSION = 'v3.34';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -414,14 +414,10 @@ async function renderPainel(){
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   $('#sizegrid').innerHTML=keys.map(s=>`<div class="sizecell"><div class="v">${bySize[s]}</div><div class="s">${esc(s)}</div></div>`).join('');
   // financeiro
-  const byForma={};
-  all.forEach(i=>(i.pagamentos||[]).forEach(p=>{const f=p.tipo||'—';byForma[f]=(byForma[f]||0)+(+p.valor||0);}));
   let fin=`
     <div class="tot-row"><span>${t('arrecadado')}</span><b style="color:var(--green)">${arrec}€</b></div>
     <div class="tot-row"><span>${t('aReceber')}</span><b style="color:var(--amber)">${areceber}€</b></div>
-    <div class="tot-row"><span>${t('prontas')}</span><b>${prontas}</b></div>
-    <h3 style="margin:14px 0 4px;font-size:14px;color:var(--muted)">${t('porFormaPag')}</h3>`;
-  fin+=Object.keys(byForma).sort((a,b)=>byForma[b]-byForma[a]).map(f=>`<div class="tot-row"><span>${esc(f)}</span><b>${byForma[f]}€</b></div>`).join('');
+    <div class="tot-row"><span>${t('prontas')}</span><b>${prontas}</b></div>`;
   $('#fin').innerHTML=fin;
 }
 
