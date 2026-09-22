@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.38';
+const APP_VERSION = 'v3.39';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -834,15 +834,16 @@ $('#camisaStatusLine').onclick=()=>{
 };
 function closeModal(){
   $('#modal').classList.add('hidden');
+  const fromExtrato = !!extReturn;   // capturar antes de backToExtratoIfNeeded limpar
   // se o modal foi aberto a partir da lista (não do extrato), lembra o card para destacar ao voltar
-  if(!extReturn && state.editing!=null) state.listHighlight=state.editing;
+  if(!fromExtrato && state.editing!=null) state.listHighlight=state.editing;
   state.editing=null; state.draftPays=[]; state.formSnapshot=undefined;
   backToExtratoIfNeeded();
 }
 // fecha o modal do Gideão; se houver alterações não salvas, pergunta antes
 function tryCloseModal(){
   if(formDirty()){ $('#formConfirm').classList.remove('hidden'); }
-  else closeModal();
+  else { closeModal(); refresh(); }
 }
 $('#fcSave').onclick=async()=>{
   const nome=$('#f-nome').value.trim();
@@ -850,7 +851,7 @@ $('#fcSave').onclick=async()=>{
   $('#formConfirm').classList.add('hidden');
   $('#save').click();
 };
-$('#fcDiscard').onclick=()=>{ $('#formConfirm').classList.add('hidden'); closeModal(); };
+$('#fcDiscard').onclick=()=>{ $('#formConfirm').classList.add('hidden'); closeModal(); refresh(); };
 $('#fcCancel').onclick=()=>{ $('#formConfirm').classList.add('hidden'); };
 
 /* ---------- export / backup ---------- */
