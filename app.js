@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.42';
+const APP_VERSION = 'v3.43';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1014,9 +1014,9 @@ function openDesp(id){
   $('#d-obs').value = d? (d.obs||'') : '';
   caixaState.draftFotos = (d && Array.isArray(d.fotos)) ? d.fotos.map(u=>({url:u})) : [];
   renderDraftFotos();
-  $('#despDel').classList.toggle('hidden', !d);
+  $('#despDel').classList.toggle('hidden', !d || auth.caixaRO);
   $('#despModal').classList.remove('hidden');
-  applyModalRO('#despModal', auth.caixaRO, ['#despSave','#despDel','#d-addFoto']);
+  applyModalRO('#despModal', auth.caixaRO, ['#despSave','#d-addFoto']);
 }
 // modo somente-leitura para modais da Caixa: desabilita campos e esconde botoes de acao
 function applyModalRO(modalSel, ro, actionBtns){
@@ -1132,9 +1132,9 @@ function openMov(id){
   var morig = (m && m.origemCusto==='pastor') ? 'pastor' : 'tesoureiro';
   $$('#movModal input[name="m-origem"]').forEach(r=>{ r.checked=(r.value===morig); });
   updateMovOrigemVis();
-  $('#movDel').classList.toggle('hidden', !m);
+  $('#movDel').classList.toggle('hidden', !m || auth.caixaRO);
   $('#movModal').classList.remove('hidden');
-  applyModalRO('#movModal', auth.caixaRO, ['#movSave','#movDel']);
+  applyModalRO('#movModal', auth.caixaRO, ['#movSave']);
 }
 // mostra "Saiu de" só quando a origem da movimentação é Dinheiro
 function updateMovOrigemVis(){
