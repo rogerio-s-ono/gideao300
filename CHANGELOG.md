@@ -1,5 +1,16 @@
 # Gideão 300 — App · Changelog
 
+## v4.0.3 — Backup completo: inclui despesas e movimentações (2026-09-22)
+"Baixar backup" e "Restaurar backup" agora abrangem TODAS as coleções (inscritos + despesas + movimentações da Caixa), não só os inscritos.
+
+### Mudanças
+- **Export (`backup`):** o JSON passa a incluir `despesas` e `movimentos` além de `inscritos`.
+- **Restore:** repovoa as três coleções localmente e as envia ao servidor no mesmo POST atômico (`reset:true`); offline, marca também despesas/movimentos como pendentes.
+- **Backend (`Code.gs`):** o `reset:true` agora zera também as abas Despesas e Movimentos antes de gravar (full-replace consistente). ⚠️ Requer reimplantar o Apps Script.
+
+### Validação
+Testado no navegador real: export inclui as 3 coleções; round-trip (export→restore→export) preserva inscritos, despesas e movimentações idênticos, sem erros.
+
 ## v4.0.2 — Restaurar backup à prova de falhas (2026-09-22)
 Correção importante no fluxo **MAIS → Restaurar backup**, tornando-o seguro para a carga inicial (baseline do UAT) independente do estado do servidor.
 

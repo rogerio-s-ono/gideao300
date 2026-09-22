@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.0.2';
+const APP_VERSION = 'v4.0.3';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -878,8 +878,10 @@ async function exportCsv(){
 }
 async function backup(){
   const all=await getAll();
+  const despesas=await sGetAll(STORE_DESP);
+  const movimentos=await sGetAll(STORE_MOV);
   download('gideao300-backup-'+new Date().toISOString().slice(0,10)+'.json',
-    JSON.stringify({projeto:'Projeto Gideão 300',cota:COTA,exportadoEm:new Date().toISOString(),inscritos:all},null,2),
+    JSON.stringify({projeto:'Projeto Gideão 300',cota:COTA,exportadoEm:new Date().toISOString(),inscritos:all,despesas:despesas,movimentos:movimentos},null,2),
     'application/json');
 }
 $('#btnExportXlsx').onclick=exportCsv;
@@ -922,11 +924,13 @@ $('#fileRestore').onchange=async e=>{
   if(!confirm(t('confirmRestore'))){ e.target.value=''; return; }
   const txt=await f.text();
   // 1) valida o JSON ANTES de tocar em qualquer dado (se invalido, nada e apagado)
-  let arr;
+  let arr, despIn, movIn;
   try{
     const data=JSON.parse(txt);
     arr=data.inscritos||data;
     if(!Array.isArray(arr)) throw new Error('formato');
+    despIn = Array.isArray(data.despesas)? data.despesas : [];
+    movIn  = Array.isArray(data.movimentos)? data.movimentos : [];
   }catch(err){ alert(t('jsonInvalido')); e.target.value=''; return; }
   try{
     setSync('syncing');
@@ -939,11 +943,17 @@ $('#fileRestore').onchange=async e=>{
     }));
     await clearAll(); clearPending();
     for(const i of base){ await put(i); }
+    // 2b) repovoa despesas e movimentacoes (backup completo)
+    await sClear(STORE_DESP); await sClear(STORE_MOV);
+    localStorage.removeItem('gd_pending_cx');
+    for(const d of despIn){ await sPut(STORE_DESP, d); }
+    for(const m of movIn){ await sPut(STORE_MOV, m); }
     // 3) empurra para o servidor como FULL-REPLACE atomico (reset), para o pull nao sobrescrever depois
     if(ONLINE_ENABLED && auth.idToken && navigator.onLine){
       const first=base.slice(0,40), rest=base.slice(40);
+      // o 1o POST com reset:true zera inscritos+despesas+movimentos e ja sobe as colecoes financeiras
       const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, reset:true, inscritos:first})}, 30000);
+        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, reset:true, inscritos:first, despesas:despIn, movimentos:movIn})}, 30000);
       const data=await r.json(); if(!data.ok) throw new Error(data.error||'reset_failed');
       if(rest.length) await pushAll(rest);
       await pull();                 // reconcilia: agora servidor == base restaurada
@@ -951,6 +961,8 @@ $('#fileRestore').onchange=async e=>{
     } else {
       // offline: marca TODOS como pendentes; o proximo sync faz push ANTES do pull (nao sobrescreve)
       for(const i of base){ markPending(i.id); }
+      for(const d of despIn){ markPendingKV('desp', d.id); }
+      for(const m of movIn){ markPendingKV('mov', m.id); }
       setSync('pend');
     }
     refresh(); alert(t('okRestaurado', {n:base.length}));
