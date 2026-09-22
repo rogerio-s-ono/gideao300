@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.40';
+const APP_VERSION = 'v3.41';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -974,14 +974,14 @@ function renderCaixaList(){
     el.innerHTML=arr.map(d=>`<div class="cx-item" data-id="${d.id}" data-k="desp:${d.id}">
       <div><div class="desc">${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
       <div class="amt out">−${eur(d.valor)}</div></div>`).join('');
-    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>{ cxHighlight=it.dataset.k; openDesp(+it.dataset.id); });
+    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>{ cxHighlight=it.dataset.k; extHighlight=null; openDesp(+it.dataset.id); });
   } else {
     const arr=caixaState.movimentos.slice().sort(cmpDate);
     if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
     el.innerHTML=arr.map(m=>`<div class="cx-item" data-id="${m.id}" data-k="mov:${m.id}">
       <div><div class="desc">${esc(BOLSO_LABEL[m.de]||m.de)} → ${esc(BOLSO_LABEL[m.para]||m.para)}</div><div class="meta">${fmtShort(m.data)}${m.comentario?' · '+esc(m.comentario):''}</div></div>
       <div class="amt mov">${eur(m.valor)}</div></div>`).join('');
-    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>{ cxHighlight=it.dataset.k; openMov(+it.dataset.id); });
+    el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>{ cxHighlight=it.dataset.k; extHighlight=null; openMov(+it.dataset.id); });
   }
   // highlight + scroll do lançamento de onde viemos (ao voltar do modal)
   if(cxHighlight){
@@ -1113,9 +1113,9 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
 });
 $('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
-$('#despCancel') && ($('#despCancel').onclick=()=>$('#despModal').classList.add('hidden'));
-$('#despBack') && ($('#despBack').onclick=()=>$('#despModal').classList.add('hidden'));
-$('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal'){ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); } });
+$('#despCancel') && ($('#despCancel').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
+$('#despBack') && ($('#despBack').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
+$('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal'){ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
 /* --- modal movimentação --- */
 function openMov(id){
   const m = id? caixaState.movimentos.find(x=>x.id===id) : null;
@@ -1156,9 +1156,9 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
 });
 $('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
-$('#movCancel') && ($('#movCancel').onclick=()=>$('#movModal').classList.add('hidden'));
-$('#movBack') && ($('#movBack').onclick=()=>$('#movModal').classList.add('hidden'));
-$('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); } });
+$('#movCancel') && ($('#movCancel').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
+$('#movBack') && ($('#movBack').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
+$('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
 $('#fabCaixa') && ($('#fabCaixa').onclick=()=>{ caixaState.tab==='despesas'? openDesp(null) : openMov(null); });
 // marcador de pendência para sync das novas coleções (chave composta)
 function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=1; localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
@@ -1181,6 +1181,7 @@ let cxHighlight=null;    // chave do lançamento a destacar na lista de Lançame
 let extCust={teso:true, pastor:true};   // filtro de custódia no extrato do Dinheiro
 async function openExtrato(bolso){
   extratoBolso=bolso;
+  cxHighlight=null;   // ao abrir o extrato, não deixa highlight preso vazar para a lista de Lançamentos por baixo
   const isCash = (bolso==='dinheiro');
   const inscritos=await getAll();
   const lanc=[]; // {data, tipo, desc, valor(sinal), kind, refId, cust, gid, pidx}
