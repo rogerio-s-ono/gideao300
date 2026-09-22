@@ -1,5 +1,26 @@
 # Gideão 300 — App · Changelog
 
+## v4.0.4 — Backup FULL: usuários (admin), Excel completo e backup diário total (2026-09-22)
+Fecha as lacunas para um backup verdadeiramente completo, sem depender da cópia manual do Google Sheet.
+
+### Backup/Restore de usuários (Acessos) — exclusivo Admin
+- Novos botões na seção Admin: **Baixar backup de usuários (JSON)** e **Restaurar usuários (JSON)**.
+- Separado do backup de dados (que continua disponível a todos): só o admin exporta/importa acessos, protegendo os emails (dado pessoal).
+- Backend: nova ação `replaceUsers` (full-replace atômico da aba Admin, admin-only). **Nunca** deixa o app sem admin (rejeita backup sem nenhum admin) e valida/deduplica emails.
+
+### Export Excel (CSV) completo
+- O CSV agora inclui, além dos inscritos, as seções **Despesas** e **Movimentações** da Caixa.
+
+### Backup diário automático (backend) — agora FULL
+- `dailyBackup()` copia todas as abas de dados (Gideoes + Despesas + Movimentos + Admin), não só os inscritos. Consolidação mensal ajustada ao novo padrão de nomes.
+
+### Notas
+- Fotos de faturas: o backup guarda a URL do Drive (não o arquivo binário).
+- ⚠️ As mudanças de backend (replaceUsers + dailyBackup FULL) exigem **reimplantar o Apps Script**.
+
+### Validação
+Testado no navegador real: CSV inclui Despesas/Movimentações; backup de dados round-trip com 73 inscritos + 4 despesas + 5 movimentos; lógica do `replaceUsers` (dedup, normalização, proteção do último admin) com 8/8 testes OK.
+
 ## v4.0.3 — Backup completo: inclui despesas e movimentações (2026-09-22)
 "Baixar backup" e "Restaurar backup" agora abrangem TODAS as coleções (inscritos + despesas + movimentações da Caixa), não só os inscritos.
 

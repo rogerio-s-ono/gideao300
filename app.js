@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.0.3';
+const APP_VERSION = 'v4.0.4';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -47,6 +47,10 @@ const I18N = {
     confirmReset:'Apagar TODOS os dados e recarregar a lista inicial? Faça um backup antes.',
     confirmRestore:'Restaurar vai substituir os dados atuais. Continuar?',
     jsonInvalido:'Arquivo JSON inválido. Nada foi alterado.', okRestaurado:'OK — backup restaurado ({n} inscritos).', erroRestaurar:'Erro ao restaurar',
+    backupUsuarios:'Backup de usuários (Acessos)', baixarBackupUsers:'Baixar backup de usuários (JSON)', restaurarBackupUsers:'Restaurar usuários (JSON)',
+    backupUsersNota:'Exclusivo do admin. Restaurar substitui a lista de acessos atual (mantém sempre ao menos um admin).',
+    confirmRestoreUsers:'Restaurar vai substituir a lista de usuários (acessos) atual. Continuar?',
+    erroPrecisaAdmin:'O backup precisa conter ao menos um admin.', erroSemUsuarios:'Nenhum usuário válido no arquivo.',
     nomeObrig:'Informe o nome.', metaSub:'{n} de 300 inscritos', porFormaPag:'Por forma de pagamento',
     vazio:'Nenhum inscrito encontrado.',
     thNum:'Nº', thNome:'Nome', thTam:'Tam.', thTel:'Telefone', thPago:'Pago', thStatus:'Status',
@@ -128,6 +132,10 @@ const I18N = {
     confirmReset:'¿Borrar TODOS los datos y recargar la lista inicial? Haz una copia antes.',
     confirmRestore:'Restaurar reemplazará los datos actuales. ¿Continuar?',
     jsonInvalido:'Archivo JSON inválido. No se cambió nada.', okRestaurado:'OK — copia restaurada ({n} inscritos).', erroRestaurar:'Error al restaurar',
+    backupUsuarios:'Copia de usuarios (Accesos)', baixarBackupUsers:'Descargar copia de usuarios (JSON)', restaurarBackupUsers:'Restaurar usuarios (JSON)',
+    backupUsersNota:'Exclusivo del admin. Restaurar reemplaza la lista de accesos actual (mantiene siempre al menos un admin).',
+    confirmRestoreUsers:'Restaurar reemplazará la lista de usuarios (accesos) actual. ¿Continuar?',
+    erroPrecisaAdmin:'La copia debe contener al menos un admin.', erroSemUsuarios:'Ningún usuario válido en el archivo.',
     nomeObrig:'Indica el nombre.', metaSub:'{n} de 300 inscritos', porFormaPag:'Por forma de pago',
     vazio:'Ningún inscrito encontrado.',
     thNum:'Nº', thNome:'Nombre', thTam:'Talla', thTel:'Teléfono', thPago:'Pagado', thStatus:'Estado',
@@ -873,7 +881,21 @@ async function exportCsv(){
       st==='pago'?'Pago':st==='parcial'?'Parcial':'Pendente',formas,
       t(estKey(i.camisaEstado)),i.aRevisar?'Sim':'',(i.observacoes||'').replace(/\n/g,' ')];
   });
-  const csv='\uFEFF'+[head,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  // --- Despesas e Movimentacoes (Caixa) ---
+  const despesas=await sGetAll(STORE_DESP);
+  const movimentos=await sGetAll(STORE_MOV);
+  const despHead=['Descricao','Valor','Data','Categoria','Bolso','Obs'];
+  const despRows=despesas.slice().sort((a,b)=>(a.data||'').localeCompare(b.data||'')).map(d=>[
+    d.descricao||'', d.valor||0, d.data||'', d.categoria||'', BOLSO_LABEL[d.bolso]||d.bolso||'', (d.obs||'').replace(/\n/g,' ')]);
+  const movHead=['De','Para','Valor','Data','Comentario'];
+  const movRows=movimentos.slice().sort((a,b)=>(a.data||'').localeCompare(b.data||'')).map(m=>[
+    BOLSO_LABEL[m.de]||m.de||'', BOLSO_LABEL[m.para]||m.para||'', m.valor||0, m.data||'', (m.comentario||'').replace(/\n/g,' ')]);
+  const csvRow=r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';');
+  const blocks=[];
+  blocks.push('# '+(t('navInscritos')||'Inscritos')); blocks.push([head,...rows].map(csvRow).join('\r\n'));
+  blocks.push(''); blocks.push('# '+t('despesas')); blocks.push([despHead,...despRows].map(csvRow).join('\r\n'));
+  blocks.push(''); blocks.push('# '+t('movimentacoes')); blocks.push([movHead,...movRows].map(csvRow).join('\r\n'));
+  const csv='\uFEFF'+blocks.join('\r\n');
   download('gideao300.csv',csv,'text/csv;charset=utf-8');
 }
 async function backup(){
@@ -1922,6 +1944,45 @@ $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
     }
     setSync('ok'); refresh(); alert('OK — base recarregada ('+base.length+')');
   }catch(e){ setSync('err'); alert('Erro: '+e.message); }
+});
+// ---- backup/restore de USUARIOS (acessos) — exclusivo admin ----
+$('#btnBackupUsers') && ($('#btnBackupUsers').onclick=async()=>{
+  if(effectiveRole()!=='admin' && !auth.realAdmin) return;
+  try{
+    setSync('syncing');
+    const d=await usersApi('listUsers');
+    const users=d.users||[];
+    download('gideao300-usuarios-'+new Date().toISOString().slice(0,10)+'.json',
+      JSON.stringify({projeto:'Projeto Gideão 300', tipo:'acessos', exportadoEm:new Date().toISOString(), usuarios:users}, null, 2),
+      'application/json');
+    setSync('ok');
+  }catch(e){ setSync('err'); alert(t('erroRestaurar')+': '+e.message); }
+});
+$('#fileRestoreUsers') && ($('#fileRestoreUsers').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  if(effectiveRole()!=='admin' && !auth.realAdmin){ e.target.value=''; return; }
+  if(!confirm(t('confirmRestoreUsers'))){ e.target.value=''; return; }
+  const txt=await f.text();
+  let users;
+  try{
+    const data=JSON.parse(txt);
+    users=data.usuarios||data.users||data;
+    if(!Array.isArray(users)) throw new Error('formato');
+  }catch(err){ alert(t('jsonInvalido')); e.target.value=''; return; }
+  try{
+    setSync('syncing');
+    const d=await usersApi('replaceUsers',{users:users});
+    accessUsers=d.users||users; renderAccess();
+    setSync('ok');
+    alert(t('okRestaurado', {n:(d.users||users).length}));
+  }catch(err){
+    setSync('err');
+    const msg = err.message==='must_have_admin' ? t('erroPrecisaAdmin')
+              : err.message==='no_valid_users' ? t('erroSemUsuarios')
+              : t('erroRestaurar')+': '+err.message;
+    alert(msg);
+  }
+  e.target.value='';
 });
 $('#btnAddAccess') && ($('#btnAddAccess').onclick=()=>openAccessModal(null));
 $('#viewAsSelect') && ($('#viewAsSelect').onchange=(e)=>setViewAs(e.target.value));

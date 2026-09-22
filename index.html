@@ -528,6 +528,13 @@
         <button class="btn ghost" id="btnPushAll" data-i="enviarBase">Enviar base completa à planilha</button>
         <button class="btn danger" id="btnReloadBase" data-i="recarregarBase">Recarregar base original (zera tudo)</button>
       </div>
+      <h3 data-i="backupUsuarios" style="margin-top:18px">Backup de usuários (Acessos)</h3>
+      <div class="acct">
+        <button class="btn ghost" id="btnBackupUsers" data-i="baixarBackupUsers">Baixar backup de usuários (JSON)</button>
+        <label data-i="restaurarBackupUsers">Restaurar usuários (JSON)</label>
+        <input type="file" id="fileRestoreUsers" accept="application/json">
+        <p class="note" data-i="backupUsersNota">Exclusivo do admin. Restaurar substitui a lista de acessos atual (mantém sempre ao menos um admin).</p>
+      </div>
     </div>
     <h3 data-i="dadosBackup" style="margin-top:18px">Dados e backup</h3>
     <button class="btn ghost" id="btnExportXlsx" data-i="exportarExcel">Exportar Excel (CSV)</button>
