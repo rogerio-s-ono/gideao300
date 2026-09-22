@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.34';
+const APP_VERSION = 'v3.35';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1338,12 +1338,8 @@ function onGoogleCredential(resp){
   if(!jwt) return;
   const claims = parseJwt(jwt);
   const email = (claims.email||'').toLowerCase();
-  const allowed = (CFG.ALLOWED_EMAILS||[]).map(e=>e.toLowerCase());
-  if(allowed.length && allowed.indexOf(email)<0){
-    const el=$('#loginError'); el.textContent=t('naoAutorizado'); el.classList.remove('hidden');
-    try{ google.accounts.id.disableAutoSelect(); }catch(e){}
-    return;
-  }
+  // NÃO bloqueamos aqui pela lista local (config.js): a autoridade é o SERVIDOR (aba Admin).
+  // Deixa o login prosseguir; se o servidor recusar (unauthorized), a tela de login mostra o aviso.
   auth.idToken = jwt; auth.email = email;
   sessionStorage.setItem('gd_idtoken', jwt);
   sessionStorage.setItem('gd_email', email);
@@ -1690,7 +1686,15 @@ async function syncNow(){
     // garante o re-render da lista (mesmo caminho de quando se clica num filtro)
     if(state.view==='lista'){ renderFilters(); await renderList(); }
   }catch(e){
-    if(String(e.message)==='unauthorized'){ showLoginGate(); setSync('err'); }
+    if(String(e.message)==='unauthorized'){
+      // servidor recusou (email não está na aba Admin) -> volta ao login com aviso
+      appStarted=false;
+      auth={idToken:null,email:null,role:null,realAdmin:false,viewAs:null};
+      sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
+      showLoginGate(); setSync('err');
+      const el=$('#loginError'); if(el){ el.textContent=t('naoAutorizado'); el.classList.remove('hidden'); }
+      try{ google.accounts.id.disableAutoSelect(); }catch(_){}
+    }
     else { setSync('err'); scheduleRetry(); }   // falha de rede/servidor/db -> re-tenta sozinho
   }finally{
     done=true; clearTimeout(watchdog); syncStartedAt=0;
