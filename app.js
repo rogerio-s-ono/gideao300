@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.41';
+const APP_VERSION = 'v3.42';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -183,6 +183,8 @@ const I18N = {
 };
 let lang = localStorage.getItem('lang') || 'pt';
 const t = (k,vars) => { let s=(I18N[lang][k]||k); if(vars) for(const p in vars) s=s.replace('{'+p+'}',vars[p]); return s; };
+// seta o rótulo de um botão .act preservando o ícone (mexe só no <span>, não no textContent)
+function btnLabel(elOrSel, txt){ const b=(typeof elOrSel==='string')?$(elOrSel):elOrSel; if(!b) return; const sp=b.querySelector('span'); if(sp) sp.textContent=txt; else b.textContent=txt; }
 
 /* ---------- IndexedDB ---------- */
 const DB_NAME='gideao300', STORE='inscritos', STORE_DESP='despesas', STORE_MOV='movimentos';
@@ -1076,7 +1078,7 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   const desc=$('#d-desc').value.trim(); const v=parseFloat(($('#d-valor').value||'').replace(',','.'));
   if(!desc||!v||v<=0){ alert(t('nomeObrig')); return; }
   // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
-  const btn=$('#despSave'); const orig=btn.textContent;
+  const btn=$('#despSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
   // valida upload das fotos ANTES de salvar; se alguma falhar, aborta e avisa (não finge que subiu)
   const pendentes=caixaState.draftFotos.filter(f=>!f.url && f.dataUrl);
   if(pendentes.length){
@@ -1084,7 +1086,7 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
       alert(t('fotoSemConexao'));   // precisa de internet para enviar a foto
       return;
     }
-    btn.disabled=true; btn.textContent=t('enviandoFoto');
+    btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
     for(const f of pendentes){
       let d=null, err=null;
       try{
@@ -1093,13 +1095,13 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
         try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
       }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
       if(!d || !d.ok || !d.url){
-        btn.disabled=false; btn.textContent=orig;
+        btn.disabled=false; btnLabel(btn, orig);
         alert(t('fotoFalhou') + (err? ('\n('+err+')') : (d && d.error? ('\n('+d.error+')') : '')));
         return;   // ABORTA o salvamento — foto não subiu, não deixa achar que subiu
       }
       f.url=d.url; delete f.dataUrl;   // sucesso confirmado
     }
-    btn.disabled=false; btn.textContent=orig;
+    btn.disabled=false; btnLabel(btn, orig);
   }
   const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
   rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
@@ -1584,16 +1586,17 @@ function openAccessModal(u){
   const em=$('#acc-email'); em.value = u ? u.email : ''; em.disabled = !!u;   // email read-only ao editar
   $('#acc-nome').value = u ? (u.nome||'') : '';
   $('#acc-role').value = u ? u.role : 'user';
-  const del=$('#accDel'); del.classList.toggle('hidden', !u); del.textContent=t('remover'); del.classList.remove('confirm');
-  $('#accSave').textContent = u ? t('salvar') : t('adicionar');
+  const del=$('#accDel'); del.classList.toggle('hidden', !u); btnLabel(del, t('remover')); del.classList.remove('confirm');
+  btnLabel('#accSave', u ? t('salvar') : t('adicionar'));
   $('#accessModal').classList.remove('hidden');
 }
 function closeAccessModal(){ $('#accessModal').classList.add('hidden'); accEditing=null; accConfirmingDel=false; }
 function accBusy(btnSel, on){
   const b=$(btnSel); if(!b) return;
   b.classList.toggle('busy', on);
-  if(on){ b.dataset.txt=b.textContent; b.textContent=t('processando'); }
-  else if(b.dataset.txt!==undefined){ b.textContent=b.dataset.txt; delete b.dataset.txt; }
+  const sp=b.querySelector('span'); const cur=sp?sp:b;
+  if(on){ b.dataset.txt=cur.textContent; btnLabel(b, t('processando')); }
+  else if(b.dataset.txt!==undefined){ btnLabel(b, b.dataset.txt); delete b.dataset.txt; }
 }
 async function accSave(){
   const email=(accEditing || ($('#acc-email').value||'').trim().toLowerCase());
@@ -1614,7 +1617,7 @@ async function accRemove(){
   // 1º clique: pede confirmacao IN-MODAL (botao vira "Confirmar remoção"); 2º clique: executa
   if(!accConfirmingDel){
     accConfirmingDel=true;
-    del.textContent=t('confirmarRemocao');
+    btnLabel(del, t('confirmarRemocao'));
     del.classList.add('confirm');
     return;
   }
@@ -1622,7 +1625,7 @@ async function accRemove(){
   try{
     const d=await usersApi('removeUser',{email:accEditing});
     accessUsers=d.users||accessUsers; renderAccess(); closeAccessModal();
-  }catch(e){ accSetError(String(e.message)); accConfirmingDel=false; del.textContent=t('remover'); del.classList.remove('confirm'); }
+  }catch(e){ accSetError(String(e.message)); accConfirmingDel=false; btnLabel(del, t('remover')); del.classList.remove('confirm'); }
   finally{ accBusy('#accDel', false); }
 }
 

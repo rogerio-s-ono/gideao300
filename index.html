@@ -732,9 +732,21 @@
     <div id="d-fotos" class="fotos-grid"></div>
     <button type="button" class="btn ghost" id="d-addFoto" data-i="tirarFoto">📷 Tirar/anexar foto</button>
     <input type="file" id="d-fotoInput" accept="image/*" capture="environment" class="hidden">
-    <button class="btn primary" id="despSave" data-i="salvar">Salvar</button>
-    <button class="btn danger hidden" id="despDel" data-i="excluir">Excluir</button>
-    <button class="btn ghost" id="despCancel" data-i="cancelar">Cancelar</button>
+    <div class="modal-divider"></div>
+    <div class="action-bar">
+      <button class="act save" id="despSave" type="button">
+        <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>
+        <span data-i="salvar">Salvar</span>
+      </button>
+      <button class="act del hidden" id="despDel" type="button">
+        <svg viewBox="0 0 24 24"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+        <span data-i="excluir">Excluir</span>
+      </button>
+      <button class="act cancel" id="despCancel" type="button">
+        <svg viewBox="0 0 24 24"><path d="M18.3 5.7L12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3z"/></svg>
+        <span data-i="cancelar">Cancelar</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -762,9 +774,21 @@
       <div><label data-i="data">Data</label><input id="m-data" type="date"></div>
     </div>
     <label data-i="comentario">Comentário</label><input id="m-comentario" placeholder="ex.: Depósito; Bizum Rogério">
-    <button class="btn primary" id="movSave" data-i="salvar">Salvar</button>
-    <button class="btn danger hidden" id="movDel" data-i="excluir">Excluir</button>
-    <button class="btn ghost" id="movCancel" data-i="cancelar">Cancelar</button>
+    <div class="modal-divider"></div>
+    <div class="action-bar">
+      <button class="act save" id="movSave" type="button">
+        <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>
+        <span data-i="salvar">Salvar</span>
+      </button>
+      <button class="act del hidden" id="movDel" type="button">
+        <svg viewBox="0 0 24 24"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+        <span data-i="excluir">Excluir</span>
+      </button>
+      <button class="act cancel" id="movCancel" type="button">
+        <svg viewBox="0 0 24 24"><path d="M18.3 5.7L12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3z"/></svg>
+        <span data-i="cancelar">Cancelar</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -786,9 +810,21 @@
       <option value="admin" data-i="papelAdmin">Admin</option>
     </select>
     <p class="acc-alert hidden" id="accError"></p>
-    <button class="btn primary" id="accSave" data-i="salvar">Salvar</button>
-    <button class="btn danger hidden" id="accDel" data-i="remover">Remover</button>
-    <button class="btn ghost" id="accCancel" data-i="cancelar">Cancelar</button>
+    <div class="modal-divider"></div>
+    <div class="action-bar">
+      <button class="act save" id="accSave" type="button">
+        <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>
+        <span data-i="salvar">Salvar</span>
+      </button>
+      <button class="act del hidden" id="accDel" type="button">
+        <svg viewBox="0 0 24 24"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+        <span data-i="remover">Remover</span>
+      </button>
+      <button class="act cancel" id="accCancel" type="button">
+        <svg viewBox="0 0 24 24"><path d="M18.3 5.7L12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3z"/></svg>
+        <span data-i="cancelar">Cancelar</span>
+      </button>
+    </div>
   </div>
 </div>
 
