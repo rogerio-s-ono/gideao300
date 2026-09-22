@@ -1,5 +1,20 @@
 # Gideão 300 — App · Changelog
 
+## v4.0.2 — Restaurar backup à prova de falhas (2026-09-22)
+Correção importante no fluxo **MAIS → Restaurar backup**, tornando-o seguro para a carga inicial (baseline do UAT) independente do estado do servidor.
+
+### Problema corrigido
+Antes, "Restaurar backup" gravava apenas na base local. No sync seguinte, o `pull()` (servidor = fonte da verdade) **sobrescrevia/corrompia** a base restaurada quando a planilha do servidor não estava vazia — resultando numa mistura inconsistente de registros. A carga inicial só funcionava se o Sheet estivesse previamente vazio (dependência de procedimento manual, frágil).
+
+### Solução (bullet-proof)
+- O backup restaurado passa a ser tratado como a **nova fonte da verdade**: o restore faz um **full-replace atômico no servidor** (`reset:true` + push em lote), depois `pull()` para reconciliar. Segue o mesmo padrão já usado em "Recarregar base".
+- **Validação do JSON antes de tocar em qualquer dado** — arquivo inválido não apaga a base (mensagem clara "Arquivo JSON inválido. Nada foi alterado.").
+- **Offline:** marca todos os registros como pendentes; o próximo sync faz *push antes de pull*, sem sobrescrever.
+- Normaliza `camisaEstado`, `cota` e `datas` na importação; mensagens de sucesso/erro traduzidas (PT/ES).
+
+### Validação
+Testado no navegador real (Chromium + IndexedDB real) com o código do app: round-trip export→import idêntico; import 2× sem duplicar; JSON inválido não apaga a base; e — com servidor cheio de dados antigos — o restore corrigido mantém os 73 registros do baseline e o servidor passa a refletir exatamente a base restaurada (dados antigos apagados pelo reset).
+
 ## v4.0 — Release de produção: papéis, custódia do dinheiro e maturidade de UX (2026-09-22)
 Marco de maturidade: o app consolida gestão de acessos, controle financeiro com rastreamento de custódia do dinheiro, e uma ampla rodada de refinamentos de UX. Validado via UAT antes do deploy.
 

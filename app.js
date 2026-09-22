@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.0.1';
+const APP_VERSION = 'v4.0.2';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -46,6 +46,7 @@ const I18N = {
     faltam:'faltam {v}€', semNumero:'s/n', confirmDel:'Excluir este inscrito?',
     confirmReset:'Apagar TODOS os dados e recarregar a lista inicial? Faça um backup antes.',
     confirmRestore:'Restaurar vai substituir os dados atuais. Continuar?',
+    jsonInvalido:'Arquivo JSON inválido. Nada foi alterado.', okRestaurado:'OK — backup restaurado ({n} inscritos).', erroRestaurar:'Erro ao restaurar',
     nomeObrig:'Informe o nome.', metaSub:'{n} de 300 inscritos', porFormaPag:'Por forma de pagamento',
     vazio:'Nenhum inscrito encontrado.',
     thNum:'Nº', thNome:'Nome', thTam:'Tam.', thTel:'Telefone', thPago:'Pago', thStatus:'Status',
@@ -126,6 +127,7 @@ const I18N = {
     faltam:'faltan {v}€', semNumero:'s/n', confirmDel:'¿Eliminar este inscrito?',
     confirmReset:'¿Borrar TODOS los datos y recargar la lista inicial? Haz una copia antes.',
     confirmRestore:'Restaurar reemplazará los datos actuales. ¿Continuar?',
+    jsonInvalido:'Archivo JSON inválido. No se cambió nada.', okRestaurado:'OK — copia restaurada ({n} inscritos).', erroRestaurar:'Error al restaurar',
     nomeObrig:'Indica el nombre.', metaSub:'{n} de 300 inscritos', porFormaPag:'Por forma de pago',
     vazio:'Ningún inscrito encontrado.',
     thNum:'Nº', thNome:'Nombre', thTam:'Talla', thTel:'Teléfono', thPago:'Pagado', thStatus:'Estado',
@@ -919,12 +921,40 @@ $('#fileRestore').onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
   if(!confirm(t('confirmRestore'))){ e.target.value=''; return; }
   const txt=await f.text();
+  // 1) valida o JSON ANTES de tocar em qualquer dado (se invalido, nada e apagado)
+  let arr;
   try{
-    const data=JSON.parse(txt); const arr=data.inscritos||data;
-    await clearAll();
-    let idc=1; for(const i of arr){ i.id=idc++; i.cota=i.cota||COTA; await put(i); }
-    refresh(); alert('OK');
-  }catch(err){ alert('JSON inválido'); }
+    const data=JSON.parse(txt);
+    arr=data.inscritos||data;
+    if(!Array.isArray(arr)) throw new Error('formato');
+  }catch(err){ alert(t('jsonInvalido')); e.target.value=''; return; }
+  try{
+    setSync('syncing');
+    // 2) normaliza e repovoa a base LOCAL (o backup restaurado e a nova verdade)
+    const base=arr.map((i,idx)=>({...i,
+      id: idx+1,
+      cota: i.cota||COTA,
+      camisaEstado: (i.camisaEstado===undefined?0:i.camisaEstado),
+      datas: i.datas||{}
+    }));
+    await clearAll(); clearPending();
+    for(const i of base){ await put(i); }
+    // 3) empurra para o servidor como FULL-REPLACE atomico (reset), para o pull nao sobrescrever depois
+    if(ONLINE_ENABLED && auth.idToken && navigator.onLine){
+      const first=base.slice(0,40), rest=base.slice(40);
+      const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, reset:true, inscritos:first})}, 30000);
+      const data=await r.json(); if(!data.ok) throw new Error(data.error||'reset_failed');
+      if(rest.length) await pushAll(rest);
+      await pull();                 // reconcilia: agora servidor == base restaurada
+      setSync('ok');
+    } else {
+      // offline: marca TODOS como pendentes; o proximo sync faz push ANTES do pull (nao sobrescreve)
+      for(const i of base){ markPending(i.id); }
+      setSync('pend');
+    }
+    refresh(); alert(t('okRestaurado', {n:base.length}));
+  }catch(err){ setSync('err'); alert(t('erroRestaurar')+': '+err.message); }
   e.target.value='';
 };
 
