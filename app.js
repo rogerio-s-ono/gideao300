@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.0';
+const APP_VERSION = 'v4.0.1';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1567,9 +1567,18 @@ function renderAccess(){
   });
 }
 async function loadUsers(){
-  if(!ONLINE_ENABLED||!auth.idToken) return;
-  try{ const d=await usersApi('listUsers'); accessUsers=d.users||[]; renderAccess(); }
-  catch(e){ /* silencioso: mantem lista anterior */ }
+  if(!ONLINE_ENABLED||!auth.idToken){ const b=$('#accessGroups'); if(b) b.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
+  const box=$('#accessGroups'); if(box && !accessUsers.length) box.innerHTML=`<div class="empty">${t('verificandoAcesso')}</div>`;
+  try{
+    const d=await usersApi('listUsers');
+    accessUsers=d.users||[];
+    renderAccess();
+    if(box && !accessUsers.length) box.innerHTML=`<div class="empty">—</div>`;
+  }
+  catch(e){
+    // mostra o erro em vez de sumir silenciosamente
+    if(box) box.innerHTML=`<div class="acc-alert">${t('erroLogin')} (${esc(String(e.message||'erro'))})</div>`;
+  }
 }
 function accSetError(code){
   const el=$('#accError'); if(!el) return;
