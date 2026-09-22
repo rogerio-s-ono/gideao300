@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.35';
+const APP_VERSION = 'v3.36';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -66,6 +66,7 @@ const I18N = {
     novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…',
     loginSub:'Entre com sua conta Google autorizada', loginFoot:'Acesso restrito aos líderes do projeto',
     naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
+    verificandoAcesso:'Verificando acesso…',
     conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', admin:'Admin',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
@@ -143,6 +144,7 @@ const I18N = {
     novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…',
     loginSub:'Entra con tu cuenta Google autorizada', loginFoot:'Acceso restringido a los líderes del proyecto',
     naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
+    verificandoAcesso:'Verificando acceso…',
     conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', admin:'Admin',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
@@ -1343,8 +1345,7 @@ function onGoogleCredential(resp){
   auth.idToken = jwt; auth.email = email;
   sessionStorage.setItem('gd_idtoken', jwt);
   sessionStorage.setItem('gd_email', email);
-  hideLoginGate();
-  startAppAfterLogin();
+  verifyAccessThenStart();
 }
 function isBetaEnv(){ return location.pathname.indexOf('/beta/')>=0 || location.pathname.indexOf('/beta')>=0; }
 function applyEnvBadges(){
@@ -1361,7 +1362,7 @@ function initGoogleLogin(){
   const savedEmail = sessionStorage.getItem('gd_email');
   if(saved && savedEmail){
     const c=parseJwt(saved);
-    if(c.exp && c.exp*1000 > Date.now()+60000){ auth.idToken=saved; auth.email=savedEmail; hideLoginGate(); startAppAfterLogin(); return; }
+    if(c.exp && c.exp*1000 > Date.now()+60000){ auth.idToken=saved; auth.email=savedEmail; verifyAccessThenStart(); return; }
   }
   showLoginGate();
   const tryInit=()=>{
@@ -1374,6 +1375,34 @@ function initGoogleLogin(){
 }
 function showLoginGate(){ $('#loginGate').classList.remove('hidden'); }
 function hideLoginGate(){ $('#loginGate').classList.add('hidden'); }
+// valida o acesso no servidor ANTES de abrir a UI (quando online); offline usa cache
+async function verifyAccessThenStart(){
+  // offline ou app sem backend: mantém o comportamento offline-first (usa cache)
+  if(!ONLINE_ENABLED || !navigator.onLine || !auth.idToken){ hideLoginGate(); startAppAfterLogin(); return; }
+  // mostra "verificando acesso…" e checa no servidor
+  const le=$('#loginError'); if(le){ le.textContent=t('verificandoAcesso'); le.classList.remove('hidden'); }
+  try{
+    const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) + '&idToken=' + encodeURIComponent(auth.idToken);
+    const r = await fetchTimeout(url, {method:'GET'}, 15000);
+    const data = await r.json();
+    if(data && data.ok){
+      if(data.role){ auth.role=data.role; }
+      if(le){ le.classList.add('hidden'); le.textContent=''; }
+      hideLoginGate(); startAppAfterLogin();
+    } else {
+      // servidor recusou (removido da aba Admin) -> não abre a UI
+      auth={idToken:null,email:null,role:null,realAdmin:false,viewAs:null};
+      sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
+      showLoginGate();
+      if(le){ le.textContent=t('naoAutorizado'); le.classList.remove('hidden'); }
+      try{ google.accounts.id.disableAutoSelect(); }catch(_){}
+    }
+  }catch(e){
+    // sem resposta do servidor (rede instável): cai para o modo offline (usa cache)
+    if(le){ le.classList.add('hidden'); le.textContent=''; }
+    hideLoginGate(); startAppAfterLogin();
+  }
+}
 function applyAdminUI(){
   // papel REAL (do servidor; fallback config.js). O gating usa o papel EFETIVO (pode ser "ver como").
   let realIsAdmin;
