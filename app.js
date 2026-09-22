@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.37';
+const APP_VERSION = 'v3.38';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -290,7 +290,7 @@ function fmtNum(v){
   return (!isNaN(n) && n>=0 && n<10 && /^\d+$/.test(s)) ? ('0'+n) : s;
 }
 
-let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, confDirty:{}, scrollPos:{} };
+let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{} };
 
 /* ---------- render lista ---------- */
 const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['revisar','fRevisar']];
@@ -361,6 +361,17 @@ async function renderList(){
     </div>`;
   }).join('');
   $$('#list .card').forEach(c=>c.onclick=()=>openModal(+c.dataset.id));
+  // highlight + scroll no card de onde viemos (ao fechar o modal)
+  if(state.listHighlight!=null){
+    const card=cardsEl.querySelector(`.card[data-id="${state.listHighlight}"]`);
+    if(card){
+      card.classList.add('hl');
+      requestAnimationFrame(()=>{ try{ card.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){ card.scrollIntoView(); } });
+      const id=state.listHighlight;
+      setTimeout(()=>{ const c2=cardsEl.querySelector(`.card[data-id="${id}"]`); if(c2) c2.classList.remove('hl'); }, 3000);
+    }
+    state.listHighlight=null;   // consome (não re-destaca em re-renders)
+  }
 }
 function renderTable(filtered,el){
   if(!filtered.length){ el.innerHTML=`<div class="empty">${t('vazio')}</div>`; return; }
@@ -821,7 +832,13 @@ $('#camisaStatusLine').onclick=()=>{
   state.confHighlight=pid?+pid:null;
   setView('confeccao');
 };
-function closeModal(){ $('#modal').classList.add('hidden'); state.editing=null; state.draftPays=[]; state.formSnapshot=undefined; backToExtratoIfNeeded(); }
+function closeModal(){
+  $('#modal').classList.add('hidden');
+  // se o modal foi aberto a partir da lista (não do extrato), lembra o card para destacar ao voltar
+  if(!extReturn && state.editing!=null) state.listHighlight=state.editing;
+  state.editing=null; state.draftPays=[]; state.formSnapshot=undefined;
+  backToExtratoIfNeeded();
+}
 // fecha o modal do Gideão; se houver alterações não salvas, pergunta antes
 function tryCloseModal(){
   if(formDirty()){ $('#formConfirm').classList.remove('hidden'); }
@@ -1147,6 +1164,7 @@ function custodyPill(kind){
   return `<span class="b ${cls}">${lbl}</span>`;
 }
 let extratoBolso=null;   // bolso atualmente aberto (para voltar ao extrato após editar)
+let extHighlight=null;   // chave do lançamento a destacar ao voltar ao extrato
 let extCust={teso:true, pastor:true};   // filtro de custódia no extrato do Dinheiro
 async function openExtrato(bolso){
   extratoBolso=bolso;
@@ -1185,23 +1203,36 @@ async function openExtrato(bolso){
   const cf=$('#extCustFilters'); if(cf) cf.classList.toggle('hidden', !isCash);
   $$('#extCustFilters .cust-toggle').forEach(b=>b.classList.toggle('on', !!extCust[b.dataset.cust]));
   const el=$('#extList');
+  const lkey=(l)=> l.kind==='pag' ? ('pag:'+l.gid+':'+l.pidx) : (l.kind+':'+l.refId);
   if(!shown.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
   else el.innerHTML=shown.map((l)=>{
     const pos=l.valor>=0;
     const tag = l.cust ? custodyPill(l.cust) : '';
     const balHtml = custActive ? '' : `<div class="e-bal">${eur(l.bal)}</div>`;  // saldo corrente só sem filtro
-    return `<div class="ext-item clickable" data-idx="${lanc.indexOf(l)}">
+    return `<div class="ext-item clickable" data-idx="${lanc.indexOf(l)}" data-key="${lkey(l)}">
       <div><div class="e-d"><span class="ext-tag">${l.tipo}</span>${esc(l.desc)}</div><div class="e-m">${fmtShort(l.data)}</div></div>
       <div class="e-right">${tag}<div class="e-v ${pos?'pos':'neg'}">${pos?'+':'−'}${eur(Math.abs(l.valor))}</div>${balHtml}</div>
     </div>`;
   }).join('');
   el.querySelectorAll('.ext-item.clickable').forEach(it=>it.onclick=()=>{
     const l=lanc[+it.dataset.idx]; if(!l) return;
+    extHighlight=lkey(l);   // lembra o lançamento clicado para destacar ao voltar
     $('#extratoModal').classList.add('hidden');
     if(l.kind==='desp'){ extReturn=bolso; openDesp(l.refId); }
     else if(l.kind==='mov'){ extReturn=bolso; openMov(l.refId); }
     else if(l.kind==='pag'){ extReturn=bolso; openModal(l.gid, l.pidx); }   // edita o Gideão; volta ao extrato ao sair
   });
+  // highlight + scroll do lançamento de onde viemos (ao voltar ao extrato)
+  if(extHighlight){
+    const item=el.querySelector(`.ext-item[data-key="${extHighlight}"]`);
+    if(item){
+      item.classList.add('hl');
+      requestAnimationFrame(()=>{ try{ item.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){ item.scrollIntoView(); } });
+      const k=extHighlight;
+      setTimeout(()=>{ const i2=el.querySelector(`.ext-item[data-key="${k}"]`); if(i2) i2.classList.remove('hl'); }, 3000);
+    }
+    extHighlight=null;
+  }
   $('#extratoModal').classList.remove('hidden');
   const sh=$('#extratoModal .sheet'); if(sh) sh.scrollTop=0;
 }
