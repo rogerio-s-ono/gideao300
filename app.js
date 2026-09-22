@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.43';
+const APP_VERSION = 'v4.0';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -927,7 +927,6 @@ $('#fileRestore').onchange=async e=>{
   }catch(err){ alert('JSON inválido'); }
   e.target.value='';
 };
-$('#btnReset') && ($('#btnReset').onclick=async()=>{ if(!confirm(t('confirmReset'))) return; await clearAll(); await seedIfEmpty(); refresh(); });
 
 /* ---------- navegação / idioma ---------- */
 /* ---------- CAIXA (financeiro, só admin) ---------- */

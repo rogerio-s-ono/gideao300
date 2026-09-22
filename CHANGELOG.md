@@ -1,5 +1,35 @@
 # Gideão 300 — App · Changelog
 
+## v4.0 — Release de produção: papéis, custódia do dinheiro e maturidade de UX (2026-09-22)
+Marco de maturidade: o app consolida gestão de acessos, controle financeiro com rastreamento de custódia do dinheiro, e uma ampla rodada de refinamentos de UX. Validado via UAT antes do deploy.
+
+### ⭐ Destaques
+- **Perfis de acesso (3 papéis):** Usuário, Tesoureiro e Admin. Tesoureiro edita a Caixa; Admin gere usuários.
+- **Caixa somente leitura para o Usuário:** todos veem o financeiro (transparência); só tesoureiro/admin editam.
+- **Custódia do dinheiro:** cada pagamento em Dinheiro tem "Recebido por" (Pastor/Tesoureiro); marca-se "Entregue ao tesoureiro" (com data). O saldo em Dinheiro é dividido em "Com pastores" vs "Com tesoureiro". Despesas e movimentações em dinheiro indicam de qual custódia saíram.
+- **Tela de Acessos:** gestão de usuários (adicionar/editar perfil/remover) com proteção do último admin; recurso "Ver como" para o admin visualizar o app como Tesoureiro/Usuário.
+- **Extrato por bolso** com ordenação (recente/antigo) e filtro por custódia.
+
+### Gestão / segurança
+- Login corrigido e robusto: autoridade de acesso é o servidor (aba Admin); validação antes de abrir a UI; fallback se o login do Google não carregar; app OAuth publicado (sem lista de "Usuários de teste").
+- Backend reforça permissões (escrita na Caixa exige admin/tesoureiro).
+
+### UX (formulário e navegação)
+- Formulário do Gideão reordenado (Nome/Telefone/Camisa/Pagamentos/Observação); número da camisa automático (maior+1) + botão "buscar número livre".
+- Datas editáveis com calendário nativo (pagamento, entrega, confecção); formato dd/mês/aa.
+- Comentário obrigatório para pagamento tipo "Outros".
+- Botões dos modais padronizados (barra horizontal ícone + rótulo).
+- Highlight + rolagem ao voltar de um modal (Gideões, Confecção, extrato e lançamentos da Caixa).
+- Busca por nome também na Confecção.
+- Versão do app visível na tela Mais.
+
+### Notas
+- Removidas: seção de conciliação bancária e a seção "por forma de pagamento" do Painel.
+- Guia do usuário (com abas por tela) e checklist de UAT disponíveis.
+- Persistência inalterada: Google Sheets (Apps Script) + login Google (aba Admin) + IndexedDB (offline-first).
+
+---
+
 ## v3.0 — Fase Caixa: gestão financeira (2026-09-21)
 Marco: o app deixa de ser só gestão de inscritos/confecção e passa a ter **controle financeiro completo do projeto**. A fase Caixa, validada em beta, foi promovida a produção.
 
