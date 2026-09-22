@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v3.36';
+const APP_VERSION = 'v3.37';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -67,6 +67,8 @@ const I18N = {
     loginSub:'Entre com sua conta Google autorizada', loginFoot:'Acesso restrito aos líderes do projeto',
     naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
     verificandoAcesso:'Verificando acesso…',
+    loginGoogleFalhou:'Não foi possível carregar o login do Google. Verifique a conexão e tente de novo.',
+    recarregar:'Recarregar', erroLogin:'Erro ao entrar',
     conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', admin:'Admin',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
@@ -145,6 +147,8 @@ const I18N = {
     loginSub:'Entra con tu cuenta Google autorizada', loginFoot:'Acceso restringido a los líderes del proyecto',
     naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
     verificandoAcesso:'Verificando acceso…',
+    loginGoogleFalhou:'No se pudo cargar el inicio de sesión de Google. Revisa la conexión e inténtalo de nuevo.',
+    recarregar:'Recargar', erroLogin:'Error al entrar',
     conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', admin:'Admin',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
@@ -1357,7 +1361,7 @@ function applyEnvBadges(){
 function initGoogleLogin(){
   applyEnvBadges();
   if(!ONLINE_ENABLED){ hideLoginGate(); startAppAfterLogin(); return; }
-  // se já temos token de sessão válido, tenta usar (será revalidado no 1º sync)
+  // se já temos token de sessão válido, tenta usar (será revalidado no servidor)
   const saved = sessionStorage.getItem('gd_idtoken');
   const savedEmail = sessionStorage.getItem('gd_email');
   if(saved && savedEmail){
@@ -1365,11 +1369,25 @@ function initGoogleLogin(){
     if(c.exp && c.exp*1000 > Date.now()+60000){ auth.idToken=saved; auth.email=savedEmail; verifyAccessThenStart(); return; }
   }
   showLoginGate();
+  let tries=0;
   const tryInit=()=>{
-    if(!(window.google && google.accounts && google.accounts.id)){ return setTimeout(tryInit,200); }
-    google.accounts.id.initialize({ client_id: CFG.GOOGLE_CLIENT_ID, callback: onGoogleCredential });
-    google.accounts.id.renderButton($('#gsiBtn'), { theme:'filled_black', size:'large', shape:'pill', text:'signin_with' });
-    google.accounts.id.prompt();
+    if(!(window.google && google.accounts && google.accounts.id)){
+      tries++;
+      if(tries>40){   // ~8s sem carregar o script do Google
+        const le=$('#loginError');
+        if(le){ le.innerHTML = t('loginGoogleFalhou')+' <button id="loginReload" class="btn ghost" style="margin-top:8px">'+t('recarregar')+'</button>'; le.classList.remove('hidden'); }
+        const rb=$('#loginReload'); if(rb) rb.onclick=()=>location.reload();
+        return;
+      }
+      return setTimeout(tryInit,200);
+    }
+    try{
+      google.accounts.id.initialize({ client_id: CFG.GOOGLE_CLIENT_ID, callback: onGoogleCredential, auto_select:false, cancel_on_tap_outside:true });
+      google.accounts.id.renderButton($('#gsiBtn'), { theme:'filled_black', size:'large', shape:'pill', text:'signin_with', width:260 });
+      // NÃO usar One Tap prompt() — causa cooldown/travas no iOS/FedCM. O botão é o caminho confiável.
+    }catch(e){
+      const le=$('#loginError'); if(le){ le.textContent=t('loginGoogleFalhou'); le.classList.remove('hidden'); }
+    }
   };
   tryInit();
 }
@@ -1390,11 +1408,17 @@ async function verifyAccessThenStart(){
       if(le){ le.classList.add('hidden'); le.textContent=''; }
       hideLoginGate(); startAppAfterLogin();
     } else {
-      // servidor recusou (removido da aba Admin) -> não abre a UI
+      // servidor recusou -> não abre a UI. Mostra o motivo e o email tentado (diagnóstico).
+      const tentativa = auth.email || '';
+      const err = data && data.error ? data.error : 'unauthorized';
       auth={idToken:null,email:null,role:null,realAdmin:false,viewAs:null};
       sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
       showLoginGate();
-      if(le){ le.textContent=t('naoAutorizado'); le.classList.remove('hidden'); }
+      if(le){
+        let msg = (err==='unauthorized') ? t('naoAutorizado') : (t('erroLogin')+' ('+err+')');
+        if(tentativa) msg += '\n('+tentativa+')';
+        le.textContent = msg; le.style.whiteSpace='pre-line'; le.classList.remove('hidden');
+      }
       try{ google.accounts.id.disableAutoSelect(); }catch(_){}
     }
   }catch(e){
