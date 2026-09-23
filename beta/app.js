@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta18';
+const APP_VERSION = 'v4.1.0-beta19';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -313,7 +313,7 @@ function fmtNum(v){
   return (!isNaN(n) && n>=0 && n<10 && /^\d+$/.test(s)) ? ('0'+n) : s;
 }
 
-let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{} };
+let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{}, sizePhaseSel:'fazer' };
 
 /* ---------- render lista ---------- */
 const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['isento','fIsento'],['revisar','fRevisar']];
@@ -518,22 +518,27 @@ async function renderPainel(){
   const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   const maxTot=Math.max(1,...keys.map(s=>bySize[s].tot));
+  // fase selecionada (default 'fazer' = A produzir): controla em qual segmento aparece o número destacado
+  const sel = (state.sizePhaseSel==='prod'||state.sizePhaseSel==='fazer'||state.sizePhaseSel==='pot') ? state.sizePhaseSel : 'fazer';
   const phases=`
     <div class="size-phases">
-      <div class="sphase a"><div class="n">${totProd}</div><div class="l">${t('faseProduzido')}</div></div>
-      <div class="sphase b"><div class="n">${totFazer}</div><div class="l">${t('faseProduzir')}</div></div>
-      <div class="sphase c"><div class="n">${totPot}</div><div class="l">${t('fasePotencial')}</div></div>
+      <div class="sphase a ${sel==='prod'?'sel':''}" data-ph="prod"><div class="n">${totProd}</div><div class="l">${t('faseProduzido')}</div></div>
+      <div class="sphase b ${sel==='fazer'?'sel':''}" data-ph="fazer"><div class="n">${totFazer}</div><div class="l">${t('faseProduzir')}</div></div>
+      <div class="sphase c ${sel==='pot'?'sel':''}" data-ph="pot"><div class="n">${totPot}</div><div class="l">${t('fasePotencial')}</div></div>
     </div>`;
   const bars=keys.map(s=>{
     const b=bySize[s];
     const wp=(b.prod/maxTot*100).toFixed(1), wf=(b.fazer/maxTot*100).toFixed(1), wo=(b.pot/maxTot*100).toFixed(1);
-    const badge = b.fazer>0 ? `<span class="prod-badge">${b.fazer}</span>` : '';
+    // valor da fase selecionada; badge só quando > 0, no segmento equivalente
+    const selVal = sel==='prod'? b.prod : sel==='fazer'? b.fazer : b.pot;
+    const badge = selVal>0 ? `<span class="prod-badge ph-${sel}">${selVal}</span>` : '';
+    const hostP = sel==='prod'? ' badge-host':'', hostF = sel==='fazer'? ' badge-host':'', hostO = sel==='pot'? ' badge-host':'';
     return `<div class="size-bar">
       <span class="sb-lbl">${esc(s)}</span>
       <span class="sb-track">
-        <i style="width:${wp}%;background:var(--green)" title="${t('faseProduzido')}: ${b.prod}"></i>
-        <i class="seg-prod" style="width:${wf}%;background:var(--accent)" title="${t('faseProduzir')}: ${b.fazer}">${badge}</i>
-        <i style="width:${wo}%;background:#e2d3b0" title="${t('fasePotencial')}: ${b.pot}"></i>
+        <i class="seg-prod${hostP}" style="width:${wp}%;background:var(--green)" title="${t('faseProduzido')}: ${b.prod}">${sel==='prod'?badge:''}</i>
+        <i class="seg-prod${hostF}" style="width:${wf}%;background:var(--accent)" title="${t('faseProduzir')}: ${b.fazer}">${sel==='fazer'?badge:''}</i>
+        <i class="seg-prod${hostO}" style="width:${wo}%;background:#e2d3b0" title="${t('fasePotencial')}: ${b.pot}">${sel==='pot'?badge:''}</i>
       </span>
       <span class="sb-val">${b.tot}</span>
     </div>`;
@@ -547,6 +552,8 @@ async function renderPainel(){
   const prontasNaoEntr = Math.max(0, prontas - entregues);
   const confNote = `<div class="conf-note"><b>${entregues} ${t('entreguesNote')}</b>${prontasNaoEntr>0?` · ${prontasNaoEntr} ${t('prontasAguardando')}`:''}</div>`;
   $('#sizegrid').innerHTML = phases + bars + legend + confNote;
+  // clique nas caixas de subtotal -> seleciona a fase cujo número é destacado nas barras
+  $$('#sizegrid .sphase').forEach(el=>el.onclick=()=>{ state.sizePhaseSel = el.dataset.ph; renderPainel(); });
   // financeiro (A1: saldo herói + donut de bolsos + custódia expansível)
   const despAll = await sGetAll(STORE_DESP);
   const movAll  = await sGetAll(STORE_MOV);
