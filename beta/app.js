@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta17';
+const APP_VERSION = 'v4.1.0-beta18';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -72,7 +72,7 @@ const I18N = {
     confirmSairForm:'Você alterou os dados deste Gideão mas ainda não salvou. O que deseja fazer?',
     editarData:'Editar data',
     estAbbr1:'Conf.', estAbbr2:'Pronta', estAbbr3:'Entreg.',
-    novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…',
+    novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…', atualizarPara:'Atualizar para nova versão disponível',
     loginSub:'Entre com sua conta Google autorizada', loginFoot:'Acesso restrito aos líderes do projeto',
     naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
     verificandoAcesso:'Verificando acesso…',
@@ -161,7 +161,7 @@ const I18N = {
     confirmSairForm:'Has cambiado los datos de este Gedeón pero aún no lo has guardado. ¿Qué deseas hacer?',
     editarData:'Editar fecha',
     estAbbr1:'Conf.', estAbbr2:'Lista', estAbbr3:'Entreg.',
-    novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…',
+    novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…', atualizarPara:'Actualizar a la nueva versión disponible',
     loginSub:'Entra con tu cuenta Google autorizada', loginFoot:'Acceso restringido a los líderes del proyecto',
     naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
     verificandoAcesso:'Verificando acceso…',
@@ -1564,6 +1564,7 @@ function applyLang(){
   $('#q').placeholder=t('buscar');
   $$('.lang button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
   renderFilters();
+  if(typeof refreshUpdateRow==='function') refreshUpdateRow();
 }
 $$('.lang button').forEach(b=>b.onclick=()=>{lang=b.dataset.lang;localStorage.setItem('lang',lang);applyLang();refresh();});
 
@@ -1578,38 +1579,55 @@ async function refresh(){
 
 /* ---------- atualização (via version.json — confiável) ---------- */
 let bannerShown=false;
+let newVersionAvail=null;   // versão nova detectada (string) — usada pela barra E pelo botão em MAIS
+let updating=false;
+// aplica a atualização: limpa caches + atualiza SW + recarrega forçando rede (compartilhada barra/MAIS)
+async function applyUpdate(btn){
+  if(updating) return; updating=true;
+  if(btn){ btn.disabled=true; btn.textContent=t('atualizando'); }
+  try{
+    if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
+    if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.update().catch(()=>{}))); }
+  }catch(e){}
+  setTimeout(()=>{ location.reload(); }, 300);
+}
+// atualiza a LINHA da tab MAIS (visível sempre que houver nova versão, mesmo após ignorar a barra)
+function refreshUpdateRow(){
+  const row=$('#updateRow'); if(!row) return;
+  const has=!!newVersionAvail;
+  row.classList.toggle('hidden', !has);
+  const btn=$('#updateBtnMais');
+  if(btn && has){ btn.textContent = t('atualizarPara') + ' ' + newVersionAvail; }
+}
 function showUpdateBanner(newVer){
   if(bannerShown) return;
-  // se o usuário já ignorou ESTA versão, não mostra de novo
+  // se o usuário já ignorou ESTA versão, não mostra a BARRA de novo (mas o botão em MAIS continua)
   try{ if(newVer && sessionStorage.getItem('gd_dismissedVer')===newVer) return; }catch(e){}
   bannerShown=true;
   const b=$('#updateBanner');
-  $('#updateMsg').textContent=t('novaVersao');
+  $('#updateMsg').textContent = t('novaVersao') + (newVer? ' ('+newVer+')' : '');
   $('#updateBtn').textContent=t('atualizar');
   b.classList.remove('hidden');
   const dx=$('#updateDismiss');
   if(dx) dx.onclick=()=>{
     b.classList.add('hidden'); bannerShown=false;
     try{ if(newVer) sessionStorage.setItem('gd_dismissedVer', newVer); }catch(e){}
+    // ao ignorar a barra, o botão em MAIS permanece disponível
   };
-  $('#updateBtn').onclick=async()=>{
-    $('#updateBtn').disabled=true;
-    $('#updateBtn').textContent=t('atualizando');
-    try{
-      // limpa caches e atualiza o service worker para garantir código novo
-      if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
-      if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.update().catch(()=>{}))); }
-    }catch(e){}
-    // recarrega forçando rede
-    setTimeout(()=>{ location.reload(); }, 300);
-  };
+  $('#updateBtn').onclick=()=>applyUpdate($('#updateBtn'));
 }
+// liga o botão da tab MAIS (uma vez)
+$('#updateBtnMais') && ($('#updateBtnMais').onclick=()=>applyUpdate($('#updateBtnMais')));
 async function checkVersion(){
   try{
     const r=await fetchTimeout('version.json?ts='+Date.now(), {cache:'no-store'}, 8000);
     if(!r.ok) return;
     const data=await r.json();
-    if(data && data.version && data.version!==APP_VERSION){ showUpdateBanner(data.version); }
+    if(data && data.version && data.version!==APP_VERSION){
+      newVersionAvail=data.version;
+      refreshUpdateRow();          // mostra o botão em MAIS
+      showUpdateBanner(data.version);
+    }
   }catch(e){ /* offline: ignora */ }
 }
 async function registerSWWithUpdate(){
