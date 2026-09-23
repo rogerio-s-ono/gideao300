@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta14';
+const APP_VERSION = 'v4.1.0-beta15';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -933,8 +933,9 @@ function renderPays(){
   if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
   else { box.style.background='var(--soft-grey)';box.style.color='var(--grey)';box.textContent=t('saldoPend'); }
-  // esconde a área de adicionar pagamento quando a cota já está completa
-  const ap=$('#payFields'); if(ap) ap.classList.toggle('hidden', soma>=COTA);
+  // esconde a área de adicionar pagamento quando a cota já está completa OU o inscrito é isento
+  const isentoNow = $('#f-isento') && $('#f-isento').checked;
+  const ap=$('#payFields'); if(ap) ap.classList.toggle('hidden', isentoNow || soma>=COTA);
 }
 // Isento: esconde os campos de pagamento (mantém o checkbox visível); mostra nota discreta
 function updateIsentoVis(){
