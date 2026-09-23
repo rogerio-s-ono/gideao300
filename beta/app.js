@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta2';
+const APP_VERSION = 'v4.1.0-beta3';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -43,6 +43,7 @@ const I18N = {
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
     metaCampanha:'Meta da campanha', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
+    saldoLabel:'saldo', custodiaLabel:'Custódia do dinheiro', pastoresLabel:'pastores', tesoureiroLabel:'tesoureiro',
     saldoPago:'Pago — cota completa', saldoFalta:'Faltam {v}€', saldoPend:'Nenhum pagamento',
     faltam:'faltam {v}€', semNumero:'s/n', confirmDel:'Excluir este inscrito?',
     confirmReset:'Apagar TODOS os dados e recarregar a lista inicial? Faça um backup antes.',
@@ -129,6 +130,7 @@ const I18N = {
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
     metaCampanha:'Meta de la campaña', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
+    saldoLabel:'saldo', custodiaLabel:'Custodia del efectivo', pastoresLabel:'pastores', tesoureiroLabel:'tesorero',
     saldoPago:'Pagado — cuota completa', saldoFalta:'Faltan {v}€', saldoPend:'Sin pagos',
     faltam:'faltan {v}€', semNumero:'s/n', confirmDel:'¿Eliminar este inscrito?',
     confirmReset:'¿Borrar TODOS los datos y recargar la lista inicial? Haz una copia antes.',
@@ -501,12 +503,59 @@ async function renderPainel(){
   const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   $('#sizegrid').innerHTML=keys.map(s=>`<div class="sizecell"><div class="v">${bySize[s]}</div><div class="s">${esc(s)}</div></div>`).join('');
-  // financeiro
-  let fin=`
-    <div class="tot-row"><span>${t('arrecadado')}</span><b style="color:var(--green)">${arrec}€</b></div>
-    <div class="tot-row"><span>${t('aReceber')}</span><b style="color:var(--amber)">${areceber}€</b></div>
-    <div class="tot-row"><span>${t('prontas')}</span><b>${prontas}</b></div>`;
-  $('#fin').innerHTML=fin;
+  // financeiro (A1: saldo herói + donut de bolsos + custódia expansível)
+  const despAll = await sGetAll(STORE_DESP);
+  const movAll  = await sGetAll(STORE_MOV);
+  const cx = computeCaixa(all, despAll, movAll);
+  const din=cx.bolso.dinheiro||0, ban=cx.bolso.banco||0, out=cx.bolso.outros||0;
+  // para o desenho do donut/barras usamos valores não-negativos (um bolso pode ficar negativo
+  // se saíram despesas/movimentos além do saldo daquele bolso — mostramos o valor real no texto,
+  // mas o arco não pode ser negativo)
+  const dP=Math.max(0,din), bP=Math.max(0,ban), oP=Math.max(0,out);
+  const totBolso = (dP+bP+oP) || 1;
+  const pDin=dP/totBolso*100, pBan=bP/totBolso*100, pOut=oP/totBolso*100;
+  // dasharray do donut (circunf ~100); offsets acumulados a partir de -25 (topo)
+  const offBan = -(25 + pDin);
+  const offOut = -(25 + pDin + pBan);
+  const maxB = Math.max(dP,bP,oP,1);
+  const custPastor=cx.cashPastor||0, custTeso=cx.cashTeso||0;
+  const cpP=Math.max(0,custPastor), ctP=Math.max(0,custTeso), custTot=(cpP+ctP)||1;
+  const custOpen = (state.finCustOpen!==false);   // lembra estado (default aberto)
+  $('#fin').innerHTML=`
+    <div class="fin-hero">
+      <svg width="112" height="112" viewBox="0 0 42 42" aria-label="Composição do saldo">
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#efe6d3" stroke-width="6"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--accent)" stroke-width="6" stroke-dasharray="${pDin.toFixed(1)} ${(100-pDin).toFixed(1)}" stroke-dashoffset="25" transform="rotate(-90 21 21)"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#0050CA" stroke-width="6" stroke-dasharray="${pBan.toFixed(1)} ${(100-pBan).toFixed(1)}" stroke-dashoffset="${offBan.toFixed(1)}" transform="rotate(-90 21 21)"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#8a6d3b" stroke-width="6" stroke-dasharray="${pOut.toFixed(1)} ${(100-pOut).toFixed(1)}" stroke-dashoffset="${offOut.toFixed(1)}" transform="rotate(-90 21 21)"/>
+        <text x="21" y="20.5" text-anchor="middle" font-size="5" font-weight="bold" fill="#1f1f1f">${Math.round(cx.saldoProjeto).toLocaleString('pt-PT')}€</text>
+        <text x="21" y="25.5" text-anchor="middle" font-size="3" fill="#6f6a63">${t('saldoLabel')}</text>
+      </svg>
+      <div class="fin-hero-num">
+        <div class="fin-lbl">${t('saldoProjeto')}</div>
+        <div class="fin-val">${Math.round(cx.saldoProjeto).toLocaleString('pt-PT')} €</div>
+        <div class="fin-sub">${t('arrecadado')} ${Math.round(cx.arrecadado).toLocaleString('pt-PT')} € − ${t('despesas')} ${Math.round(cx.despTotal).toLocaleString('pt-PT')} €</div>
+      </div>
+    </div>
+    <div class="fin-compo">
+      <div class="fin-row exp ${custOpen?'open':''}" id="finDinRow">
+        <span class="lft"><i class="fdot" style="background:var(--accent)"></i> ${t('bolsoDinheiro')} <span class="caret">▼</span></span>
+        <span class="fmini"><i style="width:${(dP/maxB*100).toFixed(0)}%;background:var(--accent)"></i></span>
+        <b>${Math.round(din).toLocaleString('pt-PT')} €</b>
+      </div>
+      <div class="fin-drill ${custOpen?'':'hidden'}" id="finCust">
+        <div class="fd-h">${t('custodiaLabel')}</div>
+        <div class="fd-bar"><div style="width:${(cpP/custTot*100).toFixed(0)}%;background:#0050CA"></div><div style="width:${(ctP/custTot*100).toFixed(0)}%;background:var(--green)"></div></div>
+        <div class="fd-row">
+          <span class="seg"><i class="fdotc" style="background:#0050CA"></i> ${t('pastoresLabel')} <b>${Math.round(custPastor).toLocaleString('pt-PT')} €</b></span>
+          <span class="seg"><i class="fdotc" style="background:var(--green)"></i> ${t('tesoureiroLabel')} <b>${Math.round(custTeso).toLocaleString('pt-PT')} €</b></span>
+        </div>
+      </div>
+      <div class="fin-row"><span class="lft"><i class="fdot" style="background:#0050CA"></i> ${t('bolsoBanco')}</span><span class="fmini"><i style="width:${(bP/maxB*100).toFixed(0)}%;background:#0050CA"></i></span><b>${Math.round(ban).toLocaleString('pt-PT')} €</b></div>
+      <div class="fin-row"><span class="lft"><i class="fdot" style="background:#8a6d3b"></i> ${t('bolsoOutros')}</span><span class="fmini"><i style="width:${(oP/maxB*100).toFixed(0)}%;background:#8a6d3b"></i></span><b>${Math.round(out).toLocaleString('pt-PT')} €</b></div>
+    </div>`;
+  const dinRow=$('#finDinRow');
+  if(dinRow) dinRow.onclick=()=>{ const d=$('#finCust'); const open=d.classList.toggle('hidden')===false; dinRow.classList.toggle('open',open); state.finCustOpen=open; };
 }
 
 /* ---------- confecção ---------- */

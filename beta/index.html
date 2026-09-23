@@ -91,6 +91,28 @@
   .mring{text-align:center;flex:1}
   .mring-cap{font-size:12px;color:var(--ink);font-weight:600;margin-top:2px}
   .mring-out{font-size:11px;color:var(--muted);margin-top:2px}
+  /* financeiro A1 (Painel) */
+  .fin-hero{display:flex;align-items:center;gap:16px}
+  .fin-hero-num{flex:1;min-width:0}
+  .fin-lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .fin-val{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--green);line-height:1.05}
+  .fin-sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .fin-compo{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .fin-row{display:flex;justify-content:space-between;align-items:center;font-size:.92rem;padding:6px 0}
+  .fin-row .lft{display:flex;gap:8px;align-items:center}
+  .fdot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .fmini{height:7px;border-radius:4px;background:var(--soft-grey);overflow:hidden;flex:1;margin:0 10px;max-width:120px}
+  .fmini > i{display:block;height:100%}
+  .fin-row.exp{cursor:pointer;user-select:none}
+  .fin-row .caret{font-size:9px;color:var(--muted);transition:transform .2s;margin-left:3px;display:inline-block}
+  .fin-row.exp:not(.open) .caret{transform:rotate(-90deg)}
+  .fin-drill{margin:0 0 8px 19px;padding:8px 10px;background:var(--soft-grey);border-radius:8px}
+  .fin-drill.hidden{display:none}
+  .fin-drill .fd-h{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+  .fd-bar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-bottom:7px}
+  .fd-row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink)}
+  .fd-row .seg{display:flex;align-items:center;gap:6px}
+  .fdotc{width:9px;height:9px;border-radius:50%;display:inline-block}
   .bar{height:10px;border-radius:8px;background:var(--soft-grey);overflow:hidden;margin-top:8px}
   .bar > span{display:block;height:100%;background:linear-gradient(90deg,#c08a2d,#d9a94e)}
 
