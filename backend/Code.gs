@@ -1,6 +1,13 @@
 /************************************************************
  * Projeto Gideão 300 — Backend (Google Apps Script Web App)
  * Base de dados: aba "Gideoes" desta planilha.
+ *
+ * ⚠️ PLACEHOLDER / DEFASADO: este arquivo do repo NÃO reflete a lógica completa em produção.
+ *    A FONTE REAL (implantada no Apps Script) é `Code.gs.real` (OneDrive "Kiro Folder/Personal/Casa Fuerte/"),
+ *    que inclui: papéis admin/tesoureiro/user/viewer (_normRole), Caixa (Despesas/Movimentos + fotos_json),
+ *    campo `isento`, replaceUsers, dailyBackup FULL e o bloqueio read-only do perfil Visualizador no doPost.
+ *    Segredos (SYNC_TOKEN/CLIENT_ID/emails) ficam SÓ no .real. Ao mudar o backend, edite o .real e reimplante.
+ *
  * Segurança: login Google (id_token) + allowlist de emails + token secreto.
  *
  * COMO CONFIGURAR (edite as 3 constantes abaixo):
