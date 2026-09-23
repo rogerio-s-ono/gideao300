@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta23';
+const APP_VERSION = 'v4.1.0-beta24';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1254,8 +1254,8 @@ async function renderCaixa(){
   // item 7: quebra do dinheiro por custódia
   const cp=$('#cashPastor'); if(cp) cp.textContent=eur(c.cashPastor||0);
   const ct=$('#cashTeso'); if(ct) ct.textContent=eur(c.cashTeso||0);
-  // selo somente-leitura para o user
-  const ro=$('#cxReadonly'); if(ro) ro.classList.toggle('hidden', !auth.caixaRO);
+  // selo somente-leitura: só quando o usuário não pode NADA na Caixa (nem adicionar despesa)
+  const ro=$('#cxReadonly'); if(ro) ro.classList.toggle('hidden', !!auth.podeAddDespesa);
   renderCaixaTabs(); renderCaixaList(c);
 }
 let cashSplitOpen=false;
@@ -1265,7 +1265,7 @@ $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
   const head=$('#cashSplitHead'); if(head) head.classList.toggle('open', cashSplitOpen);
 });
 function renderCaixaTabs(){
-  $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
+  $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); updateFabCaixa(); }; });
   const lbl=$('#cxSortLbl'); if(lbl) lbl.textContent = caixaState.sortDesc? t('maisRecente') : t('maisAntigo');
 }
 $('#cxSortBtn') && ($('#cxSortBtn').onclick=()=>{ caixaState.sortDesc=!caixaState.sortDesc; renderCaixa(); });
@@ -1316,9 +1316,11 @@ function openDesp(id){
   $('#d-obs').value = d? (d.obs||'') : '';
   caixaState.draftFotos = (d && Array.isArray(d.fotos)) ? d.fotos.map(u=>({url:u})) : [];
   renderDraftFotos();
-  $('#despDel').classList.toggle('hidden', !d || auth.caixaRO);
+  // user pode criar/editar despesa (nao deletar). Managers (admin/tesoureiro) podem tudo.
+  const despRO = !auth.podeAddDespesa;                       // read-only só se nem adicionar pode (viewer nunca chega aqui)
+  $('#despDel').classList.toggle('hidden', !d || !auth.podeCaixaMgr);   // Excluir só admin/tesoureiro
   $('#despModal').classList.remove('hidden');
-  applyModalRO('#despModal', auth.caixaRO, ['#despSave','#d-addFoto']);
+  applyModalRO('#despModal', despRO, ['#despSave','#d-addFoto']);
 }
 // modo somente-leitura para modais da Caixa: desabilita campos e esconde botoes de acao
 function applyModalRO(modalSel, ro, actionBtns){
@@ -1515,7 +1517,17 @@ $('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return;
 $('#movCancel') && ($('#movCancel').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movBack') && ($('#movBack').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
-$('#fabCaixa') && ($('#fabCaixa').onclick=()=>{ caixaState.tab==='despesas'? openDesp(null) : openMov(null); });
+$('#fabCaixa') && ($('#fabCaixa').onclick=()=>{
+  if(caixaState.tab==='despesas'){ if(auth.podeAddDespesa) openDesp(null); }
+  else { if(auth.podeCaixaMgr) openMov(null); }   // movimentacao: so admin/tesoureiro
+});
+// visibilidade do FAB da Caixa conforme aba atual + papel
+function updateFabCaixa(){
+  const fc=$('#fabCaixa'); if(!fc) return;
+  const naCaixa = (state.view==='caixa');
+  const pode = caixaState.tab==='despesas' ? auth.podeAddDespesa : auth.podeCaixaMgr;
+  fc.classList.toggle('hidden', !(naCaixa && pode));
+}
 // marcador de pendência para sync das novas coleções (chave composta)
 function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=1; localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
 
@@ -1630,7 +1642,7 @@ function doSetView(v){
   ['lista','painel','confeccao','caixa','acessos','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   $('#fab').classList.toggle('hidden', v!=='lista' || effectiveRole()==='viewer');
-  const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa' || auth.caixaRO);
+  const fc=$('#fabCaixa'); if(fc) updateFabCaixa();
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
@@ -1864,13 +1876,18 @@ function applyAdminUI(){
   const eff = effectiveRole();                 // 'admin' | 'tesoureiro' | 'user' | 'viewer'
   const isAdmin = (eff==='admin');
   const isViewer = (eff==='viewer');            // Visualizador: só Gideões + Painel, read-only total
-  const isCaixaEdit = isAdmin || (eff==='tesoureiro');   // edita a Caixa
-  auth.caixaRO = !isCaixaEdit;                            // user = Caixa somente leitura
+  const isCaixaEdit = isAdmin || (eff==='tesoureiro');   // gerencia a Caixa (movimentacoes, deletar despesa)
+  auth.caixaRO = !isCaixaEdit;                            // user = Caixa (quase) somente leitura
+  auth.podeCaixaMgr = isCaixaEdit;                        // movimentacoes + deletar despesa: admin/tesoureiro
+  auth.podeAddDespesa = isAdmin || (eff==='tesoureiro') || (eff==='user');  // criar/editar despesa: todos menos viewer
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
   const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', isViewer);   // Caixa: todos exceto viewer
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
   const navConf=$('#navConfeccao'); if(navConf) navConf.classList.toggle('hidden', isViewer);  // Confecção: escondida p/ viewer
   const fab=$('#fab'); if(fab) fab.classList.toggle('hidden', isViewer);            // sem "+ novo Gideão" p/ viewer
+  // viewer NÃO pode exportar/baixar dados (fecharia a brecha de exfiltrar movimentações via CSV/JSON):
+  // na tab Mais, deixa só a seção "Conta e sincronização"
+  const dbSec=$('#dadosBackupSection'); if(dbSec) dbSec.classList.toggle('hidden', isViewer);
   renderImpersonateUI();
   updateAcctRole();
   if(isAdmin) loadUsers();
