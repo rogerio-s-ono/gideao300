@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta15';
+const APP_VERSION = 'v4.1.0-beta16';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -936,6 +936,8 @@ function renderPays(){
   // esconde a área de adicionar pagamento quando a cota já está completa OU o inscrito é isento
   const isentoNow = $('#f-isento') && $('#f-isento').checked;
   const ap=$('#payFields'); if(ap) ap.classList.toggle('hidden', isentoNow || soma>=COTA);
+  // a linha (titulo + checkbox Isento) some quando pago e NAO isento (mantem acessivel p/ marcar isento se ainda nao pagou)
+  const head=$('#addPayHead'); if(head) head.classList.toggle('hidden', !isentoNow && soma>=COTA);
 }
 // Isento: esconde os campos de pagamento (mantém o checkbox visível); mostra nota discreta
 function updateIsentoVis(){
@@ -946,6 +948,8 @@ function updateIsentoVis(){
   const pf=$('#payFields'); if(pf) pf.classList.toggle('hidden', on || soma>=COTA);
   const nota=$('#isentoNota'); if(nota) nota.classList.toggle('hidden', !on);
   const ttl=$('#addPayTitle'); if(ttl) ttl.classList.toggle('hidden', on);  // esconde "Adicionar pagamento" quando isento
+  // a linha (titulo + checkbox Isento) some quando a cota ja esta completa e NAO e isento
+  const head=$('#addPayHead'); if(head) head.classList.toggle('hidden', !on && soma>=COTA);
   const ap=$('#addPaySub'); if(ap) ap.classList.remove('hidden');  // sempre visível (contém o checkbox)
 }
 $('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); updateCamisaStatusVis(); });
