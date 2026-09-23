@@ -30,7 +30,7 @@ const HEADERS = ['id','numero','nome','telefone','tamanho','cota','pagamentos_js
 const DESP_SHEET='Despesas';
 const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','fotos_json','atualizadoEm','atualizadoPor'];
 const MOV_SHEET='Movimentos';
-const MOV_HEADERS=['id','de','para','valor','data','comentario','atualizadoEm','atualizadoPor'];
+const MOV_HEADERS=['id','de','para','valor','data','comentario','fotos_json','atualizadoEm','atualizadoPor'];
 
 function _collSheet(name, headers){
   const ss=SpreadsheetApp.getActiveSpreadsheet();

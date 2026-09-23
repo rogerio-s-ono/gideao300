@@ -292,6 +292,14 @@
   .pay .pay-deliver{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--green)}
   .pay .pay-deliver input[type=checkbox]{width:16px;height:16px;accent-color:var(--green)}
   .pay .pay-deliver .pay-date{margin-left:auto;margin-right:30px;color:var(--green)}
+  .pay .pay-fotos{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pay .pay-fotos .foto-thumb{width:40px;height:40px;border-radius:6px}
+  .pay .pay-fotos .foto-thumb .rm{width:16px;height:16px;font-size:11px;top:1px;right:1px}
+  .pay .pay-fotos .foto-thumb.pdf svg{width:18px;height:18px} .pay .pay-fotos .foto-thumb.pdf small{font-size:6px}
+  .pay .pay-add{width:40px;height:40px;border:1.5px dashed var(--accent);border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;line-height:1;flex:none}
+  .pay .pay-add small{font-size:6.5px}
+  .pay .pay-anexar{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--accent);border:1px dashed var(--accent);border-radius:7px;padding:5px 9px;cursor:pointer;background:var(--accent-soft)}
+  .pay .pay-cnt{font-size:11px;color:var(--muted);margin-left:2px}
   .saldo{font-size:14px;margin-top:8px;padding:10px;border-radius:8px;text-align:center;font-weight:600}
 
   .tot-row{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--line);font-size:15px}
@@ -717,6 +725,7 @@
     <div class="grp" id="addPayArea">
     <div class="gh" data-i="pagamentos">Pagamentos (cota 300€)</div>
     <div id="paysList"></div>
+    <input type="file" id="p-fotoInput" accept="image/*,application/pdf" class="hidden">
     <div class="saldo" id="saldoBox"></div>
     <div class="pay-sub" id="addPaySub">
     <div class="bh-row" id="addPayHead">
@@ -871,6 +880,10 @@
       <div><label data-i="data">Data</label><input id="m-data" type="date"></div>
     </div>
     <label data-i="comentario">Comentário</label><input id="m-comentario" placeholder="ex.: Depósito; Bizum Rogério">
+    <label data-i="fotosFatura">Comprovante — foto ou PDF (até 3)</label>
+    <div id="m-fotos" class="fotos-grid"></div>
+    <button type="button" class="btn ghost" id="m-addFoto" data-i="tirarFoto">📎 Anexar comprovante (foto ou PDF)</button>
+    <input type="file" id="m-fotoInput" accept="image/*,application/pdf" class="hidden">
     <div class="modal-divider"></div>
     <div class="action-bar">
       <button class="act save" id="movSave" type="button">

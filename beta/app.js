@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta20';
+const APP_VERSION = 'v4.1.0-beta21';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -105,7 +105,7 @@ const I18N = {
     novaMovimentacao:'Nova movimentação', editarMovimentacao:'Editar movimentação', de:'De', para:'Para', comentario:'Comentário',
     arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?',
     extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento',
-    fotosFatura:'Comprovante — foto ou PDF (até 3)', tirarFoto:'📎 Anexar comprovante (foto ou PDF)', verFoto:'Ver comprovante', enviandoFoto:'Enviando anexo…', maxFotos:'Máximo de 3 anexos.', pdfGrande:'PDF muito grande (máx. 5 MB). Reduza o arquivo e tente novamente.',
+    fotosFatura:'Comprovante — foto ou PDF (até 3)', tirarFoto:'📎 Anexar comprovante (foto ou PDF)', verFoto:'Ver comprovante', enviandoFoto:'Enviando anexo…', maxFotos:'Máximo de 3 anexos.', pdfGrande:'PDF muito grande (máx. 5 MB). Reduza o arquivo e tente novamente.', anexarComprovante:'Anexar comprovante',
     fotoSemConexao:'Sem conexão para enviar a foto. Conecte-se à internet e tente salvar novamente (ou remova a foto para salvar sem ela).',
     fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
@@ -194,7 +194,7 @@ const I18N = {
     novaMovimentacao:'Nuevo traspaso', editarMovimentacao:'Editar traspaso', de:'De', para:'A', comentario:'Comentario',
     arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?',
     extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago',
-    fotosFatura:'Comprobante — foto o PDF (hasta 3)', tirarFoto:'📎 Adjuntar comprobante (foto o PDF)', verFoto:'Ver comprobante', enviandoFoto:'Enviando adjunto…', maxFotos:'Máximo de 3 adjuntos.', pdfGrande:'PDF demasiado grande (máx. 5 MB). Reduce el archivo e intenta de nuevo.',
+    fotosFatura:'Comprobante — foto o PDF (hasta 3)', tirarFoto:'📎 Adjuntar comprobante (foto o PDF)', verFoto:'Ver comprobante', enviandoFoto:'Enviando adjunto…', maxFotos:'Máximo de 3 adjuntos.', pdfGrande:'PDF demasiado grande (máx. 5 MB). Reduce el archivo e intenta de nuevo.', anexarComprovante:'Adjuntar comprobante',
     fotoSemConexao:'Sin conexión para enviar la foto. Conéctate a internet e intenta guardar de nuevo (o quita la foto para guardar sin ella).',
     fotoFalhou:'No se pudo enviar la foto. El gasto NO se guardó. Intenta de nuevo o quita la foto.'
   }
@@ -896,6 +896,30 @@ function updateCamisaStatusVis(rec){
 }
 $('#f-obs') && ($('#f-obs').addEventListener('input', updateRevisarVis));
 
+// ---- comprovante por parcela (Cartão/Outros) ----
+let payFotoTargetIdx=null;   // índice da parcela cujo botão + foi tocado
+// normaliza um item de p.fotos (string URL do JSON  OU  objeto {url}/{dataUrl,kind})
+function normFoto(f){ return (typeof f==='string') ? {url:f} : (f||{}); }
+// HTML da linha de comprovante de UMA parcela (só Cartão/Outros); thumbs + add até 3 + contador
+function fotosRowHtml(p, idx){
+  const tipo=String(p.tipo||'');
+  if(tipo!=='Cartão' && tipo!=='Outros') return '';   // só Cartão/Outros
+  const arr=Array.isArray(p.fotos)?p.fotos:[];
+  const thumbs=arr.map((raw,fi)=>{
+    const f=normFoto(raw);
+    if(f.kind==='pdf'){
+      return `<div class="foto-thumb pdf pf-open" data-p="${idx}" data-f="${fi}">${_pdfSvg}<small>PDF</small><button type="button" class="pf-rm" data-p="${idx}" data-f="${fi}">×</button></div>`;
+    }
+    const src=f.dataUrl||thumbFromUrl(f.url);
+    return `<div class="foto-thumb"><img src="${src}" alt="anexo" class="pf-open" data-p="${idx}" data-f="${fi}"><button type="button" class="pf-rm" data-p="${idx}" data-f="${fi}">×</button></div>`;
+  }).join('');
+  const addBtn = arr.length<3 ? (arr.length===0
+      ? `<span class="pay-anexar pf-add" data-p="${idx}">📎 ${t('anexarComprovante')}</span>`
+      : `<div class="pay-add pf-add" data-p="${idx}">＋<small>add</small></div>`) : '';
+  const cnt = `<span class="pay-cnt">${arr.length}/3</span>`;
+  return `<div class="pay-fotos">${thumbs}${addBtn}${cnt}</div>`;
+}
+
 function renderPays(){
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   const falta=COTA-soma;
@@ -925,9 +949,14 @@ function renderPays(){
         <button class="del" data-i="${idx}">×</button>
       </div>
       ${deliverRow}
+      ${fotosRowHtml(p, idx)}
     </div>`;
   }).join('');
   $$('#paysList .del').forEach(b=>b.onclick=()=>{state.draftPays.splice(+b.dataset.i,1);renderPays();});
+  // comprovante por parcela: remover / abrir / adicionar
+  $$('#paysList .pf-rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); const pi=+b.dataset.p, fi=+b.dataset.f; const p=state.draftPays[pi]; if(p&&Array.isArray(p.fotos)){ p.fotos.splice(fi,1); renderPays(); } });
+  $$('#paysList .pf-open').forEach(im=>im.onclick=()=>{ const pi=+im.dataset.p, fi=+im.dataset.f; const p=state.draftPays[pi]; if(p&&p.fotos&&p.fotos[fi]) openFoto(normFoto(p.fotos[fi])); });
+  $$('#paysList .pf-add').forEach(b=>b.onclick=()=>{ const pi=+b.dataset.p; const p=state.draftPays[pi]; if(!Array.isArray(p.fotos)) p.fotos=[]; if(p.fotos.length>=3){ alert(t('maxFotos')); return; } payFotoTargetIdx=pi; $('#p-fotoInput').click(); });
   $$('#paysList .pdeliver').forEach(cb=>cb.onchange=()=>{
     const i=+cb.dataset.i; const p=state.draftPays[i];
     if(cb.checked){ p.entregueTesoureiro=true; p.dataEntregaTesoureiro=hoje(); }
@@ -982,6 +1011,16 @@ $('#addPay').onclick=()=>{
 };
 // mostra o campo de comentário só quando "Outros"
 document.addEventListener('change',(e)=>{ if(e.target && e.target.id==='p-tipo'){ $('#p-outros-wrap').classList.toggle('hidden', e.target.value!=='Outros'); const rw=$('#p-receb-wrap'); if(rw) rw.classList.toggle('hidden', e.target.value!=='Dinheiro'); } });
+// comprovante de uma parcela específica (Cartão/Outros)
+$('#p-fotoInput') && ($('#p-fotoInput').onchange=async(e)=>{
+  const file=e.target.files && e.target.files[0]; const pi=payFotoTargetIdx; e.target.value=''; payFotoTargetIdx=null;
+  if(!file || pi==null) return;
+  const p=state.draftPays[pi]; if(!p) return;
+  if(!Array.isArray(p.fotos)) p.fotos=[];
+  if(p.fotos.length>=3){ alert(t('maxFotos')); return; }
+  try{ const anexo=await processAnexo(file); if(anexo){ p.fotos.push(anexo); renderPays(); } }
+  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+});
 $('#save').onclick=async()=>{
   if(writeBlocked()) return;
   const nome=$('#f-nome').value.trim();
@@ -993,6 +1032,24 @@ $('#save').onclick=async()=>{
   const restanteAtual=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   if(!isento && pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
     if(confirm(t('pagamentoNaoAdicionado'))){ $('#addPay').click(); }
+  }
+  // sobe comprovantes pendentes de CADA parcela (Cartão/Outros) antes de gravar; aborta se falhar
+  if(!isento){
+    const btn=$('#save'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
+    const temPendente = state.draftPays.some(p=>Array.isArray(p.fotos) && p.fotos.some(f=>f&&typeof f==='object'&&!f.url&&f.dataUrl));
+    if(temPendente){
+      btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
+      for(const p of state.draftPays){
+        if(!Array.isArray(p.fotos) || !p.fotos.length) continue;
+        // normaliza para objetos, sobe pendentes
+        p.fotos = p.fotos.map(normFoto);
+        const up=await uploadPendentes(p.fotos);
+        if(!up.ok){ btn.disabled=false; btnLabel(btn, orig); alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+      }
+      btn.disabled=false; btnLabel(btn, orig);
+    }
+    // serializa cada parcela: fotos = array de URLs (o pagamentos_json guarda só URLs)
+    state.draftPays.forEach(p=>{ if(Array.isArray(p.fotos)){ p.fotos = p.fotos.map(f=> (typeof f==='string'? f : (f&&f.url)) ).filter(Boolean); if(!p.fotos.length) delete p.fotos; } });
   }
   const all=await getAll();
   let rec=state.editing?all.find(x=>x.id===state.editing):{cota:COTA,textoOriginal:''};
@@ -1177,7 +1234,7 @@ $('#fileRestore').onchange=async e=>{
 /* ---------- CAIXA (financeiro, só admin) ---------- */
 const CATEGORIAS=['Camisas','Material','Outros'];
 const BOLSO_LABEL={dinheiro:'Dinheiro',banco:'Banco',outros:'Outros'};
-let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], sortDesc:true };
+let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], draftFotosMov:[], sortDesc:true };
 function eur(n){ return (Math.round((+n||0)*100)/100).toLocaleString('pt-PT')+' €'; }
 
 async function loadCaixa(){
@@ -1293,16 +1350,48 @@ function compressImage(file, maxDim, quality){
 function renderDraftFotos(){
   const el=$('#d-fotos'); if(!el) return;
   const pdfSvg='<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zm-1 7V3.5L18.5 9z"/></svg>';
-  el.innerHTML=(caixaState.draftFotos||[]).map((f,idx)=>{
-    if(f.kind==='pdf'){   // pdf local (ainda não enviado)
-      return `<div class="foto-thumb pdf foto-open" data-i="${idx}">${pdfSvg}<small>PDF</small><button type="button" class="rm" data-i="${idx}">×</button></div>`;
+  el.innerHTML=fotosGridHtml(caixaState.draftFotos||[]);
+  wireFotosGrid(el, caixaState.draftFotos, renderDraftFotos);
+  const addBtn=$('#d-addFoto'); if(addBtn) addBtn.style.display=(caixaState.draftFotos.length>=3)?'none':'block';
+}
+// ---- helpers reutilizáveis de anexo (foto/PDF) — usados por Despesas, Movimentações e Pagamentos ----
+const _pdfSvg='<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zm-1 7V3.5L18.5 9z"/></svg>';
+function fotosGridHtml(arr){
+  return (arr||[]).map((f,idx)=>{
+    if(f.kind==='pdf'){
+      return `<div class="foto-thumb pdf foto-open" data-i="${idx}">${_pdfSvg}<small>PDF</small><button type="button" class="rm" data-i="${idx}">×</button></div>`;
     }
     const src = f.dataUrl || thumbFromUrl(f.url);
     return `<div class="foto-thumb"><img src="${src}" alt="anexo" class="foto-open" data-i="${idx}"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
   }).join('');
-  el.querySelectorAll('.rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); caixaState.draftFotos.splice(+b.dataset.i,1); renderDraftFotos(); });
-  el.querySelectorAll('.foto-open').forEach(im=>im.onclick=()=>{ const f=caixaState.draftFotos[+im.dataset.i]; openFoto(f); });
-  const addBtn=$('#d-addFoto'); if(addBtn) addBtn.style.display=(caixaState.draftFotos.length>=3)?'none':'block';
+}
+function wireFotosGrid(el, arr, rerender){
+  el.querySelectorAll('.rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); arr.splice(+b.dataset.i,1); rerender(); });
+  el.querySelectorAll('.foto-open').forEach(im=>im.onclick=()=>{ openFoto(arr[+im.dataset.i]); });
+}
+// sobe os anexos pendentes (dataUrl sem url) de um array para o Drive; retorna {ok, error}
+async function uploadPendentes(arr){
+  const pendentes=(arr||[]).filter(f=>!f.url && f.dataUrl);
+  if(!pendentes.length) return {ok:true};
+  if(!ONLINE_ENABLED || !auth.idToken || !navigator.onLine){ return {ok:false, error:'offline'}; }
+  for(const f of pendentes){
+    let d=null, err=null;
+    try{
+      const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:(f.filename || ('comprovante_'+Date.now()+(f.kind==='pdf'?'.pdf':'.jpg')))})}, 45000);
+      try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
+    }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
+    if(!d || !d.ok || !d.url){ return {ok:false, error:(err || (d&&d.error) || 'upload')}; }
+    f.url=d.url; delete f.dataUrl;   // sucesso confirmado
+  }
+  return {ok:true};
+}
+// render do grid de fotos da MOVIMENTAÇÃO
+function renderDraftFotosMov(){
+  const el=$('#m-fotos'); if(!el) return;
+  el.innerHTML=fotosGridHtml(caixaState.draftFotosMov||[]);
+  wireFotosGrid(el, caixaState.draftFotosMov, renderDraftFotosMov);
+  const addBtn=$('#m-addFoto'); if(addBtn) addBtn.style.display=(caixaState.draftFotosMov.length>=3)?'none':'block';
 }
 function openFoto(f){
   if(!f) return;
@@ -1319,6 +1408,13 @@ $('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[])
 $('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; if(!file) return;
   try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotos.push(anexo); renderDraftFotos(); } }
+  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+  e.target.value='';
+});
+$('#m-addFoto') && ($('#m-addFoto').onclick=()=>{ if((caixaState.draftFotosMov||[]).length>=3){ alert(t('maxFotos')); return; } $('#m-fotoInput').click(); });
+$('#m-fotoInput') && ($('#m-fotoInput').onchange=async(e)=>{
+  const file=e.target.files && e.target.files[0]; if(!file) return;
+  try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotosMov.push(anexo); renderDraftFotosMov(); } }
   catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
   e.target.value='';
 });
@@ -1343,28 +1439,11 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
   const btn=$('#despSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
   // valida upload das fotos ANTES de salvar; se alguma falhar, aborta e avisa (não finge que subiu)
-  const pendentes=caixaState.draftFotos.filter(f=>!f.url && f.dataUrl);
-  if(pendentes.length){
-    if(!ONLINE_ENABLED || !auth.idToken || !navigator.onLine){
-      alert(t('fotoSemConexao'));   // precisa de internet para enviar a foto
-      return;
-    }
+  if((caixaState.draftFotos||[]).some(f=>!f.url && f.dataUrl)){
     btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
-    for(const f of pendentes){
-      let d=null, err=null;
-      try{
-        const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:(f.filename || ('comprovante_'+Date.now()+(f.kind==='pdf'?'.pdf':'.jpg')))})}, 45000);
-        try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
-      }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
-      if(!d || !d.ok || !d.url){
-        btn.disabled=false; btnLabel(btn, orig);
-        alert(t('fotoFalhou') + (err? ('\n('+err+')') : (d && d.error? ('\n('+d.error+')') : '')));
-        return;   // ABORTA o salvamento — foto não subiu, não deixa achar que subiu
-      }
-      f.url=d.url; delete f.dataUrl;   // sucesso confirmado
-    }
+    const up=await uploadPendentes(caixaState.draftFotos);
     btn.disabled=false; btnLabel(btn, orig);
+    if(!up.ok){ alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
   }
   const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
   rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
@@ -1395,6 +1474,8 @@ function openMov(id){
   var morig = (m && m.origemCusto==='pastor') ? 'pastor' : 'tesoureiro';
   $$('#movModal input[name="m-origem"]').forEach(r=>{ r.checked=(r.value===morig); });
   updateMovOrigemVis();
+  caixaState.draftFotosMov = (m && Array.isArray(m.fotos)) ? m.fotos.map(u=>({url:u})) : [];
+  renderDraftFotosMov();
   $('#movDel').classList.toggle('hidden', !m || auth.caixaRO);
   $('#movModal').classList.remove('hidden');
   applyModalRO('#movModal', auth.caixaRO, ['#movSave']);
@@ -1411,11 +1492,20 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   const v=parseFloat(($('#m-valor').value||'').replace(',','.'));
   if(de===para){ alert('Origem e destino devem ser diferentes.'); return; }
   if(!v||v<=0){ alert(t('nomeObrig')); return; }
+  // sobe anexos novos (dataUrl) para o Drive antes de gravar; aborta se falhar
+  const btn=$('#movSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
+  if((caixaState.draftFotosMov||[]).some(f=>!f.url && f.dataUrl)){
+    btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
+    const up=await uploadPendentes(caixaState.draftFotosMov);
+    btn.disabled=false; btnLabel(btn, orig);
+    if(!up.ok){ alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+  }
   const all=caixaState.movimentos; let rec=caixaState.editMov? all.find(x=>x.id===caixaState.editMov):{};
   rec.de=de; rec.para=para; rec.valor=v; rec.data=$('#m-data').value||hoje(); rec.comentario=$('#m-comentario').value.trim();
   // custódia de origem só quando SAI do dinheiro
   if(de==='dinheiro'){ const sel=$('#movModal input[name="m-origem"]:checked'); rec.origemCusto = sel? sel.value : 'tesoureiro'; }
   else { rec.origemCusto=''; }
+  rec.fotos=(caixaState.draftFotosMov||[]).map(f=>f.url).filter(Boolean);
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_MOV, rec); markPendingKV('mov', rec.id!=null?rec.id:newId);
   $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
