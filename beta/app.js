@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta7';
+const APP_VERSION = 'v4.1.0-beta8';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -557,7 +557,7 @@ async function renderPainel(){
   const maxB = Math.max(dP,bP,oP,1);
   const custPastor=cx.cashPastor||0, custTeso=cx.cashTeso||0;
   const cpP=Math.max(0,custPastor), ctP=Math.max(0,custTeso), custTot=(cpP+ctP)||1;
-  const custOpen = (state.finCustOpen!==false);   // lembra estado (default aberto)
+  const custOpen = (state.finCustOpen===true);   // lembra estado (default FECHADO)
   $('#fin').innerHTML=`
     <div class="fin-hero">
       <svg width="112" height="112" viewBox="0 0 42 42" aria-label="Composição do saldo">
@@ -1696,7 +1696,17 @@ function applyAdminUI(){
   const navC=$('#navCaixa'); if(navC) navC.classList.remove('hidden');   // Caixa visível a todos (user = read-only)
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
   renderImpersonateUI();
+  updateAcctRole();
   if(isAdmin) loadUsers();
+}
+/* rótulo do perfil logado na aba MAIS (papel real; indica "ver como" se ativo) */
+function roleLabel(r){ return r==='admin'?t('papelAdmin'):(r==='tesoureiro'?t('papelTesoureiro'):t('papelUser')); }
+function updateAcctRole(){
+  const el=$('#acctRole'); if(!el) return;
+  const realRole = auth.role || (auth.realAdmin ? 'admin' : 'user');
+  let txt = roleLabel(realRole);
+  if(isImpersonating()){ txt += ' · ' + t('verComo') + ' ' + roleLabel(auth.viewAs); }
+  el.textContent = txt;
 }
 /* ---------- "Ver como" (impersonate visual — só admin) ---------- */
 // papel efetivo = o simulado (se admin real ativou "ver como"), senao o real
@@ -2048,6 +2058,7 @@ async function startAppAfterLogin(){
   const vEl=$('#appVersion'); if(vEl) vEl.textContent=APP_VERSION;
   const avEl=$('#acctVersion'); if(avEl) avEl.textContent=APP_VERSION;
   const emEl=$('#acctEmail'); if(emEl) emEl.textContent=auth.email||'—';
+  updateAcctRole();
   applyAdminUI();
   setView('lista');
   refresh();
