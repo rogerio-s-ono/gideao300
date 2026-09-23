@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.0.4';
+const APP_VERSION = 'v4.1.0';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -38,10 +38,14 @@ const I18N = {
     restaurarBackup:'Restaurar backup (JSON)', imprimirPdf:'Imprimir / PDF',
     backupNota:'O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.',
     zerar:'Apagar tudo e recarregar dados iniciais',
-    fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos',
-    sPago:'Pago', sPend:'Pendente',
+    fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos', fIsento:'Isentos', isentoChk:'Isento', isentoNota:'Isento — não paga a cota.',
+    sPago:'Pago', sPend:'Pendente', sIsento:'Isento',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
-    prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber',
+    prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
+    metaCampanha:'Meta do Projeto Gideão', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
+    saldoLabel:'saldo', custodiaLabel:'Custódia do dinheiro', pastoresLabel:'pastores', tesoureiroLabel:'tesoureiro',
+    faseProduzido:'Produzido', faseProduzir:'A produzir', fasePotencial:'Potencial',
+    confeccaoCamisas:'Confecção de camisas', entreguesNote:'camisas entregues', prontasAguardando:'prontas aguardando entrega',
     saldoPago:'Pago — cota completa', saldoFalta:'Faltam {v}€', saldoPend:'Nenhum pagamento',
     faltam:'faltam {v}€', semNumero:'s/n', confirmDel:'Excluir este inscrito?',
     confirmReset:'Apagar TODOS os dados e recarregar a lista inicial? Faça um backup antes.',
@@ -55,7 +59,7 @@ const I18N = {
     vazio:'Nenhum inscrito encontrado.',
     thNum:'Nº', thNome:'Nome', thTam:'Tam.', thTel:'Telefone', thPago:'Pago', thStatus:'Status',
     thPronta:'Pronta', thEntregue:'Entregue', thRevisar:'Rev.', thCamisa:'Camisa',
-    navConfeccao:'Confecção', camisa:'Camisa', camisaStatus:'Estado da camisa',
+    navConfeccao:'Confecção', camisa:'Camisa', camisaStatus:'Estado da camisa:',
     est0:'A fazer', est1:'Em confecção', est2:'Pronta', est3:'Entregue',
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
     avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
@@ -68,17 +72,17 @@ const I18N = {
     confirmSairForm:'Você alterou os dados deste Gideão mas ainda não salvou. O que deseja fazer?',
     editarData:'Editar data',
     estAbbr1:'Conf.', estAbbr2:'Pronta', estAbbr3:'Entreg.',
-    novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…',
+    novaVersao:'Nova versão disponível', atualizar:'Atualizar', atualizando:'Atualizando…', atualizarPara:'Atualizar para nova versão disponível',
     loginSub:'Entre com sua conta Google autorizada', loginFoot:'Acesso restrito aos líderes do projeto',
     naoAutorizado:'Este email não está autorizado a usar o app. Fale com o responsável.',
     verificandoAcesso:'Verificando acesso…',
     loginGoogleFalhou:'Não foi possível carregar o login do Google. Verifique a conexão e tente de novo.',
     recarregar:'Recarregar', erroLogin:'Erro ao entrar',
-    conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', admin:'Admin',
+    conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', ultimaSync:'Última sincronização', admin:'Admin',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
     navAcessos:'Acessos', acessosNota:'Quem pode entrar no app. As mudanças valem no próximo login.',
-    grupoAdmins:'Administradores', grupoUsers:'Usuários', grupoTesoureiros:'Tesoureiros',
+    grupoAdmins:'Administradores', grupoUsers:'Usuários', grupoTesoureiros:'Tesoureiros', grupoViewers:'Visualizadores',
     verComo:'Ver como', verComoEu:'Admin (eu)', vendoComo:'Vendo como: {r}', voltarPerfil:'Voltar ao meu perfil',
     verComoBloqueio:'Você está no modo "Ver como". Saia dele para poder editar.',
     entregueTesoureiro:'Entregue ao tesoureiro', detalheDinheiro:'Detalhe do Dinheiro',
@@ -86,7 +90,7 @@ const I18N = {
     comPastores:'Com pastores', comTesoureiro:'Com tesoureiro',
     saiuDe:'Saiu de (dinheiro)', saiuDeCustodia:'Saiu da custódia (dinheiro)', origemPastor:'Pastor', origemTesoureiro:'Tesoureiro',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
-    perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', papelTesoureiro:'Tesoureiro', adicionar:'Adicionar', remover:'Remover',
+    perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', papelTesoureiro:'Tesoureiro', papelViewer:'Visualizador', viewerBloqueio:'Perfil Visualizador: acesso somente leitura.', adicionar:'Adicionar', remover:'Remover',
     processando:'Processando…', confirmarRemocao:'Confirmar remoção',
     confirmRemoverUser:'Remover o acesso de {e}?',
     errJaExiste:'Este email já está na lista.', errEmailInvalido:'Email inválido.',
@@ -101,7 +105,7 @@ const I18N = {
     novaMovimentacao:'Nova movimentação', editarMovimentacao:'Editar movimentação', de:'De', para:'Para', comentario:'Comentário',
     arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?',
     extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento',
-    fotosFatura:'Fotos da fatura (até 3)', tirarFoto:'📷 Tirar/anexar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.',
+    fotosFatura:'Comprovante — foto ou PDF (até 3)', tirarFoto:'📎 Anexar comprovante (foto ou PDF)', verFoto:'Ver comprovante', enviandoFoto:'Enviando anexo…', maxFotos:'Máximo de 3 anexos.', pdfGrande:'PDF muito grande (máx. 5 MB). Reduza o arquivo e tente novamente.', anexarComprovante:'Anexar comprovante',
     fotoSemConexao:'Sem conexão para enviar a foto. Conecte-se à internet e tente salvar novamente (ou remova a foto para salvar sem ela).',
     fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
@@ -123,10 +127,14 @@ const I18N = {
     restaurarBackup:'Restaurar copia (JSON)', imprimirPdf:'Imprimir / PDF',
     backupNota:'La copia permite pasar los datos entre los líderes (WhatsApp, Drive). Importar reemplaza los datos actuales.',
     zerar:'Borrar todo y recargar datos iniciales',
-    fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos',
-    sPago:'Pagado', sPend:'Pendiente',
+    fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos', fIsento:'Exentos', isentoChk:'Exento', isentoNota:'Exento — no paga la cuota.',
+    sPago:'Pagado', sPend:'Pendiente', sIsento:'Exento',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
-    prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar',
+    prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
+    metaCampanha:'Meta del Proyecto Gedeón', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
+    saldoLabel:'saldo', custodiaLabel:'Custodia del efectivo', pastoresLabel:'pastores', tesoureiroLabel:'tesorero',
+    faseProduzido:'Producido', faseProduzir:'Por producir', fasePotencial:'Potencial',
+    confeccaoCamisas:'Confección de camisetas', entreguesNote:'camisetas entregadas', prontasAguardando:'listas esperando entrega',
     saldoPago:'Pagado — cuota completa', saldoFalta:'Faltan {v}€', saldoPend:'Sin pagos',
     faltam:'faltan {v}€', semNumero:'s/n', confirmDel:'¿Eliminar este inscrito?',
     confirmReset:'¿Borrar TODOS los datos y recargar la lista inicial? Haz una copia antes.',
@@ -140,7 +148,7 @@ const I18N = {
     vazio:'Ningún inscrito encontrado.',
     thNum:'Nº', thNome:'Nombre', thTam:'Talla', thTel:'Teléfono', thPago:'Pagado', thStatus:'Estado',
     thPronta:'Lista', thEntregue:'Entreg.', thRevisar:'Rev.', thCamisa:'Camiseta',
-    navConfeccao:'Confección', camisa:'Camiseta', camisaStatus:'Estado de la camiseta',
+    navConfeccao:'Confección', camisa:'Camiseta', camisaStatus:'Estado de la camiseta:',
     est0:'Por hacer', est1:'En confección', est2:'Lista', est3:'Entregada',
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
     avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
@@ -153,17 +161,17 @@ const I18N = {
     confirmSairForm:'Has cambiado los datos de este Gedeón pero aún no lo has guardado. ¿Qué deseas hacer?',
     editarData:'Editar fecha',
     estAbbr1:'Conf.', estAbbr2:'Lista', estAbbr3:'Entreg.',
-    novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…',
+    novaVersao:'Nueva versión disponible', atualizar:'Actualizar', atualizando:'Actualizando…', atualizarPara:'Actualizar a la nueva versión disponible',
     loginSub:'Entra con tu cuenta Google autorizada', loginFoot:'Acceso restringido a los líderes del proyecto',
     naoAutorizado:'Este correo no está autorizado a usar la app. Habla con el responsable.',
     verificandoAcesso:'Verificando acceso…',
     loginGoogleFalhou:'No se pudo cargar el inicio de sesión de Google. Revisa la conexión e inténtalo de nuevo.',
     recarregar:'Recargar', erroLogin:'Error al entrar',
-    conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', admin:'Admin',
+    conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', ultimaSync:'Última sincronización', admin:'Admin',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
     navAcessos:'Accesos', acessosNota:'Quién puede entrar en la app. Los cambios valen en el próximo inicio de sesión.',
-    grupoAdmins:'Administradores', grupoUsers:'Usuarios', grupoTesoureiros:'Tesoreros',
+    grupoAdmins:'Administradores', grupoUsers:'Usuarios', grupoTesoureiros:'Tesoreros', grupoViewers:'Visores',
     verComo:'Ver como', verComoEu:'Admin (yo)', vendoComo:'Viendo como: {r}', voltarPerfil:'Volver a mi perfil',
     verComoBloqueio:'Estás en modo "Ver como". Sal de él para poder editar.',
     entregueTesoureiro:'Entregado al tesorero', detalheDinheiro:'Detalle del Efectivo',
@@ -171,7 +179,7 @@ const I18N = {
     comPastores:'Con pastores', comTesoureiro:'Con tesorero',
     saiuDe:'Salió de (efectivo)', saiuDeCustodia:'Salió de la custodia (efectivo)', origemPastor:'Pastor', origemTesoureiro:'Tesorero',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
-    perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', papelTesoureiro:'Tesorero', adicionar:'Añadir', remover:'Quitar',
+    perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', papelTesoureiro:'Tesorero', papelViewer:'Visor', viewerBloqueio:'Perfil Visor: acceso solo lectura.', adicionar:'Añadir', remover:'Quitar',
     processando:'Procesando…', confirmarRemocao:'Confirmar eliminación',
     confirmRemoverUser:'¿Quitar el acceso de {e}?',
     errJaExiste:'Este correo ya está en la lista.', errEmailInvalido:'Correo inválido.',
@@ -186,7 +194,7 @@ const I18N = {
     novaMovimentacao:'Nuevo traspaso', editarMovimentacao:'Editar traspaso', de:'De', para:'A', comentario:'Comentario',
     arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?',
     extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago',
-    fotosFatura:'Fotos de la factura (hasta 3)', tirarFoto:'📷 Tomar/adjuntar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.',
+    fotosFatura:'Comprobante — foto o PDF (hasta 3)', tirarFoto:'📎 Adjuntar comprobante (foto o PDF)', verFoto:'Ver comprobante', enviandoFoto:'Enviando adjunto…', maxFotos:'Máximo de 3 adjuntos.', pdfGrande:'PDF demasiado grande (máx. 5 MB). Reduce el archivo e intenta de nuevo.', anexarComprovante:'Adjuntar comprobante',
     fotoSemConexao:'Sin conexión para enviar la foto. Conéctate a internet e intenta guardar de nuevo (o quita la foto para guardar sin ella).',
     fotoFalhou:'No se pudo enviar la foto. El gasto NO se guardó. Intenta de nuevo o quita la foto.'
   }
@@ -248,7 +256,10 @@ async function seedIfEmpty(){
 const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
 const somaPago=i=>(i.pagamentos||[]).reduce((a,p)=>a+(+p.valor||0),0);
-function statusPag(i){ const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
+const isIsento=i=>!!(i&&i.isento);
+function statusPag(i){ if(isIsento(i)) return 'isento'; const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
+// pode entrar na confecção/produção: quem pagou a cota OU é isento (pastor/convidado)
+const podeProduzir=i=>statusPag(i)==='pago' || isIsento(i);
 // calcula os 3 bolsos (dinheiro/banco/outros), saldo do projeto e formas
 function computeCaixa(inscritos, despesas, movimentos){
   const bolso={dinheiro:0,banco:0,outros:0};
@@ -302,10 +313,10 @@ function fmtNum(v){
   return (!isNaN(n) && n>=0 && n<10 && /^\d+$/.test(s)) ? ('0'+n) : s;
 }
 
-let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{} };
+let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{}, sizePhaseSel:'fazer' };
 
 /* ---------- render lista ---------- */
-const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['revisar','fRevisar']];
+const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['isento','fIsento'],['revisar','fRevisar']];
 function renderFilters(){
   $('#filters').innerHTML=FILTERS.map(([k,l])=>`<div class="chip ${state.filter===k?'active':''}" data-f="${k}">${t(l)}</div>`).join('');
   $$('#filters .chip').forEach(c=>c.onclick=()=>{state.filter=c.dataset.f;renderFilters();renderList();});
@@ -331,7 +342,8 @@ async function getFiltered(){
       case 'pago': return st==='pago';
       case 'parcial': return st==='parcial';
       case 'pend': return st==='pend';
-      case 'entregar': return i.camisaEstado!==EST.ENTREGUE;
+      case 'isento': return st==='isento';
+      case 'entregar': return podeProduzir(i) && i.camisaEstado===EST.PRONTA;
       case 'revisar': return i.aRevisar;
       default: return true;
     }
@@ -349,10 +361,11 @@ async function renderList(){
     const st=statusPag(i), soma=somaPago(i), falta=i.cota-soma;
     // badges à direita: pagamento + entregue/estado camisa (+ revisar)
     const right=[];
-    if(st==='pago') right.push(`<span class="b pago">${t('sPago')}</span>`);
+    if(st==='isento'){ /* isento: sem tag no card (discreto) */ }
+    else if(st==='pago') right.push(`<span class="b pago">${t('sPago')}</span>`);
     else if(st==='parcial') right.push(`<span class="b parcial">${t('faltam',{v:falta})}</span>`);
     else right.push(`<span class="b pend">${t('sPend')}</span>`);
-    if(st==='pago'){
+    if(st==='pago' || st==='isento'){
       if(i.camisaEstado===EST.EMCONF) right.push(`<span class="b parcial">${t('est1')}</span>`);
       else if(i.camisaEstado===EST.PRONTA) right.push(`<span class="b pronta">${t('est2')}</span>`);
       else if(i.camisaEstado===EST.ENTREGUE) right.push(`<span class="b entregue">${t('est3')}</span>`);
@@ -418,36 +431,182 @@ async function renderPainel(){
   const pagos=all.filter(i=>statusPag(i)==='pago').length;
   const parcial=all.filter(i=>statusPag(i)==='parcial').length;
   const pend=all.filter(i=>statusPag(i)==='pend').length;
+  const isentos=all.filter(i=>statusPag(i)==='isento').length;
   const prontas=all.filter(i=>(i.camisaEstado||0)>=EST.PRONTA).length;
   const entregues=all.filter(i=>(i.camisaEstado||0)===EST.ENTREGUE).length;
   const arrec=all.reduce((a,i)=>a+somaPago(i),0);
+  // "a receber" NÃO inclui isentos (não devem nada): soma o que falta só dos não-isentos
+  const areceber=all.reduce((a,i)=> isIsento(i)? a : a+Math.max(0,(i.cota||COTA)-somaPago(i)), 0);
   const totalCota=all.reduce((a,i)=>a+i.cota,0);
-  const areceber=totalCota-arrec;
   const pct=Math.min(100,Math.round(n/META*100));
-  $('#kpis').innerHTML=`
-    <div class="kpi progress">
-      <div class="prog-head"><div class="n">${n} / ${META}</div><div class="prog-money"><span class="pm-v">${arrec.toLocaleString('pt-PT')}€</span><span class="pm-l">${t('arrecadado')}</span></div></div>
-      <div class="l">${t('inscritos')} · ${t('meta')}</div>
-      <div class="bar"><span style="width:${pct}%"></span></div>
-      <div class="prog-foot"><span>${arrec.toLocaleString('pt-PT')}€ ${t('de')} ${totalCota.toLocaleString('pt-PT')}€</span><span>${t('aReceber')}: ${areceber.toLocaleString('pt-PT')}€</span></div>
-    </div>
-    <div class="kpi"><div class="n" style="color:var(--green)">${pagos}</div><div class="l">${t('fPago')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--amber)">${parcial}</div><div class="l">${t('fParcial')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--grey)">${pend}</div><div class="l">${t('fPend')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--accent)">${entregues}</div><div class="l">${t('entregues')}</div></div>
-  `;
-  // por tamanho
-  const bySize={};
-  all.forEach(i=>{ const s=(i.tamanho||'—').trim()||'—'; bySize[s]=(bySize[s]||0)+1; });
+  // --- META: termometro financeiro + 2 aneis (inscritos e pagos) ---
+  const metaFin = META * COTA;                     // 300 x 300 = 90.000
+  const pctFin = metaFin>0 ? Math.min(100, arrec/metaFin*100) : 0;
+  const faltaFin = Math.max(0, metaFin - arrec);
+  const cotasFalta = Math.max(0, META - pagos);
+  const pagantes = pagos + parcial;                // pessoas que já contribuíram (pago + parcial)
+  const aInscrever = Math.max(0, META - n);
+  const aReceberN = Math.max(0, n - pagos - isentos);   // não pagos, excluindo isentos (não devem)
+  const pctInsc = Math.round(n/META*100);
+  const pctPagos = n>0 ? Math.round(pagos/n*100) : 0;
+  // termometro: tubo y 10..170 (160px), bulbo 188
+  const tT=10, tH=160, tB=tT+tH;
+  const fH = Math.round(tH * pctFin/100), fY = tB - fH;
+  // dasharray dos aneis (circunferencia ~100)
+  const dInsc = Math.min(100, pctInsc);
+  const dPagos = Math.min(100, pctPagos);
+  $('#metaThermo').innerHTML=`
+      <h3 class="pnl-h3">${t('metaCampanha')}</h3>
+      <div class="thermo-body">
+        <svg class="thermo-svg" width="82" height="222" viewBox="0 0 82 222" aria-label="Termômetro da meta">
+          <rect x="28" y="${tT}" width="20" height="${tH}" rx="10" fill="#efe6d3"/>
+          <circle cx="38" cy="188" r="22" fill="#efe6d3"/>
+          <rect x="31" y="${fY}" width="14" height="${fH}" rx="7" fill="url(#thg)"/>
+          <circle cx="38" cy="188" r="16" fill="#c08a2d"/>
+          <defs><linearGradient id="thg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d9a441"/><stop offset="1" stop-color="#c08a2d"/></linearGradient></defs>
+          <text x="38" y="194" text-anchor="middle" font-size="15" fill="#fff" font-weight="bold">${Math.round(pctFin)}%</text>
+          <line x1="50" y1="${tT}"       x2="57" y2="${tT}"       stroke="#c9bfa8" stroke-width="1.5"/><text x="60" y="${tT+4}"  font-size="9" fill="#a99f88">${Math.round(metaFin/1000)}k</text>
+          <line x1="50" y1="${tT+tH*.25}" x2="55" y2="${tT+tH*.25}" stroke="#d8cfbc"/><text x="58" y="${tT+tH*.25+3}" font-size="7.5" fill="#bdb39c">75%</text>
+          <line x1="50" y1="${tT+tH*.5}"  x2="57" y2="${tT+tH*.5}"  stroke="#c9bfa8" stroke-width="1.5"/><text x="60" y="${tT+tH*.5+3}"  font-size="9" fill="#a99f88">${Math.round(metaFin/2000)}k</text>
+          <line x1="50" y1="${tT+tH*.75}" x2="55" y2="${tT+tH*.75}" stroke="#d8cfbc"/><text x="58" y="${tT+tH*.75+3}" font-size="7.5" fill="#bdb39c">25%</text>
+          <line x1="50" y1="${tB}"        x2="57" y2="${tB}"        stroke="#c9bfa8" stroke-width="1.5"/><text x="60" y="${tB+3}"  font-size="9" fill="#a99f88">0</text>
+        </svg>
+        <div class="thermo-info">
+          <div class="big">${arrec.toLocaleString('pt-PT')} €</div>
+          <div class="of">${t('de')} ${metaFin.toLocaleString('pt-PT')} € · ${t('meta')} ${META}×${COTA}€</div>
+          <div class="by">${t('arrecadadoPor')} <b>${pagantes} ${t('pessoasLabel')}</b></div>
+          <div><span class="falta-pill">${t('faltaMeta')} ${faltaFin.toLocaleString('pt-PT')} € · ${cotasFalta} ${t('cotasLabel')}</span></div>
+        </div>
+      </div>
+      <div class="meta-rings">
+        <div class="mring">
+          <svg width="92" height="92" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#efe6d3" stroke-width="5"/>
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#c08a2d" stroke-width="5" stroke-dasharray="${dInsc} ${100-dInsc}" stroke-dashoffset="25" stroke-linecap="round" transform="rotate(-90 21 21)"/>
+            <text x="21" y="19.5" text-anchor="middle" font-size="8" font-weight="bold" fill="#1f1f1f">${n}</text>
+            <text x="21" y="26" text-anchor="middle" font-size="3.4" fill="#6f6a63">${t('deLabel')} ${META}</text>
+          </svg>
+          <div class="mring-cap">${t('inscritos')} · ${pctInsc}%</div>
+          <div class="mring-out">${aInscrever} ${t('aInscrever')}</div>
+        </div>
+        <div class="mring">
+          <svg width="92" height="92" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#efe6d3" stroke-width="5"/>
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#3f7d54" stroke-width="5" stroke-dasharray="${dPagos} ${100-dPagos}" stroke-dashoffset="25" stroke-linecap="round" transform="rotate(-90 21 21)"/>
+            <text x="21" y="19.5" text-anchor="middle" font-size="8" font-weight="bold" fill="#1f1f1f">${pagos}</text>
+            <text x="21" y="26" text-anchor="middle" font-size="3.4" fill="#6f6a63">${t('pagaramLabel')}</text>
+          </svg>
+          <div class="mring-cap">${t('fPago')} · ${pctPagos}%</div>
+          <div class="mring-out">${aReceberN} ${t('aReceberLabel')}</div>
+        </div>
+      </div>
+    `;
+  // por tamanho — 3 fases: Produzido (pronta+entregue) / A produzir (pago, a fazer+em confecção) / Potencial (pendente)
+  const bySize={}; let totProd=0, totFazer=0, totPot=0;
+  all.forEach(i=>{
+    const s=(i.tamanho||'—').trim()||'—';
+    if(!bySize[s]) bySize[s]={prod:0,fazer:0,pot:0,tot:0};
+    const pago = podeProduzir(i);                   // pago OU isento → entra na produção
+    const est = i.camisaEstado||0;
+    let fase;
+    if(pago && est>=EST.PRONTA) fase='prod';        // já existe (pronta/entregue)
+    else if(pago) fase='fazer';                     // pago/isento, ainda a produzir
+    else fase='pot';                                // pendente de pagamento
+    bySize[s][fase]++; bySize[s].tot++;
+    if(fase==='prod') totProd++; else if(fase==='fazer') totFazer++; else totPot++;
+  });
   const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
-  $('#sizegrid').innerHTML=keys.map(s=>`<div class="sizecell"><div class="v">${bySize[s]}</div><div class="s">${esc(s)}</div></div>`).join('');
-  // financeiro
-  let fin=`
-    <div class="tot-row"><span>${t('arrecadado')}</span><b style="color:var(--green)">${arrec}€</b></div>
-    <div class="tot-row"><span>${t('aReceber')}</span><b style="color:var(--amber)">${areceber}€</b></div>
-    <div class="tot-row"><span>${t('prontas')}</span><b>${prontas}</b></div>`;
-  $('#fin').innerHTML=fin;
+  const maxTot=Math.max(1,...keys.map(s=>bySize[s].tot));
+  // fase selecionada (default 'fazer' = A produzir): controla em qual segmento aparece o número destacado
+  const sel = (state.sizePhaseSel==='prod'||state.sizePhaseSel==='fazer'||state.sizePhaseSel==='pot') ? state.sizePhaseSel : 'fazer';
+  const phases=`
+    <div class="size-phases">
+      <div class="sphase a ${sel==='prod'?'sel':''}" data-ph="prod"><div class="n">${totProd}</div><div class="l">${t('faseProduzido')}</div></div>
+      <div class="sphase b ${sel==='fazer'?'sel':''}" data-ph="fazer"><div class="n">${totFazer}</div><div class="l">${t('faseProduzir')}</div></div>
+      <div class="sphase c ${sel==='pot'?'sel':''}" data-ph="pot"><div class="n">${totPot}</div><div class="l">${t('fasePotencial')}</div></div>
+    </div>`;
+  const bars=keys.map(s=>{
+    const b=bySize[s];
+    const wp=(b.prod/maxTot*100).toFixed(1), wf=(b.fazer/maxTot*100).toFixed(1), wo=(b.pot/maxTot*100).toFixed(1);
+    // valor da fase selecionada; badge só quando > 0, no segmento equivalente
+    const selVal = sel==='prod'? b.prod : sel==='fazer'? b.fazer : b.pot;
+    const badge = selVal>0 ? `<span class="prod-badge ph-${sel}">${selVal}</span>` : '';
+    const hostP = sel==='prod'? ' badge-host':'', hostF = sel==='fazer'? ' badge-host':'', hostO = sel==='pot'? ' badge-host':'';
+    return `<div class="size-bar">
+      <span class="sb-lbl">${esc(s)}</span>
+      <span class="sb-track">
+        <i class="seg-prod${hostP}" style="width:${wp}%;background:var(--green)" title="${t('faseProduzido')}: ${b.prod}">${sel==='prod'?badge:''}</i>
+        <i class="seg-prod${hostF}" style="width:${wf}%;background:var(--accent)" title="${t('faseProduzir')}: ${b.fazer}">${sel==='fazer'?badge:''}</i>
+        <i class="seg-prod${hostO}" style="width:${wo}%;background:#e2d3b0" title="${t('fasePotencial')}: ${b.pot}">${sel==='pot'?badge:''}</i>
+      </span>
+      <span class="sb-val">${b.tot}</span>
+    </div>`;
+  }).join('');
+  const legend=`
+    <div class="size-legend">
+      <span><i class="sw" style="background:var(--green)"></i> ${t('faseProduzido')}</span>
+      <span><i class="sw" style="background:var(--accent)"></i> ${t('faseProduzir')}</span>
+      <span><i class="sw" style="background:#e2d3b0"></i> ${t('fasePotencial')}</span>
+    </div>`;
+  const prontasNaoEntr = Math.max(0, prontas - entregues);
+  const confNote = `<div class="conf-note"><b>${entregues} ${t('entreguesNote')}</b>${prontasNaoEntr>0?` · ${prontasNaoEntr} ${t('prontasAguardando')}`:''}</div>`;
+  $('#sizegrid').innerHTML = phases + bars + legend + confNote;
+  // clique nas caixas de subtotal -> seleciona a fase cujo número é destacado nas barras
+  $$('#sizegrid .sphase').forEach(el=>el.onclick=()=>{ state.sizePhaseSel = el.dataset.ph; renderPainel(); });
+  // financeiro (A1: saldo herói + donut de bolsos + custódia expansível)
+  const despAll = await sGetAll(STORE_DESP);
+  const movAll  = await sGetAll(STORE_MOV);
+  const cx = computeCaixa(all, despAll, movAll);
+  const din=cx.bolso.dinheiro||0, ban=cx.bolso.banco||0, out=cx.bolso.outros||0;
+  // para o desenho do donut/barras usamos valores não-negativos (um bolso pode ficar negativo
+  // se saíram despesas/movimentos além do saldo daquele bolso — mostramos o valor real no texto,
+  // mas o arco não pode ser negativo)
+  const dP=Math.max(0,din), bP=Math.max(0,ban), oP=Math.max(0,out);
+  const totBolso = (dP+bP+oP) || 1;
+  const pDin=dP/totBolso*100, pBan=bP/totBolso*100, pOut=oP/totBolso*100;
+  // dasharray do donut (circunf ~100); offsets acumulados a partir de 25 (topo, sentido horário)
+  const offBan = 25 - pDin;
+  const offOut = 25 - pDin - pBan;
+  const maxB = Math.max(dP,bP,oP,1);
+  const custPastor=cx.cashPastor||0, custTeso=cx.cashTeso||0;
+  const cpP=Math.max(0,custPastor), ctP=Math.max(0,custTeso), custTot=(cpP+ctP)||1;
+  const custOpen = (state.finCustOpen===true);   // lembra estado (default FECHADO)
+  $('#fin').innerHTML=`
+    <div class="fin-hero">
+      <svg width="112" height="112" viewBox="0 0 42 42" aria-label="Composição do saldo">
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#efe6d3" stroke-width="6"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--accent)" stroke-width="6" stroke-dasharray="${pDin.toFixed(1)} ${(100-pDin).toFixed(1)}" stroke-dashoffset="25" transform="rotate(-90 21 21)"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#5b4a8a" stroke-width="6" stroke-dasharray="${pBan.toFixed(1)} ${(100-pBan).toFixed(1)}" stroke-dashoffset="${offBan.toFixed(1)}" transform="rotate(-90 21 21)"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#8a6d3b" stroke-width="6" stroke-dasharray="${pOut.toFixed(1)} ${(100-pOut).toFixed(1)}" stroke-dashoffset="${offOut.toFixed(1)}" transform="rotate(-90 21 21)"/>
+        <text x="21" y="20.5" text-anchor="middle" font-size="5" font-weight="bold" fill="#1f1f1f">${Math.round(cx.saldoProjeto).toLocaleString('pt-PT')}€</text>
+        <text x="21" y="25.5" text-anchor="middle" font-size="3" fill="#6f6a63">${t('saldoLabel')}</text>
+      </svg>
+      <div class="fin-hero-num">
+        <div class="fin-lbl">${t('saldoProjeto')}</div>
+        <div class="fin-val">${Math.round(cx.saldoProjeto).toLocaleString('pt-PT')} €</div>
+        <div class="fin-sub">${t('arrecadado')} ${Math.round(cx.arrecadado).toLocaleString('pt-PT')} € − ${t('despesas')} ${Math.round(cx.despTotal).toLocaleString('pt-PT')} €</div>
+      </div>
+    </div>
+    <div class="fin-compo">
+      <div class="fin-row exp ${custOpen?'open':''}" id="finDinRow">
+        <span class="lft"><i class="fdot" style="background:var(--accent)"></i> ${t('bolsoDinheiro')} <span class="caret">▼</span></span>
+        <span class="fmini"><i style="width:${(dP/maxB*100).toFixed(0)}%;background:var(--accent)"></i></span>
+        <b>${Math.round(din).toLocaleString('pt-PT')} €</b>
+      </div>
+      <div class="fin-drill ${custOpen?'':'hidden'}" id="finCust">
+        <div class="fd-h">${t('custodiaLabel')}</div>
+        <div class="fd-bar"><div style="width:${(cpP/custTot*100).toFixed(0)}%;background:#0050CA"></div><div style="width:${(ctP/custTot*100).toFixed(0)}%;background:var(--green)"></div></div>
+        <div class="fd-row">
+          <span class="seg"><i class="fdotc" style="background:#0050CA"></i> ${t('pastoresLabel')} <b>${Math.round(custPastor).toLocaleString('pt-PT')} €</b></span>
+          <span class="seg"><i class="fdotc" style="background:var(--green)"></i> ${t('tesoureiroLabel')} <b>${Math.round(custTeso).toLocaleString('pt-PT')} €</b></span>
+        </div>
+      </div>
+      <div class="fin-row"><span class="lft"><i class="fdot" style="background:#5b4a8a"></i> ${t('bolsoBanco')}</span><span class="fmini"><i style="width:${(bP/maxB*100).toFixed(0)}%;background:#5b4a8a"></i></span><b>${Math.round(ban).toLocaleString('pt-PT')} €</b></div>
+      <div class="fin-row"><span class="lft"><i class="fdot" style="background:#8a6d3b"></i> ${t('bolsoOutros')}</span><span class="fmini"><i style="width:${(oP/maxB*100).toFixed(0)}%;background:#8a6d3b"></i></span><b>${Math.round(out).toLocaleString('pt-PT')} €</b></div>
+    </div>`;
+  const dinRow=$('#finDinRow');
+  if(dinRow) dinRow.onclick=()=>{ const d=$('#finCust'); const open=d.classList.toggle('hidden')===false; dinRow.classList.toggle('open',open); state.finCustOpen=open; };
 }
 
 /* ---------- confecção ---------- */
@@ -465,7 +624,7 @@ async function renderConfeccao(){
   const all=await getAll();
   const c=[0,0,0,0]; let pendPagCount=0;
   all.forEach(i=>{
-    if(statusPag(i)!=='pago'){ pendPagCount++; return; }  // sem pagamento completo -> não entra em nenhuma etapa
+    if(!podeProduzir(i)){ pendPagCount++; return; }  // sem cota completa e não isento -> não entra em nenhuma etapa
     c[i.camisaEstado||0]++;
   });
   // contagens para os badges dos filtros (contador dentro do chip)
@@ -474,7 +633,7 @@ async function renderConfeccao(){
   renderConfList();
   // resumo por tamanho x estado (para produção): pagos por tamanho e status
   const bySize={}; const totCol=[0,0,0,0];
-  all.forEach(i=>{ if(statusPag(i)!=='pago') return; const s=(i.tamanho||'—').trim()||'—'; if(!bySize[s])bySize[s]=[0,0,0,0]; const e=i.camisaEstado||0; bySize[s][e]++; totCol[e]++; });
+  all.forEach(i=>{ if(!podeProduzir(i)) return; const s=(i.tamanho||'—').trim()||'—'; if(!bySize[s])bySize[s]=[0,0,0,0]; const e=i.camisaEstado||0; bySize[s][e]++; totCol[e]++; });
   const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   const totGeral=totCol[0]+totCol[1]+totCol[2]+totCol[3];
@@ -491,18 +650,18 @@ async function renderConfList(){
     if(qn && !norm(i.nome).includes(qn)) return false;   // busca por nome (sem acento)
     if(f==='todos') return true;
     // filtro "pendente de pagamento": Gideões sem pagamento completo
-    if(f==='pend') return statusPag(i)!=='pago';
+    if(f==='pend') return !podeProduzir(i);
     // mantém visível qualquer card em edição, para não sumir ao trocar status antes de salvar
     if(i.id in state.confDirty) return true;
     // gate de pagamento: sem pagamento completo não entra em nenhuma etapa (A fazer/Em conf/Pronta/Entregue)
-    if(statusPag(i)!=='pago') return false;
+    if(!podeProduzir(i)) return false;
     return (i.camisaEstado||0)===+f;
   });
   const el=$('#confList');
   if(!filtered.length){ el.innerHTML=`<div class="empty">${t('vazio')}</div>`; return; }
   const EST_LABELS=['est0','est1','est2','est3'];
   el.innerHTML=filtered.map(i=>{
-    const pago = statusPag(i)==='pago';
+    const pago = podeProduzir(i);
     const e = effEstado(i);
     const datas = effDatas(i);
     const dirty = i.id in state.confDirty;
@@ -534,7 +693,7 @@ async function renderConfList(){
   $$('#confList .pill-st').forEach(p=>p.onclick=()=>{
     const id=+p.dataset.id, est=+p.dataset.est;
     const rec=all.find(x=>x.id===id);
-    if(statusPag(rec)!=='pago') return;
+    if(!podeProduzir(rec)) return;
     setDirtyEstado(rec, est);
     updateSaveBtn(); renderConfList();
   });
@@ -700,7 +859,10 @@ async function openModal(id){
   const restanteOpen=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   $('#p-valor').value = restanteOpen>0 ? String(restanteOpen) : ''; $('#p-data').value=hoje();
   $('#del').classList.toggle('hidden', !rec);
+  const isEl=$('#f-isento'); if(isEl){ isEl.checked = rec?!!rec.isento:false; }
+  updateIsentoVis();
   renderPays();
+  applyModalRO('#modal', effectiveRole()==='viewer', ['#save','#del','#addPay']);
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
   state.formSnapshot=formSnapshot();
@@ -729,10 +891,36 @@ function updateRevisarVis(){
 function updateCamisaStatusVis(rec){
   const line=$('#camisaStatusLine'); if(!line) return;
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
-  const pagoESalvo = !!rec && soma>=COTA;
-  line.classList.toggle('hidden', !pagoESalvo);
+  const isento = $('#f-isento') && $('#f-isento').checked;
+  const podeProd = isento || soma>=COTA;    // pago OU isento libera a confecção
+  line.classList.toggle('hidden', !podeProd);
 }
 $('#f-obs') && ($('#f-obs').addEventListener('input', updateRevisarVis));
+
+// ---- comprovante por parcela (Cartão/Outros) ----
+let payFotoTargetIdx=null;   // índice da parcela cujo botão + foi tocado
+// normaliza um item de p.fotos (string URL do JSON  OU  objeto {url}/{dataUrl,kind})
+function normFoto(f){ return (typeof f==='string') ? {url:f} : (f||{}); }
+// HTML da linha de comprovante de UMA parcela (só Cartão/Outros); thumbs + add até 3 + contador
+function fotosRowHtml(p, idx){
+  const tipo=String(p.tipo||'');
+  if(tipo!=='Cartão' && tipo!=='Outros') return '';   // só Cartão/Outros
+  const arr=Array.isArray(p.fotos)?p.fotos:[];
+  const thumbs=arr.map((raw,fi)=>{
+    const f=normFoto(raw);
+    if(f.kind==='pdf'){
+      return `<div class="foto-thumb pdf pf-open" data-p="${idx}" data-f="${fi}">${_pdfSvg}<small>PDF</small><button type="button" class="pf-rm" data-p="${idx}" data-f="${fi}">×</button></div>`;
+    }
+    const src=f.dataUrl||thumbFromUrl(f.url);
+    return `<div class="foto-thumb"><img src="${src}" alt="anexo" class="pf-open" data-p="${idx}" data-f="${fi}"><button type="button" class="pf-rm" data-p="${idx}" data-f="${fi}">×</button></div>`;
+  }).join('');
+  const podeAnexar = effectiveRole()!=='viewer';   // viewer não anexa (read-only); só vê as miniaturas
+  const addBtn = (podeAnexar && arr.length<3) ? (arr.length===0
+      ? `<span class="pay-anexar pf-add" data-p="${idx}">📎 ${t('anexarComprovante')}</span>`
+      : `<div class="pay-add pf-add" data-p="${idx}">＋<small>add</small></div>`) : '';
+  const cnt = `<span class="pay-cnt">${arr.length}/3</span>`;
+  return `<div class="pay-fotos">${thumbs}${addBtn}${cnt}</div>`;
+}
 
 function renderPays(){
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
@@ -763,9 +951,14 @@ function renderPays(){
         <button class="del" data-i="${idx}">×</button>
       </div>
       ${deliverRow}
+      ${fotosRowHtml(p, idx)}
     </div>`;
   }).join('');
   $$('#paysList .del').forEach(b=>b.onclick=()=>{state.draftPays.splice(+b.dataset.i,1);renderPays();});
+  // comprovante por parcela: remover / abrir / adicionar
+  $$('#paysList .pf-rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); const pi=+b.dataset.p, fi=+b.dataset.f; const p=state.draftPays[pi]; if(p&&Array.isArray(p.fotos)){ p.fotos.splice(fi,1); renderPays(); } });
+  $$('#paysList .pf-open').forEach(im=>im.onclick=()=>{ const pi=+im.dataset.p, fi=+im.dataset.f; const p=state.draftPays[pi]; if(p&&p.fotos&&p.fotos[fi]) openFoto(normFoto(p.fotos[fi])); });
+  $$('#paysList .pf-add').forEach(b=>b.onclick=()=>{ const pi=+b.dataset.p; const p=state.draftPays[pi]; if(!Array.isArray(p.fotos)) p.fotos=[]; if(p.fotos.length>=3){ alert(t('maxFotos')); return; } payFotoTargetIdx=pi; $('#p-fotoInput').click(); });
   $$('#paysList .pdeliver').forEach(cb=>cb.onchange=()=>{
     const i=+cb.dataset.i; const p=state.draftPays[i];
     if(cb.checked){ p.entregueTesoureiro=true; p.dataEntregaTesoureiro=hoje(); }
@@ -778,9 +971,26 @@ function renderPays(){
   if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
   else { box.style.background='var(--soft-grey)';box.style.color='var(--grey)';box.textContent=t('saldoPend'); }
-  // esconde a área de adicionar pagamento quando a cota já está completa
-  const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', soma>=COTA);
+  // esconde a área de adicionar pagamento quando a cota já está completa OU o inscrito é isento
+  const isentoNow = $('#f-isento') && $('#f-isento').checked;
+  const ap=$('#payFields'); if(ap) ap.classList.toggle('hidden', isentoNow || soma>=COTA);
+  // a linha (titulo + checkbox Isento) some quando pago e NAO isento (mantem acessivel p/ marcar isento se ainda nao pagou)
+  const head=$('#addPayHead'); if(head) head.classList.toggle('hidden', !isentoNow && soma>=COTA);
 }
+// Isento: esconde os campos de pagamento (mantém o checkbox visível); mostra nota discreta
+function updateIsentoVis(){
+  const on = $('#f-isento') && $('#f-isento').checked;
+  const soma = state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
+  const pl=$('#paysList'); if(pl) pl.classList.toggle('hidden', on);
+  const sb=$('#saldoBox'); if(sb) sb.classList.toggle('hidden', on);
+  const pf=$('#payFields'); if(pf) pf.classList.toggle('hidden', on || soma>=COTA);
+  const nota=$('#isentoNota'); if(nota) nota.classList.toggle('hidden', !on);
+  const ttl=$('#addPayTitle'); if(ttl) ttl.classList.toggle('hidden', on);  // esconde "Adicionar pagamento" quando isento
+  // a linha (titulo + checkbox Isento) some quando a cota ja esta completa e NAO e isento
+  const head=$('#addPayHead'); if(head) head.classList.toggle('hidden', !on && soma>=COTA);
+  const ap=$('#addPaySub'); if(ap) ap.classList.remove('hidden');  // sempre visível (contém o checkbox)
+}
+$('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); updateCamisaStatusVis(); });
 $('#addPay').onclick=()=>{
   const v=parseFloat(($('#p-valor').value||'').replace(',','.'));
   if(!v||v<=0) return;
@@ -803,16 +1013,45 @@ $('#addPay').onclick=()=>{
 };
 // mostra o campo de comentário só quando "Outros"
 document.addEventListener('change',(e)=>{ if(e.target && e.target.id==='p-tipo'){ $('#p-outros-wrap').classList.toggle('hidden', e.target.value!=='Outros'); const rw=$('#p-receb-wrap'); if(rw) rw.classList.toggle('hidden', e.target.value!=='Dinheiro'); } });
+// comprovante de uma parcela específica (Cartão/Outros)
+$('#p-fotoInput') && ($('#p-fotoInput').onchange=async(e)=>{
+  const file=e.target.files && e.target.files[0]; const pi=payFotoTargetIdx; e.target.value=''; payFotoTargetIdx=null;
+  if(!file || pi==null) return;
+  const p=state.draftPays[pi]; if(!p) return;
+  if(!Array.isArray(p.fotos)) p.fotos=[];
+  if(p.fotos.length>=3){ alert(t('maxFotos')); return; }
+  try{ const anexo=await processAnexo(file); if(anexo){ p.fotos.push(anexo); renderPays(); } }
+  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+});
 $('#save').onclick=async()=>{
   if(writeBlocked()) return;
   const nome=$('#f-nome').value.trim();
   if(!nome){ alert(t('nomeObrig')); return; }
+  const isento = !!($('#f-isento') && $('#f-isento').checked);
   // reforço defensivo: valor de pagamento digitado mas NÃO adicionado
   // (ignora o "restante" auto-preenchido — só avisa se o usuário digitou algo diferente)
   const pv=parseFloat(($('#p-valor').value||'').replace(',','.'));
   const restanteAtual=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
-  if(pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
+  if(!isento && pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
     if(confirm(t('pagamentoNaoAdicionado'))){ $('#addPay').click(); }
+  }
+  // sobe comprovantes pendentes de CADA parcela (Cartão/Outros) antes de gravar; aborta se falhar
+  if(!isento){
+    const btn=$('#save'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
+    const temPendente = state.draftPays.some(p=>Array.isArray(p.fotos) && p.fotos.some(f=>f&&typeof f==='object'&&!f.url&&f.dataUrl));
+    if(temPendente){
+      btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
+      for(const p of state.draftPays){
+        if(!Array.isArray(p.fotos) || !p.fotos.length) continue;
+        // normaliza para objetos, sobe pendentes
+        p.fotos = p.fotos.map(normFoto);
+        const up=await uploadPendentes(p.fotos);
+        if(!up.ok){ btn.disabled=false; btnLabel(btn, orig); alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+      }
+      btn.disabled=false; btnLabel(btn, orig);
+    }
+    // serializa cada parcela: fotos = array de URLs (o pagamentos_json guarda só URLs)
+    state.draftPays.forEach(p=>{ if(Array.isArray(p.fotos)){ p.fotos = p.fotos.map(f=> (typeof f==='string'? f : (f&&f.url)) ).filter(Boolean); if(!p.fotos.length) delete p.fotos; } });
   }
   const all=await getAll();
   let rec=state.editing?all.find(x=>x.id===state.editing):{cota:COTA,textoOriginal:''};
@@ -822,7 +1061,8 @@ $('#save').onclick=async()=>{
   rec.telefone=$('#f-telefone').value.trim();
   rec.tamanho=$('#f-tamanho').value;
   rec.cota=COTA;
-  rec.pagamentos=state.draftPays;
+  rec.isento=isento;
+  rec.pagamentos=isento? [] : state.draftPays;   // isento não tem pagamentos
   if(rec.camisaEstado===undefined) rec.camisaEstado=0;
   rec.aRevisar=$('#f-revisar').checked;
   rec.observacoes=$('#f-obs').value.trim();
@@ -913,7 +1153,7 @@ async function buildPrint(){
   const rows=all.map(i=>{
     const soma=somaPago(i), st=statusPag(i);
     const stTxt=st==='pago'?t('sPago'):st==='parcial'?t('faltam',{v:i.cota-soma}):t('sPend');
-    const camisa = statusPag(i)==='pago' ? t(estKey(i.camisaEstado||0)) : t('pendPag');
+    const camisa = podeProduzir(i) ? t(estKey(i.camisaEstado||0)) : t('pendPag');
     return `<tr>
       <td>${esc(fmtNum(i.numero))}</td>
       <td>${esc(i.nome)}</td>
@@ -996,7 +1236,7 @@ $('#fileRestore').onchange=async e=>{
 /* ---------- CAIXA (financeiro, só admin) ---------- */
 const CATEGORIAS=['Camisas','Material','Outros'];
 const BOLSO_LABEL={dinheiro:'Dinheiro',banco:'Banco',outros:'Outros'};
-let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], sortDesc:true };
+let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], draftFotosMov:[], sortDesc:true };
 function eur(n){ return (Math.round((+n||0)*100)/100).toLocaleString('pt-PT')+' €'; }
 
 async function loadCaixa(){
@@ -1015,8 +1255,8 @@ async function renderCaixa(){
   // item 7: quebra do dinheiro por custódia
   const cp=$('#cashPastor'); if(cp) cp.textContent=eur(c.cashPastor||0);
   const ct=$('#cashTeso'); if(ct) ct.textContent=eur(c.cashTeso||0);
-  // selo somente-leitura para o user
-  const ro=$('#cxReadonly'); if(ro) ro.classList.toggle('hidden', !auth.caixaRO);
+  // selo somente-leitura: só quando o usuário não pode NADA na Caixa (nem adicionar despesa)
+  const ro=$('#cxReadonly'); if(ro) ro.classList.toggle('hidden', !!auth.podeAddDespesa);
   renderCaixaTabs(); renderCaixaList(c);
 }
 let cashSplitOpen=false;
@@ -1026,7 +1266,7 @@ $('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
   const head=$('#cashSplitHead'); if(head) head.classList.toggle('open', cashSplitOpen);
 });
 function renderCaixaTabs(){
-  $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); }; });
+  $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); updateFabCaixa(); }; });
   const lbl=$('#cxSortLbl'); if(lbl) lbl.textContent = caixaState.sortDesc? t('maisRecente') : t('maisAntigo');
 }
 $('#cxSortBtn') && ($('#cxSortBtn').onclick=()=>{ caixaState.sortDesc=!caixaState.sortDesc; renderCaixa(); });
@@ -1077,9 +1317,11 @@ function openDesp(id){
   $('#d-obs').value = d? (d.obs||'') : '';
   caixaState.draftFotos = (d && Array.isArray(d.fotos)) ? d.fotos.map(u=>({url:u})) : [];
   renderDraftFotos();
-  $('#despDel').classList.toggle('hidden', !d || auth.caixaRO);
+  // user pode criar/editar despesa (nao deletar). Managers (admin/tesoureiro) podem tudo.
+  const despRO = !auth.podeAddDespesa;                       // read-only só se nem adicionar pode (viewer nunca chega aqui)
+  $('#despDel').classList.toggle('hidden', !d || !auth.podeCaixaMgr);   // Excluir só admin/tesoureiro
   $('#despModal').classList.remove('hidden');
-  applyModalRO('#despModal', auth.caixaRO, ['#despSave','#d-addFoto']);
+  applyModalRO('#despModal', despRO, ['#despSave','#d-addFoto']);
 }
 // modo somente-leitura para modais da Caixa: desabilita campos e esconde botoes de acao
 function applyModalRO(modalSel, ro, actionBtns){
@@ -1111,18 +1353,55 @@ function compressImage(file, maxDim, quality){
 }
 function renderDraftFotos(){
   const el=$('#d-fotos'); if(!el) return;
-  el.innerHTML=(caixaState.draftFotos||[]).map((f,idx)=>{
-    const src = f.dataUrl || thumbFromUrl(f.url);
-    return `<div class="foto-thumb"><img src="${src}" alt="foto" class="foto-open" data-i="${idx}"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
-  }).join('');
-  el.querySelectorAll('.rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); caixaState.draftFotos.splice(+b.dataset.i,1); renderDraftFotos(); });
-  el.querySelectorAll('.foto-open').forEach(im=>im.onclick=()=>{ const f=caixaState.draftFotos[+im.dataset.i]; openFoto(f); });
+  const pdfSvg='<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zm-1 7V3.5L18.5 9z"/></svg>';
+  el.innerHTML=fotosGridHtml(caixaState.draftFotos||[]);
+  wireFotosGrid(el, caixaState.draftFotos, renderDraftFotos);
   const addBtn=$('#d-addFoto'); if(addBtn) addBtn.style.display=(caixaState.draftFotos.length>=3)?'none':'block';
+}
+// ---- helpers reutilizáveis de anexo (foto/PDF) — usados por Despesas, Movimentações e Pagamentos ----
+const _pdfSvg='<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zm-1 7V3.5L18.5 9z"/></svg>';
+function fotosGridHtml(arr){
+  return (arr||[]).map((f,idx)=>{
+    if(f.kind==='pdf'){
+      return `<div class="foto-thumb pdf foto-open" data-i="${idx}">${_pdfSvg}<small>PDF</small><button type="button" class="rm" data-i="${idx}">×</button></div>`;
+    }
+    const src = f.dataUrl || thumbFromUrl(f.url);
+    return `<div class="foto-thumb"><img src="${src}" alt="anexo" class="foto-open" data-i="${idx}"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
+  }).join('');
+}
+function wireFotosGrid(el, arr, rerender){
+  el.querySelectorAll('.rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); arr.splice(+b.dataset.i,1); rerender(); });
+  el.querySelectorAll('.foto-open').forEach(im=>im.onclick=()=>{ openFoto(arr[+im.dataset.i]); });
+}
+// sobe os anexos pendentes (dataUrl sem url) de um array para o Drive; retorna {ok, error}
+async function uploadPendentes(arr){
+  const pendentes=(arr||[]).filter(f=>!f.url && f.dataUrl);
+  if(!pendentes.length) return {ok:true};
+  if(!ONLINE_ENABLED || !auth.idToken || !navigator.onLine){ return {ok:false, error:'offline'}; }
+  for(const f of pendentes){
+    let d=null, err=null;
+    try{
+      const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:(f.filename || ('comprovante_'+Date.now()+(f.kind==='pdf'?'.pdf':'.jpg')))})}, 45000);
+      try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
+    }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
+    if(!d || !d.ok || !d.url){ return {ok:false, error:(err || (d&&d.error) || 'upload')}; }
+    f.url=d.url; delete f.dataUrl;   // sucesso confirmado
+  }
+  return {ok:true};
+}
+// render do grid de fotos da MOVIMENTAÇÃO
+function renderDraftFotosMov(){
+  const el=$('#m-fotos'); if(!el) return;
+  el.innerHTML=fotosGridHtml(caixaState.draftFotosMov||[]);
+  wireFotosGrid(el, caixaState.draftFotosMov, renderDraftFotosMov);
+  const addBtn=$('#m-addFoto'); if(addBtn) addBtn.style.display=(caixaState.draftFotosMov.length>=3)?'none':'block';
 }
 function openFoto(f){
   if(!f) return;
-  if(f.url){ window.open(f.url, '_blank'); return; }   // foto já no Drive -> abre em nova aba
-  // foto local (ainda não enviada) -> lightbox com o dataUrl
+  if(f.url){ window.open(f.url, '_blank'); return; }   // já no Drive -> abre em nova aba
+  if(f.kind==='pdf'){ try{ window.open(f.dataUrl, '_blank'); }catch(e){} return; }  // pdf local -> abre em aba
+  // imagem local (ainda não enviada) -> lightbox com o dataUrl
   const lb=$('#fotoLightbox'), img=$('#fotoLightImg');
   if(lb && img){ img.src=f.dataUrl; lb.classList.remove('hidden'); }
 }
@@ -1132,10 +1411,31 @@ $('#fotoLightbox') && ($('#fotoLightbox').addEventListener('click',e=>{ if(e.tar
 $('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ alert(t('maxFotos')); return; } $('#d-fotoInput').click(); });
 $('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; if(!file) return;
-  try{ const dataUrl=await compressImage(file, 1280, 0.7); caixaState.draftFotos.push({dataUrl}); renderDraftFotos(); }
-  catch(err){ alert('Erro ao processar a foto'); }
+  try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotos.push(anexo); renderDraftFotos(); } }
+  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
   e.target.value='';
 });
+$('#m-addFoto') && ($('#m-addFoto').onclick=()=>{ if((caixaState.draftFotosMov||[]).length>=3){ alert(t('maxFotos')); return; } $('#m-fotoInput').click(); });
+$('#m-fotoInput') && ($('#m-fotoInput').onchange=async(e)=>{
+  const file=e.target.files && e.target.files[0]; if(!file) return;
+  try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotosMov.push(anexo); renderDraftFotosMov(); } }
+  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+  e.target.value='';
+});
+// processa um arquivo (imagem OU pdf) -> {dataUrl, kind:'img'|'pdf', filename}
+// imagem: comprime via canvas; pdf: lê direto, valida tamanho (~5MB). Reutilizável (despesas/mov/pagamentos).
+const MAX_PDF_BYTES = 5*1024*1024;
+async function processAnexo(file){
+  const isPdf = file.type==='application/pdf' || /\.pdf$/i.test(file.name||'');
+  if(isPdf){
+    if(file.size > MAX_PDF_BYTES){ throw new Error(t('pdfGrande')); }
+    const dataUrl = await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); });
+    return { dataUrl, kind:'pdf', filename:(file.name||('comprovante_'+Date.now()+'.pdf')) };
+  }
+  // imagem
+  const dataUrl = await compressImage(file, 1280, 0.7);
+  return { dataUrl, kind:'img', filename:('comprovante_'+Date.now()+'.jpg') };
+}
 $('#despSave') && ($('#despSave').onclick=async()=>{
   if(writeBlocked()) return;
   const desc=$('#d-desc').value.trim(); const v=parseFloat(($('#d-valor').value||'').replace(',','.'));
@@ -1143,28 +1443,11 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
   const btn=$('#despSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
   // valida upload das fotos ANTES de salvar; se alguma falhar, aborta e avisa (não finge que subiu)
-  const pendentes=caixaState.draftFotos.filter(f=>!f.url && f.dataUrl);
-  if(pendentes.length){
-    if(!ONLINE_ENABLED || !auth.idToken || !navigator.onLine){
-      alert(t('fotoSemConexao'));   // precisa de internet para enviar a foto
-      return;
-    }
+  if((caixaState.draftFotos||[]).some(f=>!f.url && f.dataUrl)){
     btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
-    for(const f of pendentes){
-      let d=null, err=null;
-      try{
-        const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:'fatura_'+Date.now()+'.jpg'})}, 45000);
-        try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
-      }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
-      if(!d || !d.ok || !d.url){
-        btn.disabled=false; btnLabel(btn, orig);
-        alert(t('fotoFalhou') + (err? ('\n('+err+')') : (d && d.error? ('\n('+d.error+')') : '')));
-        return;   // ABORTA o salvamento — foto não subiu, não deixa achar que subiu
-      }
-      f.url=d.url; delete f.dataUrl;   // sucesso confirmado
-    }
+    const up=await uploadPendentes(caixaState.draftFotos);
     btn.disabled=false; btnLabel(btn, orig);
+    if(!up.ok){ alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
   }
   const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
   rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
@@ -1175,9 +1458,9 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   rec.fotos=(caixaState.draftFotos||[]).map(f=>f.url).filter(Boolean);
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id!=null?rec.id:newId);
-  $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
+  $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
-$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
+$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
 $('#despCancel') && ($('#despCancel').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despBack') && ($('#despBack').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal'){ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
@@ -1195,6 +1478,8 @@ function openMov(id){
   var morig = (m && m.origemCusto==='pastor') ? 'pastor' : 'tesoureiro';
   $$('#movModal input[name="m-origem"]').forEach(r=>{ r.checked=(r.value===morig); });
   updateMovOrigemVis();
+  caixaState.draftFotosMov = (m && Array.isArray(m.fotos)) ? m.fotos.map(u=>({url:u})) : [];
+  renderDraftFotosMov();
   $('#movDel').classList.toggle('hidden', !m || auth.caixaRO);
   $('#movModal').classList.remove('hidden');
   applyModalRO('#movModal', auth.caixaRO, ['#movSave']);
@@ -1211,20 +1496,39 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   const v=parseFloat(($('#m-valor').value||'').replace(',','.'));
   if(de===para){ alert('Origem e destino devem ser diferentes.'); return; }
   if(!v||v<=0){ alert(t('nomeObrig')); return; }
+  // sobe anexos novos (dataUrl) para o Drive antes de gravar; aborta se falhar
+  const btn=$('#movSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
+  if((caixaState.draftFotosMov||[]).some(f=>!f.url && f.dataUrl)){
+    btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
+    const up=await uploadPendentes(caixaState.draftFotosMov);
+    btn.disabled=false; btnLabel(btn, orig);
+    if(!up.ok){ alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+  }
   const all=caixaState.movimentos; let rec=caixaState.editMov? all.find(x=>x.id===caixaState.editMov):{};
   rec.de=de; rec.para=para; rec.valor=v; rec.data=$('#m-data').value||hoje(); rec.comentario=$('#m-comentario').value.trim();
   // custódia de origem só quando SAI do dinheiro
   if(de==='dinheiro'){ const sel=$('#movModal input[name="m-origem"]:checked'); rec.origemCusto = sel? sel.value : 'tesoureiro'; }
   else { rec.origemCusto=''; }
+  rec.fotos=(caixaState.draftFotosMov||[]).map(f=>f.url).filter(Boolean);
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_MOV, rec); markPendingKV('mov', rec.id!=null?rec.id:newId);
-  $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
+  $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
-$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
+$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
 $('#movCancel') && ($('#movCancel').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movBack') && ($('#movBack').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
-$('#fabCaixa') && ($('#fabCaixa').onclick=()=>{ caixaState.tab==='despesas'? openDesp(null) : openMov(null); });
+$('#fabCaixa') && ($('#fabCaixa').onclick=()=>{
+  if(caixaState.tab==='despesas'){ if(auth.podeAddDespesa) openDesp(null); }
+  else { if(auth.podeCaixaMgr) openMov(null); }   // movimentacao: so admin/tesoureiro
+});
+// visibilidade do FAB da Caixa conforme aba atual + papel
+function updateFabCaixa(){
+  const fc=$('#fabCaixa'); if(!fc) return;
+  const naCaixa = (state.view==='caixa');
+  const pode = caixaState.tab==='despesas' ? auth.podeAddDespesa : auth.podeCaixaMgr;
+  fc.classList.toggle('hidden', !(naCaixa && pode));
+}
 // marcador de pendência para sync das novas coleções (chave composta)
 function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=1; localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
 
@@ -1331,17 +1635,20 @@ $('#extBack') && ($('#extBack').onclick=()=>$('#extratoModal').classList.add('hi
 $('#extratoModal') && $('#extratoModal').addEventListener('click',e=>{ if(e.target.id==='extratoModal') $('#extratoModal').classList.add('hidden'); });
 
 function doSetView(v){
+  // guarda: Visualizador só pode ver Gideões/Painel/Mais (defense in depth, além do applyAdminUI)
+  if(effectiveRole()==='viewer' && (v==='confeccao'||v==='caixa'||v==='acessos')) v='lista';
   // guarda a posição de scroll da tab atual
   if(state.view){ state.scrollPos = state.scrollPos||{}; state.scrollPos[state.view]=window.scrollY; }
   state.view=v;
   ['lista','painel','confeccao','caixa','acessos','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-  $('#fab').classList.toggle('hidden', v!=='lista');
-  const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa' || auth.caixaRO);
+  $('#fab').classList.toggle('hidden', v!=='lista' || effectiveRole()==='viewer');
+  const fc=$('#fabCaixa'); if(fc) updateFabCaixa();
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
   if(v==='acessos') loadUsers();
+  if(v==='mais') renderSyncStamp();
   updateSaveBtn();
   // restaura a posição de scroll específica desta tab
   const y=(state.scrollPos&&state.scrollPos[v])||0;
@@ -1390,6 +1697,7 @@ function applyLang(){
   $('#q').placeholder=t('buscar');
   $$('.lang button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
   renderFilters();
+  if(typeof refreshUpdateRow==='function') refreshUpdateRow();
 }
 $$('.lang button').forEach(b=>b.onclick=()=>{lang=b.dataset.lang;localStorage.setItem('lang',lang);applyLang();refresh();});
 
@@ -1404,31 +1712,55 @@ async function refresh(){
 
 /* ---------- atualização (via version.json — confiável) ---------- */
 let bannerShown=false;
-function showUpdateBanner(){
+let newVersionAvail=null;   // versão nova detectada (string) — usada pela barra E pelo botão em MAIS
+let updating=false;
+// aplica a atualização: limpa caches + atualiza SW + recarrega forçando rede (compartilhada barra/MAIS)
+async function applyUpdate(btn){
+  if(updating) return; updating=true;
+  if(btn){ btn.disabled=true; btn.textContent=t('atualizando'); }
+  try{
+    if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
+    if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.update().catch(()=>{}))); }
+  }catch(e){}
+  setTimeout(()=>{ location.reload(); }, 300);
+}
+// atualiza a LINHA da tab MAIS (visível sempre que houver nova versão, mesmo após ignorar a barra)
+function refreshUpdateRow(){
+  const row=$('#updateRow'); if(!row) return;
+  const has=!!newVersionAvail;
+  row.classList.toggle('hidden', !has);
+  const btn=$('#updateBtnMais');
+  if(btn && has){ btn.textContent = t('atualizarPara') + ' ' + newVersionAvail; }
+}
+function showUpdateBanner(newVer){
   if(bannerShown) return;
+  // se o usuário já ignorou ESTA versão, não mostra a BARRA de novo (mas o botão em MAIS continua)
+  try{ if(newVer && sessionStorage.getItem('gd_dismissedVer')===newVer) return; }catch(e){}
   bannerShown=true;
   const b=$('#updateBanner');
-  $('#updateMsg').textContent=t('novaVersao');
+  $('#updateMsg').textContent = t('novaVersao') + (newVer? ' ('+newVer+')' : '');
   $('#updateBtn').textContent=t('atualizar');
   b.classList.remove('hidden');
-  $('#updateBtn').onclick=async()=>{
-    $('#updateBtn').disabled=true;
-    $('#updateBtn').textContent=t('atualizando');
-    try{
-      // limpa caches e atualiza o service worker para garantir código novo
-      if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
-      if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.update().catch(()=>{}))); }
-    }catch(e){}
-    // recarrega forçando rede
-    setTimeout(()=>{ location.reload(); }, 300);
+  const dx=$('#updateDismiss');
+  if(dx) dx.onclick=()=>{
+    b.classList.add('hidden'); bannerShown=false;
+    try{ if(newVer) sessionStorage.setItem('gd_dismissedVer', newVer); }catch(e){}
+    // ao ignorar a barra, o botão em MAIS permanece disponível
   };
+  $('#updateBtn').onclick=()=>applyUpdate($('#updateBtn'));
 }
+// liga o botão da tab MAIS (uma vez)
+$('#updateBtnMais') && ($('#updateBtnMais').onclick=()=>applyUpdate($('#updateBtnMais')));
 async function checkVersion(){
   try{
     const r=await fetchTimeout('version.json?ts='+Date.now(), {cache:'no-store'}, 8000);
     if(!r.ok) return;
     const data=await r.json();
-    if(data && data.version && data.version!==APP_VERSION){ showUpdateBanner(); }
+    if(data && data.version && data.version!==APP_VERSION){
+      newVersionAvail=data.version;
+      refreshUpdateRow();          // mostra o botão em MAIS
+      showUpdateBanner(data.version);
+    }
   }catch(e){ /* offline: ignora */ }
 }
 async function registerSWWithUpdate(){
@@ -1449,9 +1781,34 @@ try{ sessionStorage.removeItem('gd_viewas'); }catch(e){}
 
 function parseJwt(tok){ try{ return JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }catch(e){ return {}; } }
 
+let loginVerifying=false;
+// alterna o botão Google (#gsiBtn) e o card "Verificando acesso…" com borda animada
+function setLoginChecking(on){
+  loginVerifying = on;
+  const btn=$('#gsiBtn'); if(btn) btn.classList.toggle('hidden', on);
+  const chk=$('#loginChecking'); if(chk) chk.classList.toggle('on', on);
+  const gate=$('#loginGate'); if(gate) gate.setAttribute('aria-busy', on?'true':'false');
+}
+// no login: re-checa version.json e mostra link "nova versão disponível" se houver
+async function checkLoginVersion(){
+  const lv=$('#loginVer'); if(lv) lv.textContent = APP_VERSION;
+  const nv=$('#loginNewVer'); if(!nv) return;
+  try{
+    const r=await fetchTimeout('version.json?ts='+Date.now(), {cache:'no-store'}, 6000);
+    if(!r.ok) return;
+    const data=await r.json();
+    if(data && data.version && data.version!==APP_VERSION){
+      newVersionAvail=data.version;
+      nv.textContent = t('novaVersao') + ' (' + data.version + ') — ' + t('atualizar');
+      nv.classList.remove('hidden');
+      nv.onclick=()=>applyUpdate(nv);
+    } else { nv.classList.add('hidden'); }
+  }catch(e){ /* offline: ignora */ }
+}
 function onGoogleCredential(resp){
   const jwt = resp && resp.credential;
   if(!jwt) return;
+  if(loginVerifying) return;   // já verificando: ignora clique/callback repetido
   const claims = parseJwt(jwt);
   const email = (claims.email||'').toLowerCase();
   // NÃO bloqueamos aqui pela lista local (config.js): a autoridade é o SERVIDOR (aba Admin).
@@ -1476,7 +1833,7 @@ function initGoogleLogin(){
   const savedEmail = sessionStorage.getItem('gd_email');
   if(saved && savedEmail){
     const c=parseJwt(saved);
-    if(c.exp && c.exp*1000 > Date.now()+60000){ auth.idToken=saved; auth.email=savedEmail; verifyAccessThenStart(); return; }
+    if(c.exp && c.exp*1000 > Date.now()+60000){ auth.idToken=saved; auth.email=savedEmail; showLoginGate(); verifyAccessThenStart(); return; }
   }
   showLoginGate();
   let tries=0;
@@ -1485,7 +1842,7 @@ function initGoogleLogin(){
       tries++;
       if(tries>40){   // ~8s sem carregar o script do Google
         const le=$('#loginError');
-        if(le){ le.innerHTML = t('loginGoogleFalhou')+' <button id="loginReload" class="btn ghost" style="margin-top:8px">'+t('recarregar')+'</button>'; le.classList.remove('hidden'); }
+        if(le){ le.innerHTML = t('loginGoogleFalhou')+' <button id="loginReload" class="btn ghost" style="margin-top:8px">'+t('recarregar')+'</button>'; le.classList.remove('info'); le.classList.remove('hidden'); }
         const rb=$('#loginReload'); if(rb) rb.onclick=()=>location.reload();
         return;
       }
@@ -1496,19 +1853,20 @@ function initGoogleLogin(){
       google.accounts.id.renderButton($('#gsiBtn'), { theme:'filled_black', size:'large', shape:'pill', text:'signin_with', width:260 });
       // NÃO usar One Tap prompt() — causa cooldown/travas no iOS/FedCM. O botão é o caminho confiável.
     }catch(e){
-      const le=$('#loginError'); if(le){ le.textContent=t('loginGoogleFalhou'); le.classList.remove('hidden'); }
+      const le=$('#loginError'); if(le){ le.textContent=t('loginGoogleFalhou'); le.classList.remove('info'); le.classList.remove('hidden'); }
     }
   };
   tryInit();
 }
-function showLoginGate(){ $('#loginGate').classList.remove('hidden'); }
+function showLoginGate(){ $('#loginGate').classList.remove('hidden'); checkLoginVersion(); }
 function hideLoginGate(){ $('#loginGate').classList.add('hidden'); }
 // valida o acesso no servidor ANTES de abrir a UI (quando online); offline usa cache
 async function verifyAccessThenStart(){
   // offline ou app sem backend: mantém o comportamento offline-first (usa cache)
   if(!ONLINE_ENABLED || !navigator.onLine || !auth.idToken){ hideLoginGate(); startAppAfterLogin(); return; }
-  // mostra "verificando acesso…" e checa no servidor
-  const le=$('#loginError'); if(le){ le.textContent=t('verificandoAcesso'); le.classList.remove('hidden'); }
+  // mostra "verificando acesso…" (card com borda animada) e ESCONDE o botão Google (evita clique duplo)
+  const le=$('#loginError'); if(le){ le.classList.add('hidden'); le.textContent=''; }
+  setLoginChecking(true);
   try{
     const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) + '&idToken=' + encodeURIComponent(auth.idToken);
     const r = await fetchTimeout(url, {method:'GET'}, 15000);
@@ -1516,6 +1874,7 @@ async function verifyAccessThenStart(){
     if(data && data.ok){
       if(data.role){ auth.role=data.role; }
       if(le){ le.classList.add('hidden'); le.textContent=''; }
+      setLoginChecking(false);
       hideLoginGate(); startAppAfterLogin();
     } else {
       // servidor recusou -> não abre a UI. Mostra o motivo e o email tentado (diagnóstico).
@@ -1523,17 +1882,19 @@ async function verifyAccessThenStart(){
       const err = data && data.error ? data.error : 'unauthorized';
       auth={idToken:null,email:null,role:null,realAdmin:false,viewAs:null};
       sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
+      setLoginChecking(false);   // recusado -> volta a mostrar o botão Google
       showLoginGate();
       if(le){
         let msg = (err==='unauthorized') ? t('naoAutorizado') : (t('erroLogin')+' ('+err+')');
         if(tentativa) msg += '\n('+tentativa+')';
-        le.textContent = msg; le.style.whiteSpace='pre-line'; le.classList.remove('hidden');
+        le.textContent = msg; le.style.whiteSpace='pre-line'; le.classList.remove('info'); le.classList.remove('hidden');
       }
       try{ google.accounts.id.disableAutoSelect(); }catch(_){}
     }
   }catch(e){
     // sem resposta do servidor (rede instável): cai para o modo offline (usa cache)
     if(le){ le.classList.add('hidden'); le.textContent=''; }
+    setLoginChecking(false);
     hideLoginGate(); startAppAfterLogin();
   }
 }
@@ -1543,15 +1904,33 @@ function applyAdminUI(){
   if(auth.role){ realIsAdmin = (auth.role==='admin'); }
   else { realIsAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
   auth.realAdmin = realIsAdmin;
-  const eff = effectiveRole();                 // 'admin' | 'tesoureiro' | 'user'
+  const eff = effectiveRole();                 // 'admin' | 'tesoureiro' | 'user' | 'viewer'
   const isAdmin = (eff==='admin');
-  const isCaixaEdit = isAdmin || (eff==='tesoureiro');   // edita a Caixa
-  auth.caixaRO = !isCaixaEdit;                            // user = Caixa somente leitura
+  const isViewer = (eff==='viewer');            // Visualizador: só Gideões + Painel, read-only total
+  const isCaixaEdit = isAdmin || (eff==='tesoureiro');   // gerencia a Caixa (movimentacoes, deletar despesa)
+  auth.caixaRO = !isCaixaEdit;                            // user = Caixa (quase) somente leitura
+  auth.podeCaixaMgr = isCaixaEdit;                        // movimentacoes + deletar despesa: admin/tesoureiro
+  auth.podeAddDespesa = isAdmin || (eff==='tesoureiro') || (eff==='user');  // criar/editar despesa: todos menos viewer
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
-  const navC=$('#navCaixa'); if(navC) navC.classList.remove('hidden');   // Caixa visível a todos (user = read-only)
+  const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', isViewer);   // Caixa: todos exceto viewer
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
+  const navConf=$('#navConfeccao'); if(navConf) navConf.classList.toggle('hidden', isViewer);  // Confecção: escondida p/ viewer
+  const fab=$('#fab'); if(fab) fab.classList.toggle('hidden', isViewer);            // sem "+ novo Gideão" p/ viewer
+  // viewer NÃO pode exportar/baixar dados (fecharia a brecha de exfiltrar movimentações via CSV/JSON):
+  // na tab Mais, deixa só a seção "Conta e sincronização"
+  const dbSec=$('#dadosBackupSection'); if(dbSec) dbSec.classList.toggle('hidden', isViewer);
   renderImpersonateUI();
+  updateAcctRole();
   if(isAdmin) loadUsers();
+}
+/* rótulo do perfil logado na aba MAIS (papel real; indica "ver como" se ativo) */
+function roleLabel(r){ return r==='admin'?t('papelAdmin'):(r==='tesoureiro'?t('papelTesoureiro'):(r==='viewer'?t('papelViewer'):t('papelUser'))); }
+function updateAcctRole(){
+  const el=$('#acctRole'); if(!el) return;
+  const realRole = auth.role || (auth.realAdmin ? 'admin' : 'user');
+  let txt = roleLabel(realRole);
+  if(isImpersonating()){ txt += ' · ' + t('verComo') + ' ' + roleLabel(auth.viewAs); }
+  el.textContent = txt;
 }
 /* ---------- "Ver como" (impersonate visual — só admin) ---------- */
 // papel efetivo = o simulado (se admin real ativou "ver como"), senao o real
@@ -1566,7 +1945,11 @@ function setViewAs(role){
   applyAdminUI();
   // se a aba atual deixou de ser visivel no papel simulado, volta para a lista
   const cur=state.view;
-  if((cur==='acessos' && effectiveRole()!=='admin') || (cur==='caixa' && effectiveRole()==='user')){ setView('lista'); }
+  const eff=effectiveRole();
+  const blocked = (cur==='acessos' && eff!=='admin')
+               || (cur==='caixa' && (eff==='user'||eff==='viewer'))   // caixa: user vê (RO), viewer NÃO
+               || (eff==='viewer' && (cur==='confeccao'||cur==='caixa'||cur==='acessos'));  // viewer só lista/painel/mais
+  if(blocked){ setView('lista'); }
   updateSaveBtn && updateSaveBtn();
 }
 function renderImpersonateUI(){
@@ -1587,6 +1970,7 @@ function renderImpersonateUI(){
 }
 // bloqueia escrita enquanto "vendo como" (evita gravar como admin achando que é o papel simulado)
 function writeBlocked(){
+  if(effectiveRole()==='viewer'){ alert(t('viewerBloqueio')); return true; }   // Visualizador: read-only
   if(isImpersonating()){ alert(t('verComoBloqueio')); return true; }
   return false;
 }
@@ -1607,7 +1991,8 @@ function renderAccess(){
   const box=$('#accessGroups'); if(!box) return;
   const admins=accessUsers.filter(u=>u.role==='admin');
   const tesos =accessUsers.filter(u=>u.role==='tesoureiro');
-  const users =accessUsers.filter(u=>u.role!=='admin' && u.role!=='tesoureiro');
+  const viewers=accessUsers.filter(u=>u.role==='viewer');
+  const users =accessUsers.filter(u=>u.role!=='admin' && u.role!=='tesoureiro' && u.role!=='viewer');
   const group=(title,arr)=>{
     if(!arr.length) return '';
     const rows=arr.map(u=>`<div class="access-row" data-email="${esc(u.email)}">
@@ -1624,7 +2009,7 @@ function renderAccess(){
       <div class="access-card">${rows}</div>
     </div>`;
   };
-  box.innerHTML = group(t('grupoAdmins'),admins) + group(t('grupoTesoureiros'),tesos) + group(t('grupoUsers'),users);
+  box.innerHTML = group(t('grupoAdmins'),admins) + group(t('grupoTesoureiros'),tesos) + group(t('grupoViewers'),viewers) + group(t('grupoUsers'),users);
   box.querySelectorAll('.access-row .edit-btn').forEach(b=>b.onclick=()=>{
     const email=b.closest('.access-row').dataset.email;
     openAccessModal(accessUsers.find(u=>u.email===email)||null);
@@ -1717,7 +2102,27 @@ function setSync(s){
   el.className=''; 
   const map={ok:['ok','syncOk'],pend:['pend','syncPend'],off:['off','syncOff'],err:['err','syncErr'],syncing:['pend','syncing']};
   const m=map[s]||map.off; el.classList.add(m[0]); el.textContent=t(m[1]);
+  if(s==='ok'){ try{ localStorage.setItem('gd_last_sync', new Date().toISOString()); }catch(_){ } }
+  renderSyncStamp();
 }
+// timestamp discreto da última sincronização com sucesso — dd-mon-yy HH:mm:ss
+function fmtStamp(iso){
+  const d=new Date(iso); if(isNaN(d)) return '';
+  const mon=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()];
+  const p=n=>String(n).padStart(2,'0');
+  return `${p(d.getDate())}-${mon}-${String(d.getFullYear()).slice(2)} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+function renderSyncStamp(){
+  const row=$('#syncStampRow'), el=$('#syncStamp'); if(!row||!el) return;
+  let iso=''; try{ iso=localStorage.getItem('gd_last_sync')||''; }catch(_){ }
+  if(iso){ el.textContent=fmtStamp(iso); row.classList.remove('hidden'); }
+  else { row.classList.add('hidden'); }
+}
+// logo Casa Fuerte = refresh forçado + verificar nova versão
+$('#brandLogoLink') && ($('#brandLogoLink').onclick=async()=>{
+  try{ await checkVersion(); }catch(_){}
+  applyUpdate(null);   // limpa cache + SW.update + reload
+});
 function markPending(id){
   const p=JSON.parse(localStorage.getItem('gd_pending')||'{}'); p[id]=1;
   localStorage.setItem('gd_pending', JSON.stringify(p));
@@ -1865,7 +2270,7 @@ async function syncNow(){
       auth={idToken:null,email:null,role:null,realAdmin:false,viewAs:null};
       sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
       showLoginGate(); setSync('err');
-      const el=$('#loginError'); if(el){ el.textContent=t('naoAutorizado'); el.classList.remove('hidden'); }
+      const el=$('#loginError'); if(el){ el.textContent=t('naoAutorizado'); el.classList.remove('info'); el.classList.remove('hidden'); }
       try{ google.accounts.id.disableAutoSelect(); }catch(_){}
     }
     else { setSync('err'); scheduleRetry(); }   // falha de rede/servidor/db -> re-tenta sozinho
@@ -1903,6 +2308,7 @@ async function startAppAfterLogin(){
   const vEl=$('#appVersion'); if(vEl) vEl.textContent=APP_VERSION;
   const avEl=$('#acctVersion'); if(avEl) avEl.textContent=APP_VERSION;
   const emEl=$('#acctEmail'); if(emEl) emEl.textContent=auth.email||'—';
+  updateAcctRole();
   applyAdminUI();
   setView('lista');
   refresh();

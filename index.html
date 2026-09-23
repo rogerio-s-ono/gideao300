@@ -44,7 +44,18 @@
   .login-title{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--accent);letter-spacing:.4px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
   .login-sub{font-size:13.5px;color:#b8b2a6;margin:8px 0 0;max-width:280px;line-height:1.5}
   #gsiBtn{display:flex;justify-content:center;min-height:44px;margin-top:44px}
+  /* card "Verificando acesso" com borda dourada animada (CSS puro, iOS-compat) */
+  #loginChecking{margin-top:44px;position:relative;display:none;align-items:center;justify-content:center;gap:10px;padding:13px 20px;border-radius:14px;background:#171410;color:#e8e2d6;font-size:14px;font-weight:500;overflow:hidden;min-height:44px}
+  #loginChecking.on{display:inline-flex}
+  #loginChecking::before{content:"";position:absolute;inset:-150%;background:conic-gradient(from 0deg, transparent 0deg, transparent 250deg, #c08a2d 300deg, #f0cd82 330deg, #c08a2d 360deg);animation:lc-spin 1.6s linear infinite;z-index:0}
+  #loginChecking::after{content:"";position:absolute;inset:2px;border-radius:12px;background:#171410;z-index:1}
+  #loginChecking > *{position:relative;z-index:2}
+  #loginChecking .lc-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(192,138,45,.8)}
+  @keyframes lc-spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){ #loginChecking::before{animation:none} }
+  .login-newver{display:block;margin-top:6px;color:var(--accent);font-size:11px;text-decoration:underline;cursor:pointer}
   .login-error{margin-top:16px;background:rgba(178,59,59,.22);color:#ff9a9a;border:1px solid rgba(255,120,120,.3);border-radius:10px;padding:11px 14px;font-size:13px;max-width:300px}
+  .login-error.info{background:rgba(255,255,255,.10);color:#e8e2d6;border-color:rgba(255,255,255,.2)}
   .login-foot{text-align:center;font-size:11px;color:#7d786e;letter-spacing:1px;text-transform:uppercase;padding:18px;border-top:1px solid rgba(192,138,45,.12)}
   .login-ver{text-align:center;font-size:11px;color:#6b665d;padding:0 0 14px;letter-spacing:.5px}
   .brand-logo-wrap{position:relative;flex:none;display:inline-flex}
@@ -75,6 +86,74 @@
   .kpi .n{font-family:var(--serif);font-size:32px;font-weight:600;line-height:1}
   .kpi .l{font-size:11.5px;color:var(--muted);margin-top:5px;letter-spacing:.3px;text-transform:uppercase}
   .kpi.progress{grid-column:span 2;background:linear-gradient(135deg,#ffffff,#fbf7ef)}
+  /* termometro da meta (Painel) */
+  .thermo-card{background:linear-gradient(135deg,#ffffff,#fbf7ef);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(20,20,20,.05)}
+  .thermo-card .meta-title{font-family:var(--serif);font-size:16px;position:relative;padding-left:12px;margin:0 0 14px}
+  .thermo-card .meta-title::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:3px;border-radius:2px;background:var(--accent)}
+  .thermo-body{display:flex;gap:18px;align-items:center}
+  .thermo-svg{flex:0 0 auto}
+  .thermo-info{flex:1;min-width:0}
+  .thermo-info .big{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--accent);line-height:1}
+  .thermo-info .of{color:var(--muted);font-size:13px;margin-top:4px}
+  .thermo-info .by{font-size:13px;margin-top:9px;color:var(--ink)}
+  .thermo-info .by b{color:var(--green)}
+  .falta-pill{display:inline-block;background:var(--accent-soft);color:#8a6a20;font-weight:600;font-size:12.5px;padding:5px 10px;border-radius:16px;margin-top:11px}
+  .meta-rings{display:flex;gap:12px;justify-content:space-around;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .mring{text-align:center;flex:1}
+  .mring-cap{font-size:12px;color:var(--ink);font-weight:600;margin-top:2px}
+  .mring-out{font-size:11px;color:var(--muted);margin-top:2px}
+  /* financeiro A1 (Painel) */
+  .pnl-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:22px;box-shadow:0 3px 14px rgba(20,20,20,.06)}
+  .pnl-h3{font-family:var(--serif);font-size:17px;font-weight:600;position:relative;padding-left:12px;margin:0 0 16px;color:var(--ink)}
+  .pnl-h3::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:3px;border-radius:2px;background:var(--accent)}
+  .fin-hero{display:flex;align-items:center;gap:16px}
+  .fin-hero-num{flex:1;min-width:0}
+  .fin-lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .fin-val{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--green);line-height:1.05}
+  .fin-sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .fin-compo{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .fin-row{display:flex;align-items:center;font-size:.92rem;padding:6px 0}
+  .fin-row .lft{display:flex;gap:8px;align-items:center;width:118px;flex:0 0 118px}
+  .fin-row b{width:78px;text-align:right}
+  .fdot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .fmini{height:8px;border-radius:4px;background:var(--soft-grey);overflow:hidden;flex:1;margin:0 10px}
+  .fmini > i{display:block;height:100%}
+  .fin-row.exp{cursor:pointer;user-select:none}
+  .fin-row .caret{font-size:9px;color:var(--muted);transition:transform .2s;margin-left:3px;display:inline-block}
+  .fin-row.exp:not(.open) .caret{transform:rotate(-90deg)}
+  .fin-drill{margin:0 0 8px 19px;padding:8px 10px;background:var(--soft-grey);border-radius:8px}
+  .fin-drill.hidden{display:none}
+  .fin-drill .fd-h{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+  /* fd-bar alinhada/mesma largura da mini-barra do Dinheiro (col. do meio): recuo esq p/ bater com .fmini, e limitada à direita */
+  .fd-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:0 78px 7px 99px}
+  .fd-row{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink)}
+  .fd-row .seg{display:flex;align-items:center;gap:6px}
+  .fdotc{width:9px;height:9px;border-radius:50%;display:inline-block}
+  /* por tamanho — 3 fases (Painel) */
+  .size-phases{display:flex;gap:8px;margin:4px 0 14px}
+  .sphase{flex:1;text-align:center;border-radius:10px;padding:9px 6px;background:var(--soft-grey);cursor:pointer;border:2px solid transparent;transition:border-color .15s,background .15s}
+  .sphase .n{font-family:var(--serif);font-size:22px;font-weight:700;line-height:1}
+  .sphase .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:4px}
+  .sphase.a .n{color:var(--green)} .sphase.b .n{color:var(--accent)} .sphase.c .n{color:#a98d52}
+  .sphase.sel{background:#fff}
+  .sphase.a.sel{border-color:var(--green)} .sphase.b.sel{border-color:var(--accent)} .sphase.c.sel{border-color:#a98d52}
+  .size-bar{display:flex;align-items:center;gap:12px;margin:15px 0}
+  .size-bar .sb-lbl{width:42px;font-size:1rem;font-weight:700;text-align:right}
+  .size-bar .sb-track{flex:1;background:var(--soft-grey);border-radius:8px;height:30px;overflow:visible;display:flex;position:relative}
+  .size-bar .sb-track > i{height:100%;display:block}
+  .size-bar .sb-track > i:first-child{border-radius:8px 0 0 8px}
+  .size-bar .seg-prod{position:relative}
+  .size-bar .badge-host{position:relative}
+  .size-bar .prod-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.18);z-index:2}
+  .size-bar .prod-badge.ph-prod{border-color:var(--green);color:var(--green)}
+  .size-bar .prod-badge.ph-fazer{border-color:var(--accent);color:var(--accent)}
+  .size-bar .prod-badge.ph-pot{border-color:#a98d52;color:#a98d52}
+  .size-bar .sb-val{width:34px;font-size:.95rem;font-weight:700;text-align:left}
+  .size-legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:.78rem;color:var(--muted)}
+  .size-legend span{display:inline-flex;align-items:center;gap:6px}
+  .size-legend .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .conf-note{background:var(--soft-grey);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.85rem;color:var(--ink)}
+  .conf-note b{color:var(--green)}
   .bar{height:10px;border-radius:8px;background:var(--soft-grey);overflow:hidden;margin-top:8px}
   .bar > span{display:block;height:100%;background:linear-gradient(90deg,#c08a2d,#d9a94e)}
 
@@ -114,7 +193,12 @@
   .b.pend{background:var(--soft-grey);color:var(--grey)}
   .b.entregue{background:var(--accent-soft);color:var(--accent)}
   .b.pronta{background:#eae6dc;color:#7a6a45}
+  .b.isento{background:var(--soft-grey);color:var(--muted)}
   .b.revisar{background:var(--soft-red);color:var(--red)}
+  .bh-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .isento-chk{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+  .isento-chk input{width:15px;height:15px;accent-color:var(--muted)}
+  .isento-nota{font-size:12.5px;color:var(--muted);font-style:italic;padding:4px 2px}
   .b.cust-pastor{background:#e4eefc;color:#0050CA}
   .b.cust-teso{background:#e9f1eb;color:#329864}
   .card .tam{font-weight:600;color:var(--ink);font-size:13px;background:var(--soft-grey);border-radius:6px;padding:3px 7px}
@@ -164,6 +248,13 @@
   .btn.ghost{background:var(--soft-grey);color:var(--ink)}
   .btn.danger{background:var(--soft-red);color:var(--red)}
   .btn.ok{background:var(--soft-green);color:var(--green)}
+  .btn.accent{background:var(--accent);color:#fff}
+  .obs-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .revisar-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;margin:0}
+  .revisar-chk input{width:15px;height:15px;accent-color:var(--amber)}
+  .sync-stamp{font-size:11px;color:var(--muted);text-align:right;margin:-2px 0 4px;font-variant-numeric:tabular-nums}
+  .sync-stamp #syncStamp{color:var(--ink)}
+  #updateRow{padding:0} #updateRow .btn{margin-top:6px}
   /* bloco de adicionar pagamento (item 6) */
   .pay-block{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfaf7;margin-top:10px}
   .pay-block .bh{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
@@ -216,6 +307,14 @@
   .pay .pay-deliver{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--green)}
   .pay .pay-deliver input[type=checkbox]{width:16px;height:16px;accent-color:var(--green)}
   .pay .pay-deliver .pay-date{margin-left:auto;margin-right:30px;color:var(--green)}
+  .pay .pay-fotos{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pay .pay-fotos .foto-thumb{width:40px;height:40px;border-radius:6px}
+  .pay .pay-fotos .foto-thumb .rm{width:16px;height:16px;font-size:11px;top:1px;right:1px}
+  .pay .pay-fotos .foto-thumb.pdf svg{width:18px;height:18px} .pay .pay-fotos .foto-thumb.pdf small{font-size:6px}
+  .pay .pay-add{width:40px;height:40px;border:1.5px dashed var(--accent);border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;line-height:1;flex:none}
+  .pay .pay-add small{font-size:6.5px}
+  .pay .pay-anexar{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--accent);border:1px dashed var(--accent);border-radius:7px;padding:5px 9px;cursor:pointer;background:var(--accent-soft)}
+  .pay .pay-cnt{font-size:11px;color:var(--muted);margin-left:2px}
   .saldo{font-size:14px;margin-top:8px;padding:10px;border-radius:8px;text-align:center;font-weight:600}
 
   .tot-row{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--line);font-size:15px}
@@ -275,6 +374,8 @@
   .foto-thumb img{width:100%;height:100%;object-fit:cover}
   .foto-thumb .rm{position:absolute;top:2px;right:2px;background:rgba(178,59,59,.9);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:13px;line-height:1;cursor:pointer}
   .foto-thumb.up{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center}
+  .foto-thumb.pdf{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fbeeee;color:var(--red)}
+  .foto-thumb.pdf svg{width:30px;height:30px;fill:var(--red)} .foto-thumb.pdf small{font-size:9px;font-weight:600;margin-top:2px}
   .foto-link{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--accent);margin-top:3px}
   .app-version span{color:var(--accent);font-weight:600}
   .acct{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
@@ -328,6 +429,9 @@
   /* banner de atualização */
   #updateBanner{position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:var(--primary);color:#fff;border:1px solid rgba(192,138,45,.5);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:720px;margin:0 auto;font-size:14px}
   #updateBanner button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-family:var(--sans);font-size:14px;flex:none}
+  #updateBanner .ub-actions{display:flex;align-items:center;gap:6px;flex:none}
+  #updateBanner .ub-x{background:transparent;color:rgba(255,255,255,.6);padding:4px 8px;font-size:22px;line-height:1;font-weight:400}
+  #updateBanner .ub-x:hover{color:#fff}
   /* confecção pills + states */
   .confcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
   .confcard.dirty{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
@@ -401,13 +505,15 @@
     <div class="login-title">Projeto Gideão 300</div>
     <div class="login-sub" data-i="loginSub">Entre com sua conta Google autorizada</div>
     <div id="gsiBtn"></div>
+    <div id="loginChecking"><span class="lc-dot"></span><span id="loginCheckingTxt" data-i="verificandoAcesso">Verificando acesso…</span></div>
     <div id="loginError" class="login-error hidden"></div>
   </div>
   <div class="login-foot" data-i="loginFoot">Acesso restrito aos líderes do projeto</div>
   <div class="login-ver" id="loginVer"></div>
+  <div class="login-ver"><span class="login-newver hidden" id="loginNewVer"></span></div>
 </div>
 <header>
-  <div class="brand-logo-wrap"><img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo"><span id="betaBadge" class="beta-badge hidden">BETA</span></div>
+  <div class="brand-logo-wrap"><img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo" id="brandLogoLink" title="Atualizar / verificar nova versão" style="cursor:pointer"><span id="betaBadge" class="beta-badge hidden">BETA</span></div>
   <div class="brand">
     <img src="logo-helmet.png" alt="" class="brand-helmet">
     <div class="brand-name" data-i="projeto">Projeto Gideão</div>
@@ -449,11 +555,9 @@
 
   <!-- PAINEL -->
   <section id="view-painel" class="hidden">
-    <div class="kpis" id="kpis"></div>
-    <h3 data-i="porTamanho">Por tamanho (para a gráfica)</h3>
-    <div class="sizegrid" id="sizegrid"></div>
-    <h3 style="margin-top:16px" data-i="financeiro">Financeiro</h3>
-    <div id="fin"></div>
+    <div class="pnl-card" id="metaThermo"></div>
+    <div class="pnl-card"><h3 data-i="financeiro">Financeiro</h3><div id="fin"></div></div>
+    <div class="pnl-card"><h3 data-i="confeccaoCamisas">Confecção de camisas</h3><div id="sizegrid"></div></div>
   </section>
 
   <!-- CONFECCAO -->
@@ -517,8 +621,11 @@
     <h3 data-i="conta">Conta e sincronização</h3>
     <div class="acct">
       <div class="acct-row"><span data-i="usuario">Usuário</span><b id="acctEmail">—</b></div>
+      <div class="acct-row"><span data-i="perfil">Perfil</span><b id="acctRole">—</b></div>
       <div class="acct-row"><span data-i="versao">Versão</span><b id="acctVersion">—</b></div>
+      <div class="acct-row hidden" id="updateRow"><button class="btn accent" id="updateBtnMais" type="button">Atualizar</button></div>
       <div class="acct-row"><span data-i="sincronizacao">Sincronização</span><b id="syncStatus">—</b></div>
+      <div class="sync-stamp hidden" id="syncStampRow"><span data-i="ultimaSync">Última sincronização</span> <span id="syncStamp"></span></div>
       <button class="btn ghost" id="btnLogout" data-i="sair">Sair</button>
     </div>
     <div id="adminSection" class="hidden">
@@ -536,6 +643,7 @@
         <p class="note" data-i="backupUsersNota">Exclusivo do admin. Restaurar substitui a lista de acessos atual (mantém sempre ao menos um admin).</p>
       </div>
     </div>
+    <div id="dadosBackupSection">
     <h3 data-i="dadosBackup" style="margin-top:18px">Dados e backup</h3>
     <button class="btn ghost" id="btnExportXlsx" data-i="exportarExcel">Exportar Excel (CSV)</button>
     <button class="btn ghost" id="btnBackup" data-i="baixarBackup">Baixar backup (JSON)</button>
@@ -543,6 +651,7 @@
     <input type="file" id="fileRestore" accept="application/json">
     <button class="btn ghost" id="btnImprimir" data-i="imprimirPdf" style="margin-top:14px">Imprimir / PDF</button>
     <p class="note" data-i="backupNota">O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.</p>
+    </div>
     <div class="app-version">Casa Fuerte · Projeto Gideão 300 — <span id="appVersion"></span></div>
   </section>
 
@@ -560,6 +669,7 @@
         <option value="admin" data-i="verComoEu">Admin (eu)</option>
         <option value="tesoureiro" data-i="papelTesoureiro">Tesoureiro</option>
         <option value="user" data-i="papelUser">Usuário</option>
+        <option value="viewer" data-i="papelViewer">Visualizador</option>
       </select>
     </div>
     <p class="note" data-i="acessosNota">Quem pode entrar no app. As mudanças valem no próximo login.</p>
@@ -571,7 +681,10 @@
 
 <div id="updateBanner" class="hidden">
   <span id="updateMsg">Nova versão disponível</span>
-  <button id="updateBtn">Atualizar</button>
+  <div class="ub-actions">
+    <button id="updateBtn">Atualizar</button>
+    <button id="updateDismiss" class="ub-x" aria-label="Ignorar" title="Ignorar">&times;</button>
+  </div>
 </div>
 
 <button class="fab" id="fab" title="Novo">+</button>
@@ -582,7 +695,7 @@
     <img src="logo-helmet.png" alt="" class="nav-helmet">
     <span data-i="navLista">Gideões</span>
   </button>
-  <button data-view="confeccao">
+  <button data-view="confeccao" id="navConfeccao">
     <svg viewBox="0 0 24 24"><path d="M16 2l4 3-2 3-2-1v15H8V7L6 8 4 5l4-3 2 2h4z"/></svg>
     <span data-i="navConfeccao">Confecção</span>
   </button>
@@ -633,9 +746,14 @@
     <div class="grp" id="addPayArea">
     <div class="gh" data-i="pagamentos">Pagamentos (cota 300€)</div>
     <div id="paysList"></div>
+    <input type="file" id="p-fotoInput" accept="image/*,application/pdf" class="hidden">
     <div class="saldo" id="saldoBox"></div>
     <div class="pay-sub" id="addPaySub">
-    <div class="bh" data-i="adicionarPagamento">Adicionar pagamento</div>
+    <div class="bh-row" id="addPayHead">
+      <span class="bh" id="addPayTitle" data-i="adicionarPagamento">Adicionar pagamento</span>
+      <label class="isento-chk"><input type="checkbox" id="f-isento"> <span data-i="isentoChk">Isento</span></label>
+    </div>
+    <div id="payFields">
     <div class="row2">
       <div><label data-i="valor">Valor (€)</label><input id="p-valor" inputmode="decimal" placeholder="300"></div>
       <div><label data-i="tipo">Tipo</label><select id="p-tipo"></select></div>
@@ -651,15 +769,19 @@
     <input id="p-data" type="hidden">
     <button class="add-pay" id="addPay" type="button"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg> <span data-i="adicionarEstePagamento">Adicionar este pagamento</span></button>
     </div>
+    <div class="isento-nota hidden" id="isentoNota"></div>
+    </div>
     </div>
 
-    <label data-i="observacoes">Observações</label><textarea id="f-obs"></textarea>
+    <div class="obs-head">
+      <label data-i="observacoes">Observações</label>
+      <label class="revisar-chk hidden" id="revisarLine"><input type="checkbox" id="f-revisar"> <span data-i="aRevisar">A revisar</span></label>
+    </div>
+    <textarea id="f-obs"></textarea>
     <details style="margin-top:8px"><summary class="note" data-i="textoOriginal">Texto original</summary><p class="note" id="f-orig"></p></details>
 
-    <div class="toggle hidden" id="revisarLine"><span data-i="aRevisar">A revisar</span><input type="checkbox" id="f-revisar"></div>
-
     <div class="toggle hidden" id="camisaStatusLine" style="cursor:pointer;margin-top:12px">
-      <span data-i="camisaStatus">Estado da camisa</span>:
+      <span data-i="camisaStatus">Estado da camisa</span>
       <span class="cml-right"><b id="f-camisa-txt"></b><span id="f-camisa-date" class="cml-date"></span>
         <svg class="cml-shirt" viewBox="0 0 24 24"><path d="M16 2l4 3-2 3-2-1v15H8V7L6 8 4 5l4-3 2 2h4z"/></svg>
       </span>
@@ -735,10 +857,10 @@
       </div>
     </div>
     <label data-i="observacao">Observação</label><input id="d-obs" placeholder="nº nota, fornecedor...">
-    <label data-i="fotosFatura">Fotos da fatura (até 3)</label>
+    <label data-i="fotosFatura">Comprovante — foto ou PDF (até 3)</label>
     <div id="d-fotos" class="fotos-grid"></div>
-    <button type="button" class="btn ghost" id="d-addFoto" data-i="tirarFoto">📷 Tirar/anexar foto</button>
-    <input type="file" id="d-fotoInput" accept="image/*" capture="environment" class="hidden">
+    <button type="button" class="btn ghost" id="d-addFoto" data-i="tirarFoto">📎 Anexar comprovante (foto ou PDF)</button>
+    <input type="file" id="d-fotoInput" accept="image/*,application/pdf" class="hidden">
     <div class="modal-divider"></div>
     <div class="action-bar">
       <button class="act save" id="despSave" type="button">
@@ -781,6 +903,10 @@
       <div><label data-i="data">Data</label><input id="m-data" type="date"></div>
     </div>
     <label data-i="comentario">Comentário</label><input id="m-comentario" placeholder="ex.: Depósito; Bizum Rogério">
+    <label data-i="fotosFatura">Comprovante — foto ou PDF (até 3)</label>
+    <div id="m-fotos" class="fotos-grid"></div>
+    <button type="button" class="btn ghost" id="m-addFoto" data-i="tirarFoto">📎 Anexar comprovante (foto ou PDF)</button>
+    <input type="file" id="m-fotoInput" accept="image/*,application/pdf" class="hidden">
     <div class="modal-divider"></div>
     <div class="action-bar">
       <button class="act save" id="movSave" type="button">
@@ -814,6 +940,7 @@
     <select id="acc-role">
       <option value="user" data-i="papelUser">Usuário</option>
       <option value="tesoureiro" data-i="papelTesoureiro">Tesoureiro</option>
+      <option value="viewer" data-i="papelViewer">Visualizador</option>
       <option value="admin" data-i="papelAdmin">Admin</option>
     </select>
     <p class="acc-alert hidden" id="accError"></p>
