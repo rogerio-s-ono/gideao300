@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta27';
+const APP_VERSION = 'v4.1.0-beta28';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -78,7 +78,7 @@ const I18N = {
     verificandoAcesso:'Verificando acesso…',
     loginGoogleFalhou:'Não foi possível carregar o login do Google. Verifique a conexão e tente de novo.',
     recarregar:'Recarregar', erroLogin:'Erro ao entrar',
-    conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', admin:'Admin',
+    conta:'Conta e sincronização', usuario:'Usuário', versao:'Versão', sincronizacao:'Sincronização', ultimaSync:'Última sincronização', admin:'Admin',
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
     navAcessos:'Acessos', acessosNota:'Quem pode entrar no app. As mudanças valem no próximo login.',
@@ -167,7 +167,7 @@ const I18N = {
     verificandoAcesso:'Verificando acceso…',
     loginGoogleFalhou:'No se pudo cargar el inicio de sesión de Google. Revisa la conexión e inténtalo de nuevo.',
     recarregar:'Recargar', erroLogin:'Error al entrar',
-    conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', admin:'Admin',
+    conta:'Cuenta y sincronización', usuario:'Usuario', versao:'Versión', sincronizacao:'Sincronización', ultimaSync:'Última sincronización', admin:'Admin',
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
     navAcessos:'Accesos', acessosNota:'Quién puede entrar en la app. Los cambios valen en el próximo inicio de sesión.',
@@ -1648,6 +1648,7 @@ function doSetView(v){
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
   if(v==='acessos') loadUsers();
+  if(v==='mais') renderSyncStamp();
   updateSaveBtn();
   // restaura a posição de scroll específica desta tab
   const y=(state.scrollPos&&state.scrollPos[v])||0;
@@ -2101,7 +2102,27 @@ function setSync(s){
   el.className=''; 
   const map={ok:['ok','syncOk'],pend:['pend','syncPend'],off:['off','syncOff'],err:['err','syncErr'],syncing:['pend','syncing']};
   const m=map[s]||map.off; el.classList.add(m[0]); el.textContent=t(m[1]);
+  if(s==='ok'){ try{ localStorage.setItem('gd_last_sync', new Date().toISOString()); }catch(_){ } }
+  renderSyncStamp();
 }
+// timestamp discreto da última sincronização com sucesso — dd-mon-yy HH:mm:ss
+function fmtStamp(iso){
+  const d=new Date(iso); if(isNaN(d)) return '';
+  const mon=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()];
+  const p=n=>String(n).padStart(2,'0');
+  return `${p(d.getDate())}-${mon}-${String(d.getFullYear()).slice(2)} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+function renderSyncStamp(){
+  const row=$('#syncStampRow'), el=$('#syncStamp'); if(!row||!el) return;
+  let iso=''; try{ iso=localStorage.getItem('gd_last_sync')||''; }catch(_){ }
+  if(iso){ el.textContent=fmtStamp(iso); row.classList.remove('hidden'); }
+  else { row.classList.add('hidden'); }
+}
+// logo Casa Fuerte = refresh forçado + verificar nova versão
+$('#brandLogoLink') && ($('#brandLogoLink').onclick=async()=>{
+  try{ await checkVersion(); }catch(_){}
+  applyUpdate(null);   // limpa cache + SW.update + reload
+});
 function markPending(id){
   const p=JSON.parse(localStorage.getItem('gd_pending')||'{}'); p[id]=1;
   localStorage.setItem('gd_pending', JSON.stringify(p));

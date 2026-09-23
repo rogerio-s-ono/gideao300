@@ -252,6 +252,8 @@
   .obs-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .revisar-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;margin:0}
   .revisar-chk input{width:15px;height:15px;accent-color:var(--amber)}
+  .sync-stamp{font-size:11px;color:var(--muted);text-align:right;margin:-2px 0 4px;font-variant-numeric:tabular-nums}
+  .sync-stamp #syncStamp{color:var(--ink)}
   #updateRow{padding:0} #updateRow .btn{margin-top:6px}
   /* bloco de adicionar pagamento (item 6) */
   .pay-block{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfaf7;margin-top:10px}
@@ -511,7 +513,7 @@
   <div class="login-ver"><span class="login-newver hidden" id="loginNewVer"></span></div>
 </div>
 <header>
-  <div class="brand-logo-wrap"><img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo"><span id="betaBadge" class="beta-badge hidden">BETA</span></div>
+  <div class="brand-logo-wrap"><img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo" id="brandLogoLink" title="Atualizar / verificar nova versão" style="cursor:pointer"><span id="betaBadge" class="beta-badge hidden">BETA</span></div>
   <div class="brand">
     <img src="logo-helmet.png" alt="" class="brand-helmet">
     <div class="brand-name" data-i="projeto">Projeto Gideão</div>
@@ -623,6 +625,7 @@
       <div class="acct-row"><span data-i="versao">Versão</span><b id="acctVersion">—</b></div>
       <div class="acct-row hidden" id="updateRow"><button class="btn accent" id="updateBtnMais" type="button">Atualizar</button></div>
       <div class="acct-row"><span data-i="sincronizacao">Sincronização</span><b id="syncStatus">—</b></div>
+      <div class="sync-stamp hidden" id="syncStampRow"><span data-i="ultimaSync">Última sincronização</span> <span id="syncStamp"></span></div>
       <button class="btn ghost" id="btnLogout" data-i="sair">Sair</button>
     </div>
     <div id="adminSection" class="hidden">
