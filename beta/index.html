@@ -649,6 +649,7 @@
         <option value="admin" data-i="verComoEu">Admin (eu)</option>
         <option value="tesoureiro" data-i="papelTesoureiro">Tesoureiro</option>
         <option value="user" data-i="papelUser">Usuário</option>
+        <option value="viewer" data-i="papelViewer">Visualizador</option>
       </select>
     </div>
     <p class="note" data-i="acessosNota">Quem pode entrar no app. As mudanças valem no próximo login.</p>
@@ -674,7 +675,7 @@
     <img src="logo-helmet.png" alt="" class="nav-helmet">
     <span data-i="navLista">Gideões</span>
   </button>
-  <button data-view="confeccao">
+  <button data-view="confeccao" id="navConfeccao">
     <svg viewBox="0 0 24 24"><path d="M16 2l4 3-2 3-2-1v15H8V7L6 8 4 5l4-3 2 2h4z"/></svg>
     <span data-i="navConfeccao">Confecção</span>
   </button>
@@ -917,6 +918,7 @@
     <select id="acc-role">
       <option value="user" data-i="papelUser">Usuário</option>
       <option value="tesoureiro" data-i="papelTesoureiro">Tesoureiro</option>
+      <option value="viewer" data-i="papelViewer">Visualizador</option>
       <option value="admin" data-i="papelAdmin">Admin</option>
     </select>
     <p class="acc-alert hidden" id="accError"></p>

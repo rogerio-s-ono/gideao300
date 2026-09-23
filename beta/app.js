@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta22';
+const APP_VERSION = 'v4.1.0-beta23';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -82,7 +82,7 @@ const I18N = {
     sincronizarAgora:'Sincronizar agora', sair:'Sair', enviarBase:'Enviar base completa à planilha',
     recarregarBase:'Recarregar base original (zera tudo)',
     navAcessos:'Acessos', acessosNota:'Quem pode entrar no app. As mudanças valem no próximo login.',
-    grupoAdmins:'Administradores', grupoUsers:'Usuários', grupoTesoureiros:'Tesoureiros',
+    grupoAdmins:'Administradores', grupoUsers:'Usuários', grupoTesoureiros:'Tesoureiros', grupoViewers:'Visualizadores',
     verComo:'Ver como', verComoEu:'Admin (eu)', vendoComo:'Vendo como: {r}', voltarPerfil:'Voltar ao meu perfil',
     verComoBloqueio:'Você está no modo "Ver como". Saia dele para poder editar.',
     entregueTesoureiro:'Entregue ao tesoureiro', detalheDinheiro:'Detalhe do Dinheiro',
@@ -90,7 +90,7 @@ const I18N = {
     comPastores:'Com pastores', comTesoureiro:'Com tesoureiro',
     saiuDe:'Saiu de (dinheiro)', saiuDeCustodia:'Saiu da custódia (dinheiro)', origemPastor:'Pastor', origemTesoureiro:'Tesoureiro',
     novoUsuario:'Novo usuário', editarUsuario:'Editar usuário', editar:'Editar',
-    perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', papelTesoureiro:'Tesoureiro', adicionar:'Adicionar', remover:'Remover',
+    perfil:'Perfil', papelUser:'Usuário', papelAdmin:'Admin', papelTesoureiro:'Tesoureiro', papelViewer:'Visualizador', viewerBloqueio:'Perfil Visualizador: acesso somente leitura.', adicionar:'Adicionar', remover:'Remover',
     processando:'Processando…', confirmarRemocao:'Confirmar remoção',
     confirmRemoverUser:'Remover o acesso de {e}?',
     errJaExiste:'Este email já está na lista.', errEmailInvalido:'Email inválido.',
@@ -171,7 +171,7 @@ const I18N = {
     sincronizarAgora:'Sincronizar ahora', sair:'Salir', enviarBase:'Enviar base completa a la hoja',
     recarregarBase:'Recargar base original (borra todo)',
     navAcessos:'Accesos', acessosNota:'Quién puede entrar en la app. Los cambios valen en el próximo inicio de sesión.',
-    grupoAdmins:'Administradores', grupoUsers:'Usuarios', grupoTesoureiros:'Tesoreros',
+    grupoAdmins:'Administradores', grupoUsers:'Usuarios', grupoTesoureiros:'Tesoreros', grupoViewers:'Visores',
     verComo:'Ver como', verComoEu:'Admin (yo)', vendoComo:'Viendo como: {r}', voltarPerfil:'Volver a mi perfil',
     verComoBloqueio:'Estás en modo "Ver como". Sal de él para poder editar.',
     entregueTesoureiro:'Entregado al tesorero', detalheDinheiro:'Detalle del Efectivo',
@@ -179,7 +179,7 @@ const I18N = {
     comPastores:'Con pastores', comTesoureiro:'Con tesorero',
     saiuDe:'Salió de (efectivo)', saiuDeCustodia:'Salió de la custodia (efectivo)', origemPastor:'Pastor', origemTesoureiro:'Tesorero',
     novoUsuario:'Nuevo usuario', editarUsuario:'Editar usuario', editar:'Editar',
-    perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', papelTesoureiro:'Tesorero', adicionar:'Añadir', remover:'Quitar',
+    perfil:'Perfil', papelUser:'Usuario', papelAdmin:'Admin', papelTesoureiro:'Tesorero', papelViewer:'Visor', viewerBloqueio:'Perfil Visor: acceso solo lectura.', adicionar:'Añadir', remover:'Quitar',
     processando:'Procesando…', confirmarRemocao:'Confirmar eliminación',
     confirmRemoverUser:'¿Quitar el acceso de {e}?',
     errJaExiste:'Este correo ya está en la lista.', errEmailInvalido:'Correo inválido.',
@@ -862,6 +862,7 @@ async function openModal(id){
   const isEl=$('#f-isento'); if(isEl){ isEl.checked = rec?!!rec.isento:false; }
   updateIsentoVis();
   renderPays();
+  applyModalRO('#modal', effectiveRole()==='viewer', ['#save','#del','#addPay','#p-fotoInput']);
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
   state.formSnapshot=formSnapshot();
@@ -1621,12 +1622,14 @@ $('#extBack') && ($('#extBack').onclick=()=>$('#extratoModal').classList.add('hi
 $('#extratoModal') && $('#extratoModal').addEventListener('click',e=>{ if(e.target.id==='extratoModal') $('#extratoModal').classList.add('hidden'); });
 
 function doSetView(v){
+  // guarda: Visualizador só pode ver Gideões/Painel/Mais (defense in depth, além do applyAdminUI)
+  if(effectiveRole()==='viewer' && (v==='confeccao'||v==='caixa'||v==='acessos')) v='lista';
   // guarda a posição de scroll da tab atual
   if(state.view){ state.scrollPos = state.scrollPos||{}; state.scrollPos[state.view]=window.scrollY; }
   state.view=v;
   ['lista','painel','confeccao','caixa','acessos','mais'].forEach(x=>$('#view-'+x).classList.toggle('hidden',x!==v));
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-  $('#fab').classList.toggle('hidden', v!=='lista');
+  $('#fab').classList.toggle('hidden', v!=='lista' || effectiveRole()==='viewer');
   const fc=$('#fabCaixa'); if(fc) fc.classList.toggle('hidden', v!=='caixa' || auth.caixaRO);
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
@@ -1858,19 +1861,22 @@ function applyAdminUI(){
   if(auth.role){ realIsAdmin = (auth.role==='admin'); }
   else { realIsAdmin = (CFG.ADMIN_EMAILS||[]).map(e=>e.toLowerCase()).indexOf((auth.email||'').toLowerCase())>=0; }
   auth.realAdmin = realIsAdmin;
-  const eff = effectiveRole();                 // 'admin' | 'tesoureiro' | 'user'
+  const eff = effectiveRole();                 // 'admin' | 'tesoureiro' | 'user' | 'viewer'
   const isAdmin = (eff==='admin');
+  const isViewer = (eff==='viewer');            // Visualizador: só Gideões + Painel, read-only total
   const isCaixaEdit = isAdmin || (eff==='tesoureiro');   // edita a Caixa
   auth.caixaRO = !isCaixaEdit;                            // user = Caixa somente leitura
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
-  const navC=$('#navCaixa'); if(navC) navC.classList.remove('hidden');   // Caixa visível a todos (user = read-only)
+  const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', isViewer);   // Caixa: todos exceto viewer
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
+  const navConf=$('#navConfeccao'); if(navConf) navConf.classList.toggle('hidden', isViewer);  // Confecção: escondida p/ viewer
+  const fab=$('#fab'); if(fab) fab.classList.toggle('hidden', isViewer);            // sem "+ novo Gideão" p/ viewer
   renderImpersonateUI();
   updateAcctRole();
   if(isAdmin) loadUsers();
 }
 /* rótulo do perfil logado na aba MAIS (papel real; indica "ver como" se ativo) */
-function roleLabel(r){ return r==='admin'?t('papelAdmin'):(r==='tesoureiro'?t('papelTesoureiro'):t('papelUser')); }
+function roleLabel(r){ return r==='admin'?t('papelAdmin'):(r==='tesoureiro'?t('papelTesoureiro'):(r==='viewer'?t('papelViewer'):t('papelUser'))); }
 function updateAcctRole(){
   const el=$('#acctRole'); if(!el) return;
   const realRole = auth.role || (auth.realAdmin ? 'admin' : 'user');
@@ -1891,7 +1897,11 @@ function setViewAs(role){
   applyAdminUI();
   // se a aba atual deixou de ser visivel no papel simulado, volta para a lista
   const cur=state.view;
-  if((cur==='acessos' && effectiveRole()!=='admin') || (cur==='caixa' && effectiveRole()==='user')){ setView('lista'); }
+  const eff=effectiveRole();
+  const blocked = (cur==='acessos' && eff!=='admin')
+               || (cur==='caixa' && (eff==='user'||eff==='viewer'))   // caixa: user vê (RO), viewer NÃO
+               || (eff==='viewer' && (cur==='confeccao'||cur==='caixa'||cur==='acessos'));  // viewer só lista/painel/mais
+  if(blocked){ setView('lista'); }
   updateSaveBtn && updateSaveBtn();
 }
 function renderImpersonateUI(){
@@ -1912,6 +1922,7 @@ function renderImpersonateUI(){
 }
 // bloqueia escrita enquanto "vendo como" (evita gravar como admin achando que é o papel simulado)
 function writeBlocked(){
+  if(effectiveRole()==='viewer'){ alert(t('viewerBloqueio')); return true; }   // Visualizador: read-only
   if(isImpersonating()){ alert(t('verComoBloqueio')); return true; }
   return false;
 }
@@ -1932,7 +1943,8 @@ function renderAccess(){
   const box=$('#accessGroups'); if(!box) return;
   const admins=accessUsers.filter(u=>u.role==='admin');
   const tesos =accessUsers.filter(u=>u.role==='tesoureiro');
-  const users =accessUsers.filter(u=>u.role!=='admin' && u.role!=='tesoureiro');
+  const viewers=accessUsers.filter(u=>u.role==='viewer');
+  const users =accessUsers.filter(u=>u.role!=='admin' && u.role!=='tesoureiro' && u.role!=='viewer');
   const group=(title,arr)=>{
     if(!arr.length) return '';
     const rows=arr.map(u=>`<div class="access-row" data-email="${esc(u.email)}">
@@ -1949,7 +1961,7 @@ function renderAccess(){
       <div class="access-card">${rows}</div>
     </div>`;
   };
-  box.innerHTML = group(t('grupoAdmins'),admins) + group(t('grupoTesoureiros'),tesos) + group(t('grupoUsers'),users);
+  box.innerHTML = group(t('grupoAdmins'),admins) + group(t('grupoTesoureiros'),tesos) + group(t('grupoViewers'),viewers) + group(t('grupoUsers'),users);
   box.querySelectorAll('.access-row .edit-btn').forEach(b=>b.onclick=()=>{
     const email=b.closest('.access-row').dataset.email;
     openAccessModal(accessUsers.find(u=>u.email===email)||null);
