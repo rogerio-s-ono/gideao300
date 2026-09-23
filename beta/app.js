@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta3';
+const APP_VERSION = 'v4.1.0-beta4';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -44,6 +44,7 @@ const I18N = {
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
     metaCampanha:'Meta da campanha', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
     saldoLabel:'saldo', custodiaLabel:'Custódia do dinheiro', pastoresLabel:'pastores', tesoureiroLabel:'tesoureiro',
+    faseProduzido:'Produzido', faseProduzir:'A produzir', fasePotencial:'Potencial',
     saldoPago:'Pago — cota completa', saldoFalta:'Faltam {v}€', saldoPend:'Nenhum pagamento',
     faltam:'faltam {v}€', semNumero:'s/n', confirmDel:'Excluir este inscrito?',
     confirmReset:'Apagar TODOS os dados e recarregar a lista inicial? Faça um backup antes.',
@@ -131,6 +132,7 @@ const I18N = {
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
     metaCampanha:'Meta de la campaña', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
     saldoLabel:'saldo', custodiaLabel:'Custodia del efectivo', pastoresLabel:'pastores', tesoureiroLabel:'tesorero',
+    faseProduzido:'Producido', faseProduzir:'Por producir', fasePotencial:'Potencial',
     saldoPago:'Pagado — cuota completa', saldoFalta:'Faltan {v}€', saldoPend:'Sin pagos',
     faltam:'faltan {v}€', semNumero:'s/n', confirmDel:'¿Eliminar este inscrito?',
     confirmReset:'¿Borrar TODOS los datos y recargar la lista inicial? Haz una copia antes.',
@@ -498,11 +500,49 @@ async function renderPainel(){
     <div class="kpi"><div class="n" style="color:var(--accent)">${entregues}</div><div class="l">${t('entregues')}</div></div>
   `;
   // por tamanho
-  const bySize={};
-  all.forEach(i=>{ const s=(i.tamanho||'—').trim()||'—'; bySize[s]=(bySize[s]||0)+1; });
+  // por tamanho — 3 fases: Produzido (pronta+entregue) / A produzir (pago, a fazer+em confecção) / Potencial (pendente)
+  const bySize={}; let totProd=0, totFazer=0, totPot=0;
+  all.forEach(i=>{
+    const s=(i.tamanho||'—').trim()||'—';
+    if(!bySize[s]) bySize[s]={prod:0,fazer:0,pot:0,tot:0};
+    const pago = statusPag(i)==='pago';
+    const est = i.camisaEstado||0;
+    let fase;
+    if(pago && est>=EST.PRONTA) fase='prod';        // já existe (pronta/entregue)
+    else if(pago) fase='fazer';                     // pago, ainda a produzir
+    else fase='pot';                                // pendente de pagamento
+    bySize[s][fase]++; bySize[s].tot++;
+    if(fase==='prod') totProd++; else if(fase==='fazer') totFazer++; else totPot++;
+  });
   const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
-  $('#sizegrid').innerHTML=keys.map(s=>`<div class="sizecell"><div class="v">${bySize[s]}</div><div class="s">${esc(s)}</div></div>`).join('');
+  const maxTot=Math.max(1,...keys.map(s=>bySize[s].tot));
+  const phases=`
+    <div class="size-phases">
+      <div class="sphase a"><div class="n">${totProd}</div><div class="l">${t('faseProduzido')}</div></div>
+      <div class="sphase b"><div class="n">${totFazer}</div><div class="l">${t('faseProduzir')}</div></div>
+      <div class="sphase c"><div class="n">${totPot}</div><div class="l">${t('fasePotencial')}</div></div>
+    </div>`;
+  const bars=keys.map(s=>{
+    const b=bySize[s];
+    const wp=(b.prod/maxTot*100).toFixed(1), wf=(b.fazer/maxTot*100).toFixed(1), wo=(b.pot/maxTot*100).toFixed(1);
+    return `<div class="size-bar">
+      <span class="sb-lbl">${esc(s)}</span>
+      <span class="sb-track">
+        <i style="width:${wp}%;background:var(--green)" title="${t('faseProduzido')}: ${b.prod}"></i>
+        <i style="width:${wf}%;background:var(--accent)" title="${t('faseProduzir')}: ${b.fazer}"></i>
+        <i style="width:${wo}%;background:#e2d3b0" title="${t('fasePotencial')}: ${b.pot}"></i>
+      </span>
+      <span class="sb-val">${b.tot}</span>
+    </div>`;
+  }).join('');
+  const legend=`
+    <div class="size-legend">
+      <span><i class="sw" style="background:var(--green)"></i> ${t('faseProduzido')}</span>
+      <span><i class="sw" style="background:var(--accent)"></i> ${t('faseProduzir')}</span>
+      <span><i class="sw" style="background:#e2d3b0"></i> ${t('fasePotencial')}</span>
+    </div>`;
+  $('#sizegrid').innerHTML = phases + bars + legend;
   // financeiro (A1: saldo herói + donut de bolsos + custódia expansível)
   const despAll = await sGetAll(STORE_DESP);
   const movAll  = await sGetAll(STORE_MOV);
