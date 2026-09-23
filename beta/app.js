@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta4';
+const APP_VERSION = 'v4.1.1-beta5';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -34,6 +34,7 @@ const I18N = {
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
+    origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
     porTamanho:'Por tamanho (para a gráfica)', financeiro:'Financeiro',
     dadosBackup:'Dados e backup', exportarExcel:'Exportar Excel (CSV)', baixarBackup:'Baixar backup (JSON)',
     restaurarBackup:'Restaurar backup (JSON)', imprimirPdf:'Imprimir / PDF',
@@ -124,6 +125,7 @@ const I18N = {
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
+    origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
     porTamanho:'Por talla (para la imprenta)', financeiro:'Finanzas',
     dadosBackup:'Datos y copia', exportarExcel:'Exportar Excel (CSV)', baixarBackup:'Descargar copia (JSON)',
     restaurarBackup:'Restaurar copia (JSON)', imprimirPdf:'Imprimir / PDF',
@@ -997,7 +999,7 @@ function renderPays(){
   // comprovante por parcela: remover / abrir / adicionar
   $$('#paysList .pf-rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); const pi=+b.dataset.p, fi=+b.dataset.f; const p=state.draftPays[pi]; if(p&&Array.isArray(p.fotos)){ p.fotos.splice(fi,1); renderPays(); } });
   $$('#paysList .pf-open').forEach(im=>im.onclick=()=>{ const pi=+im.dataset.p, fi=+im.dataset.f; const p=state.draftPays[pi]; if(p&&p.fotos&&p.fotos[fi]) openFoto(normFoto(p.fotos[fi])); });
-  $$('#paysList .pf-add').forEach(b=>b.onclick=()=>{ const pi=+b.dataset.p; const p=state.draftPays[pi]; if(!Array.isArray(p.fotos)) p.fotos=[]; if(p.fotos.length>=3){ alert(t('maxFotos')); return; } payFotoTargetIdx=pi; $('#p-fotoInput').click(); });
+  $$('#paysList .pf-add').forEach(b=>b.onclick=()=>{ const pi=+b.dataset.p; const p=state.draftPays[pi]; if(!Array.isArray(p.fotos)) p.fotos=[]; if(p.fotos.length>=3){ toast(t('maxFotos'),'info'); return; } payFotoTargetIdx=pi; $('#p-fotoInput').click(); });
   $$('#paysList .pdeliver').forEach(cb=>cb.onchange=()=>{
     const i=+cb.dataset.i; const p=state.draftPays[i];
     if(cb.checked){ p.entregueTesoureiro=true; p.dataEntregaTesoureiro=hoje(); }
@@ -1035,7 +1037,7 @@ $('#addPay').onclick=()=>{
   if(!v||v<=0) return;
   const tipo=$('#p-tipo').value;
   const nota=(tipo==='Outros')? ($('#p-comentario').value||'').trim() : '';
-  if(tipo==='Outros' && !nota){ alert(t('comentarioObrigatorio')); const c=$('#p-comentario'); if(c) c.focus(); return; }
+  if(tipo==='Outros' && !nota){ toast(t('comentarioObrigatorio'),'info'); const c=$('#p-comentario'); if(c) c.focus(); return; }
   const pay={valor:v,tipo,data:$('#p-data').value||hoje(),nota};
   if(tipo==='Dinheiro'){
     const rb=$('#p-receb-wrap input[name="p-recebido"]:checked');
@@ -1058,14 +1060,14 @@ $('#p-fotoInput') && ($('#p-fotoInput').onchange=async(e)=>{
   if(!file || pi==null) return;
   const p=state.draftPays[pi]; if(!p) return;
   if(!Array.isArray(p.fotos)) p.fotos=[];
-  if(p.fotos.length>=3){ alert(t('maxFotos')); return; }
+  if(p.fotos.length>=3){ toast(t('maxFotos'),'info'); return; }
   try{ const anexo=await processAnexo(file); if(anexo){ p.fotos.push(anexo); renderPays(); } }
-  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+  catch(err){ toast(err && err.message ? err.message : 'Erro ao processar o anexo','err'); }
 });
 $('#save').onclick=async()=>{
   if(writeBlocked()) return;
   const nome=$('#f-nome').value.trim();
-  if(!nome){ alert(t('nomeObrig')); return; }
+  if(!nome){ toast(t('nomeObrig'),'info'); return; }
   const isento = !!($('#f-isento') && $('#f-isento').checked);
   // reforço defensivo: valor de pagamento digitado mas NÃO adicionado
   // (ignora o "restante" auto-preenchido — só avisa se o usuário digitou algo diferente)
@@ -1085,7 +1087,7 @@ $('#save').onclick=async()=>{
         // normaliza para objetos, sobe pendentes
         p.fotos = p.fotos.map(normFoto);
         const up=await uploadPendentes(p.fotos);
-        if(!up.ok){ btn.disabled=false; btnLabel(btn, orig); alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+        if(!up.ok){ btn.disabled=false; btnLabel(btn, orig); toast(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+' ('+up.error+')'),'err'); return; }
       }
       btn.disabled=false; btnLabel(btn, orig);
     }
@@ -1138,7 +1140,7 @@ function tryCloseModal(){
 }
 $('#fcSave').onclick=async()=>{
   const nome=$('#f-nome').value.trim();
-  if(!nome){ alert(t('nomeObrig')); return; }
+  if(!nome){ toast(t('nomeObrig'),'info'); return; }
   $('#formConfirm').classList.add('hidden');
   $('#save').click();
 };
@@ -1232,7 +1234,7 @@ $('#fileRestore').onchange=async e=>{
     if(!Array.isArray(arr)) throw new Error('formato');
     despIn = Array.isArray(data.despesas)? data.despesas : [];
     movIn  = Array.isArray(data.movimentos)? data.movimentos : [];
-  }catch(err){ alert(t('jsonInvalido')); e.target.value=''; return; }
+  }catch(err){ toast(t('jsonInvalido'),'err'); e.target.value=''; return; }
   try{
     setSync('syncing');
     // 2) normaliza e repovoa a base LOCAL (o backup restaurado e a nova verdade)
@@ -1266,8 +1268,8 @@ $('#fileRestore').onchange=async e=>{
       for(const m of movIn){ markPendingKV('mov', m.id); }
       setSync('pend');
     }
-    refresh(); alert(t('okRestaurado', {n:base.length}));
-  }catch(err){ setSync('err'); alert(t('erroRestaurar')+': '+err.message); }
+    refresh(); toast(t('okRestaurado', {n:base.length}),'ok');
+  }catch(err){ setSync('err'); toast(t('erroRestaurar')+': '+err.message,'err'); }
   e.target.value='';
 };
 
@@ -1447,18 +1449,18 @@ function openFoto(f){
 function thumbFromUrl(url){ if(!url) return ''; const m=url.match(/\/d\/([^/]+)\//); return m? ('https://drive.google.com/thumbnail?id='+m[1]) : url; }
 $('#fotoLightClose') && ($('#fotoLightClose').onclick=()=>$('#fotoLightbox').classList.add('hidden'));
 $('#fotoLightbox') && ($('#fotoLightbox').addEventListener('click',e=>{ if(e.target.id==='fotoLightbox') $('#fotoLightbox').classList.add('hidden'); }));
-$('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ alert(t('maxFotos')); return; } $('#d-fotoInput').click(); });
+$('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ toast(t('maxFotos'),'info'); return; } $('#d-fotoInput').click(); });
 $('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; if(!file) return;
   try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotos.push(anexo); renderDraftFotos(); } }
-  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+  catch(err){ toast(err && err.message ? err.message : 'Erro ao processar o anexo','err'); }
   e.target.value='';
 });
-$('#m-addFoto') && ($('#m-addFoto').onclick=()=>{ if((caixaState.draftFotosMov||[]).length>=3){ alert(t('maxFotos')); return; } $('#m-fotoInput').click(); });
+$('#m-addFoto') && ($('#m-addFoto').onclick=()=>{ if((caixaState.draftFotosMov||[]).length>=3){ toast(t('maxFotos'),'info'); return; } $('#m-fotoInput').click(); });
 $('#m-fotoInput') && ($('#m-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; if(!file) return;
   try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotosMov.push(anexo); renderDraftFotosMov(); } }
-  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+  catch(err){ toast(err && err.message ? err.message : 'Erro ao processar o anexo','err'); }
   e.target.value='';
 });
 // processa um arquivo (imagem OU pdf) -> {dataUrl, kind:'img'|'pdf', filename}
@@ -1478,7 +1480,7 @@ async function processAnexo(file){
 $('#despSave') && ($('#despSave').onclick=async()=>{
   if(writeBlocked()) return;
   const desc=$('#d-desc').value.trim(); const v=parseFloat(($('#d-valor').value||'').replace(',','.'));
-  if(!desc||!v||v<=0){ alert(t('nomeObrig')); return; }
+  if(!desc||!v||v<=0){ toast(t('nomeObrig'),'info'); return; }
   // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
   const btn=$('#despSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
   // valida upload das fotos ANTES de salvar; se alguma falhar, aborta e avisa (não finge que subiu)
@@ -1486,7 +1488,7 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
     btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
     const up=await uploadPendentes(caixaState.draftFotos);
     btn.disabled=false; btnLabel(btn, orig);
-    if(!up.ok){ alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+    if(!up.ok){ toast(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+' ('+up.error+')'),'err'); return; }
   }
   const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
   rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
@@ -1533,15 +1535,15 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   if(writeBlocked()) return;
   const de=bolsoFromLabel($('#m-de').value), para=bolsoFromLabel($('#m-para').value);
   const v=parseFloat(($('#m-valor').value||'').replace(',','.'));
-  if(de===para){ alert('Origem e destino devem ser diferentes.'); return; }
-  if(!v||v<=0){ alert(t('nomeObrig')); return; }
+  if(de===para){ toast(t('origemDestinoIguais'),'info'); return; }
+  if(!v||v<=0){ toast(t('nomeObrig'),'info'); return; }
   // sobe anexos novos (dataUrl) para o Drive antes de gravar; aborta se falhar
   const btn=$('#movSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
   if((caixaState.draftFotosMov||[]).some(f=>!f.url && f.dataUrl)){
     btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
     const up=await uploadPendentes(caixaState.draftFotosMov);
     btn.disabled=false; btnLabel(btn, orig);
-    if(!up.ok){ alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+    if(!up.ok){ toast(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+' ('+up.error+')'),'err'); return; }
   }
   const all=caixaState.movimentos; let rec=caixaState.editMov? all.find(x=>x.id===caixaState.editMov):{};
   rec.de=de; rec.para=para; rec.valor=v; rec.data=$('#m-data').value||hoje(); rec.comentario=$('#m-comentario').value.trim();
@@ -2009,8 +2011,8 @@ function renderImpersonateUI(){
 }
 // bloqueia escrita enquanto "vendo como" (evita gravar como admin achando que é o papel simulado)
 function writeBlocked(){
-  if(effectiveRole()==='viewer'){ alert(t('viewerBloqueio')); return true; }   // Visualizador: read-only
-  if(isImpersonating()){ alert(t('verComoBloqueio')); return true; }
+  if(effectiveRole()==='viewer'){ toast(t('viewerBloqueio'),'info'); return true; }   // Visualizador: read-only
+  if(isImpersonating()){ toast(t('verComoBloqueio'),'info'); return true; }
   return false;
 }
 
@@ -2381,8 +2383,8 @@ $('#btnLogout') && ($('#btnLogout').onclick=logout);
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
 $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }
-  try{ setSync('syncing'); const all=await getAll(); await pushAll(all); clearPending(); await pull(); setSync('ok'); refresh(); alert('OK'); }
-  catch(e){ setSync('err'); alert('Erro: '+e.message); }
+  try{ setSync('syncing'); const all=await getAll(); await pushAll(all); clearPending(); await pull(); setSync('ok'); refresh(); toast(t('okGenerico'),'ok'); }
+  catch(e){ setSync('err'); toast(t('erroGenerico')+': '+e.message,'err'); }
 });
 $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
   if(!(await confirmDialog(t('recarregarBaseT'), t('confirmRecarregar'), {perigo:true}))) return;
@@ -2403,8 +2405,8 @@ $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
       if(rest.length) await pushAll(rest);
       await pull();
     }
-    setSync('ok'); refresh(); alert('OK — base recarregada ('+base.length+')');
-  }catch(e){ setSync('err'); alert('Erro: '+e.message); }
+    setSync('ok'); refresh(); toast(t('okRecarregada', {n:base.length}),'ok');
+  }catch(e){ setSync('err'); toast(t('erroGenerico')+': '+e.message,'err'); }
 });
 // ---- backup/restore de USUARIOS (acessos) — exclusivo admin ----
 $('#btnBackupUsers') && ($('#btnBackupUsers').onclick=async()=>{
@@ -2417,7 +2419,7 @@ $('#btnBackupUsers') && ($('#btnBackupUsers').onclick=async()=>{
       JSON.stringify({projeto:'Projeto Gideão 300', tipo:'acessos', exportadoEm:new Date().toISOString(), usuarios:users}, null, 2),
       'application/json');
     setSync('ok');
-  }catch(e){ setSync('err'); alert(t('erroRestaurar')+': '+e.message); }
+  }catch(e){ setSync('err'); toast(t('erroRestaurar')+': '+e.message,'err'); }
 });
 $('#fileRestoreUsers') && ($('#fileRestoreUsers').onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -2429,19 +2431,19 @@ $('#fileRestoreUsers') && ($('#fileRestoreUsers').onchange=async e=>{
     const data=JSON.parse(txt);
     users=data.usuarios||data.users||data;
     if(!Array.isArray(users)) throw new Error('formato');
-  }catch(err){ alert(t('jsonInvalido')); e.target.value=''; return; }
+  }catch(err){ toast(t('jsonInvalido'),'err'); e.target.value=''; return; }
   try{
     setSync('syncing');
     const d=await usersApi('replaceUsers',{users:users});
     accessUsers=d.users||users; renderAccess();
     setSync('ok');
-    alert(t('okRestaurado', {n:(d.users||users).length}));
+    toast(t('okRestaurado', {n:(d.users||users).length}),'ok');
   }catch(err){
     setSync('err');
     const msg = err.message==='must_have_admin' ? t('erroPrecisaAdmin')
               : err.message==='no_valid_users' ? t('erroSemUsuarios')
               : t('erroRestaurar')+': '+err.message;
-    alert(msg);
+    toast(msg,'err');
   }
   e.target.value='';
 });
