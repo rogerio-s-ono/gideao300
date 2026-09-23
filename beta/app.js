@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta19';
+const APP_VERSION = 'v4.1.0-beta20';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -105,7 +105,7 @@ const I18N = {
     novaMovimentacao:'Nova movimentação', editarMovimentacao:'Editar movimentação', de:'De', para:'Para', comentario:'Comentário',
     arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?',
     extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento',
-    fotosFatura:'Fotos da fatura (até 3)', tirarFoto:'📷 Tirar/anexar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.',
+    fotosFatura:'Comprovante — foto ou PDF (até 3)', tirarFoto:'📎 Anexar comprovante (foto ou PDF)', verFoto:'Ver comprovante', enviandoFoto:'Enviando anexo…', maxFotos:'Máximo de 3 anexos.', pdfGrande:'PDF muito grande (máx. 5 MB). Reduza o arquivo e tente novamente.',
     fotoSemConexao:'Sem conexão para enviar a foto. Conecte-se à internet e tente salvar novamente (ou remova a foto para salvar sem ela).',
     fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
@@ -194,7 +194,7 @@ const I18N = {
     novaMovimentacao:'Nuevo traspaso', editarMovimentacao:'Editar traspaso', de:'De', para:'A', comentario:'Comentario',
     arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?',
     extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago',
-    fotosFatura:'Fotos de la factura (hasta 3)', tirarFoto:'📷 Tomar/adjuntar foto', verFoto:'Ver foto', enviandoFoto:'Enviando foto…', maxFotos:'Máximo de 3 fotos.',
+    fotosFatura:'Comprobante — foto o PDF (hasta 3)', tirarFoto:'📎 Adjuntar comprobante (foto o PDF)', verFoto:'Ver comprobante', enviandoFoto:'Enviando adjunto…', maxFotos:'Máximo de 3 adjuntos.', pdfGrande:'PDF demasiado grande (máx. 5 MB). Reduce el archivo e intenta de nuevo.',
     fotoSemConexao:'Sin conexión para enviar la foto. Conéctate a internet e intenta guardar de nuevo (o quita la foto para guardar sin ella).',
     fotoFalhou:'No se pudo enviar la foto. El gasto NO se guardó. Intenta de nuevo o quita la foto.'
   }
@@ -1292,9 +1292,13 @@ function compressImage(file, maxDim, quality){
 }
 function renderDraftFotos(){
   const el=$('#d-fotos'); if(!el) return;
+  const pdfSvg='<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zm-1 7V3.5L18.5 9z"/></svg>';
   el.innerHTML=(caixaState.draftFotos||[]).map((f,idx)=>{
+    if(f.kind==='pdf'){   // pdf local (ainda não enviado)
+      return `<div class="foto-thumb pdf foto-open" data-i="${idx}">${pdfSvg}<small>PDF</small><button type="button" class="rm" data-i="${idx}">×</button></div>`;
+    }
     const src = f.dataUrl || thumbFromUrl(f.url);
-    return `<div class="foto-thumb"><img src="${src}" alt="foto" class="foto-open" data-i="${idx}"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
+    return `<div class="foto-thumb"><img src="${src}" alt="anexo" class="foto-open" data-i="${idx}"><button type="button" class="rm" data-i="${idx}">×</button></div>`;
   }).join('');
   el.querySelectorAll('.rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); caixaState.draftFotos.splice(+b.dataset.i,1); renderDraftFotos(); });
   el.querySelectorAll('.foto-open').forEach(im=>im.onclick=()=>{ const f=caixaState.draftFotos[+im.dataset.i]; openFoto(f); });
@@ -1302,8 +1306,9 @@ function renderDraftFotos(){
 }
 function openFoto(f){
   if(!f) return;
-  if(f.url){ window.open(f.url, '_blank'); return; }   // foto já no Drive -> abre em nova aba
-  // foto local (ainda não enviada) -> lightbox com o dataUrl
+  if(f.url){ window.open(f.url, '_blank'); return; }   // já no Drive -> abre em nova aba
+  if(f.kind==='pdf'){ try{ window.open(f.dataUrl, '_blank'); }catch(e){} return; }  // pdf local -> abre em aba
+  // imagem local (ainda não enviada) -> lightbox com o dataUrl
   const lb=$('#fotoLightbox'), img=$('#fotoLightImg');
   if(lb && img){ img.src=f.dataUrl; lb.classList.remove('hidden'); }
 }
@@ -1313,10 +1318,24 @@ $('#fotoLightbox') && ($('#fotoLightbox').addEventListener('click',e=>{ if(e.tar
 $('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ alert(t('maxFotos')); return; } $('#d-fotoInput').click(); });
 $('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; if(!file) return;
-  try{ const dataUrl=await compressImage(file, 1280, 0.7); caixaState.draftFotos.push({dataUrl}); renderDraftFotos(); }
-  catch(err){ alert('Erro ao processar a foto'); }
+  try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotos.push(anexo); renderDraftFotos(); } }
+  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
   e.target.value='';
 });
+// processa um arquivo (imagem OU pdf) -> {dataUrl, kind:'img'|'pdf', filename}
+// imagem: comprime via canvas; pdf: lê direto, valida tamanho (~5MB). Reutilizável (despesas/mov/pagamentos).
+const MAX_PDF_BYTES = 5*1024*1024;
+async function processAnexo(file){
+  const isPdf = file.type==='application/pdf' || /\.pdf$/i.test(file.name||'');
+  if(isPdf){
+    if(file.size > MAX_PDF_BYTES){ throw new Error(t('pdfGrande')); }
+    const dataUrl = await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); });
+    return { dataUrl, kind:'pdf', filename:(file.name||('comprovante_'+Date.now()+'.pdf')) };
+  }
+  // imagem
+  const dataUrl = await compressImage(file, 1280, 0.7);
+  return { dataUrl, kind:'img', filename:('comprovante_'+Date.now()+'.jpg') };
+}
 $('#despSave') && ($('#despSave').onclick=async()=>{
   if(writeBlocked()) return;
   const desc=$('#d-desc').value.trim(); const v=parseFloat(($('#d-valor').value||'').replace(',','.'));
@@ -1335,7 +1354,7 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
       let d=null, err=null;
       try{
         const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:'fatura_'+Date.now()+'.jpg'})}, 45000);
+          body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:(f.filename || ('comprovante_'+Date.now()+(f.kind==='pdf'?'.pdf':'.jpg')))})}, 45000);
         try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
       }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
       if(!d || !d.ok || !d.url){
