@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta11';
+const APP_VERSION = 'v4.1.0-beta12';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -361,7 +361,7 @@ async function renderList(){
     const st=statusPag(i), soma=somaPago(i), falta=i.cota-soma;
     // badges à direita: pagamento + entregue/estado camisa (+ revisar)
     const right=[];
-    if(st==='isento') right.push(`<span class="b isento">${t('sIsento')}</span>`);
+    if(st==='isento'){ /* isento: sem tag no card (discreto) */ }
     else if(st==='pago') right.push(`<span class="b pago">${t('sPago')}</span>`);
     else if(st==='parcial') right.push(`<span class="b parcial">${t('faltam',{v:falta})}</span>`);
     else right.push(`<span class="b pend">${t('sPend')}</span>`);
