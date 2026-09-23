@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta8';
+const APP_VERSION = 'v4.1.0-beta9';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -38,8 +38,8 @@ const I18N = {
     restaurarBackup:'Restaurar backup (JSON)', imprimirPdf:'Imprimir / PDF',
     backupNota:'O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.',
     zerar:'Apagar tudo e recarregar dados iniciais',
-    fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos',
-    sPago:'Pago', sPend:'Pendente',
+    fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos', fIsento:'Isentos', isentoLabel:'Isento (não paga — pastor/convidado)',
+    sPago:'Pago', sPend:'Pendente', sIsento:'Isento',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
     metaCampanha:'Meta da campanha', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
@@ -127,8 +127,8 @@ const I18N = {
     restaurarBackup:'Restaurar copia (JSON)', imprimirPdf:'Imprimir / PDF',
     backupNota:'La copia permite pasar los datos entre los líderes (WhatsApp, Drive). Importar reemplaza los datos actuales.',
     zerar:'Borrar todo y recargar datos iniciales',
-    fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos',
-    sPago:'Pagado', sPend:'Pendiente',
+    fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos', fIsento:'Exentos', isentoLabel:'Exento (no paga — pastor/invitado)',
+    sPago:'Pagado', sPend:'Pendiente', sIsento:'Exento',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
     metaCampanha:'Meta de la campaña', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
@@ -256,7 +256,10 @@ async function seedIfEmpty(){
 const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
 const somaPago=i=>(i.pagamentos||[]).reduce((a,p)=>a+(+p.valor||0),0);
-function statusPag(i){ const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
+const isIsento=i=>!!(i&&i.isento);
+function statusPag(i){ if(isIsento(i)) return 'isento'; const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
+// pode entrar na confecção/produção: quem pagou a cota OU é isento (pastor/convidado)
+const podeProduzir=i=>statusPag(i)==='pago' || isIsento(i);
 // calcula os 3 bolsos (dinheiro/banco/outros), saldo do projeto e formas
 function computeCaixa(inscritos, despesas, movimentos){
   const bolso={dinheiro:0,banco:0,outros:0};
@@ -313,7 +316,7 @@ function fmtNum(v){
 let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{} };
 
 /* ---------- render lista ---------- */
-const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['revisar','fRevisar']];
+const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['isento','fIsento'],['revisar','fRevisar']];
 function renderFilters(){
   $('#filters').innerHTML=FILTERS.map(([k,l])=>`<div class="chip ${state.filter===k?'active':''}" data-f="${k}">${t(l)}</div>`).join('');
   $$('#filters .chip').forEach(c=>c.onclick=()=>{state.filter=c.dataset.f;renderFilters();renderList();});
@@ -339,7 +342,8 @@ async function getFiltered(){
       case 'pago': return st==='pago';
       case 'parcial': return st==='parcial';
       case 'pend': return st==='pend';
-      case 'entregar': return statusPag(i)==='pago' && i.camisaEstado===EST.PRONTA;
+      case 'isento': return st==='isento';
+      case 'entregar': return podeProduzir(i) && i.camisaEstado===EST.PRONTA;
       case 'revisar': return i.aRevisar;
       default: return true;
     }
@@ -357,10 +361,11 @@ async function renderList(){
     const st=statusPag(i), soma=somaPago(i), falta=i.cota-soma;
     // badges à direita: pagamento + entregue/estado camisa (+ revisar)
     const right=[];
-    if(st==='pago') right.push(`<span class="b pago">${t('sPago')}</span>`);
+    if(st==='isento') right.push(`<span class="b isento">${t('sIsento')}</span>`);
+    else if(st==='pago') right.push(`<span class="b pago">${t('sPago')}</span>`);
     else if(st==='parcial') right.push(`<span class="b parcial">${t('faltam',{v:falta})}</span>`);
     else right.push(`<span class="b pend">${t('sPend')}</span>`);
-    if(st==='pago'){
+    if(st==='pago' || st==='isento'){
       if(i.camisaEstado===EST.EMCONF) right.push(`<span class="b parcial">${t('est1')}</span>`);
       else if(i.camisaEstado===EST.PRONTA) right.push(`<span class="b pronta">${t('est2')}</span>`);
       else if(i.camisaEstado===EST.ENTREGUE) right.push(`<span class="b entregue">${t('est3')}</span>`);
@@ -426,11 +431,13 @@ async function renderPainel(){
   const pagos=all.filter(i=>statusPag(i)==='pago').length;
   const parcial=all.filter(i=>statusPag(i)==='parcial').length;
   const pend=all.filter(i=>statusPag(i)==='pend').length;
+  const isentos=all.filter(i=>statusPag(i)==='isento').length;
   const prontas=all.filter(i=>(i.camisaEstado||0)>=EST.PRONTA).length;
   const entregues=all.filter(i=>(i.camisaEstado||0)===EST.ENTREGUE).length;
   const arrec=all.reduce((a,i)=>a+somaPago(i),0);
+  // "a receber" NÃO inclui isentos (não devem nada): soma o que falta só dos não-isentos
+  const areceber=all.reduce((a,i)=> isIsento(i)? a : a+Math.max(0,(i.cota||COTA)-somaPago(i)), 0);
   const totalCota=all.reduce((a,i)=>a+i.cota,0);
-  const areceber=totalCota-arrec;
   const pct=Math.min(100,Math.round(n/META*100));
   // --- META: termometro financeiro + 2 aneis (inscritos e pagos) ---
   const metaFin = META * COTA;                     // 300 x 300 = 90.000
@@ -439,7 +446,7 @@ async function renderPainel(){
   const cotasFalta = Math.max(0, META - pagos);
   const pagantes = pagos + parcial;                // pessoas que já contribuíram (pago + parcial)
   const aInscrever = Math.max(0, META - n);
-  const aReceberN = Math.max(0, n - pagos);        // inscritos que ainda não pagaram integral
+  const aReceberN = Math.max(0, n - pagos - isentos);   // não pagos, excluindo isentos (não devem)
   const pctInsc = Math.round(n/META*100);
   const pctPagos = n>0 ? Math.round(pagos/n*100) : 0;
   // termometro: tubo y 10..170 (160px), bulbo 188
@@ -499,11 +506,11 @@ async function renderPainel(){
   all.forEach(i=>{
     const s=(i.tamanho||'—').trim()||'—';
     if(!bySize[s]) bySize[s]={prod:0,fazer:0,pot:0,tot:0};
-    const pago = statusPag(i)==='pago';
+    const pago = podeProduzir(i);                   // pago OU isento → entra na produção
     const est = i.camisaEstado||0;
     let fase;
     if(pago && est>=EST.PRONTA) fase='prod';        // já existe (pronta/entregue)
-    else if(pago) fase='fazer';                     // pago, ainda a produzir
+    else if(pago) fase='fazer';                     // pago/isento, ainda a produzir
     else fase='pot';                                // pendente de pagamento
     bySize[s][fase]++; bySize[s].tot++;
     if(fase==='prod') totProd++; else if(fase==='fazer') totFazer++; else totPot++;
@@ -610,7 +617,7 @@ async function renderConfeccao(){
   const all=await getAll();
   const c=[0,0,0,0]; let pendPagCount=0;
   all.forEach(i=>{
-    if(statusPag(i)!=='pago'){ pendPagCount++; return; }  // sem pagamento completo -> não entra em nenhuma etapa
+    if(!podeProduzir(i)){ pendPagCount++; return; }  // sem cota completa e não isento -> não entra em nenhuma etapa
     c[i.camisaEstado||0]++;
   });
   // contagens para os badges dos filtros (contador dentro do chip)
@@ -619,7 +626,7 @@ async function renderConfeccao(){
   renderConfList();
   // resumo por tamanho x estado (para produção): pagos por tamanho e status
   const bySize={}; const totCol=[0,0,0,0];
-  all.forEach(i=>{ if(statusPag(i)!=='pago') return; const s=(i.tamanho||'—').trim()||'—'; if(!bySize[s])bySize[s]=[0,0,0,0]; const e=i.camisaEstado||0; bySize[s][e]++; totCol[e]++; });
+  all.forEach(i=>{ if(!podeProduzir(i)) return; const s=(i.tamanho||'—').trim()||'—'; if(!bySize[s])bySize[s]=[0,0,0,0]; const e=i.camisaEstado||0; bySize[s][e]++; totCol[e]++; });
   const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
   const keys=Object.keys(bySize).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   const totGeral=totCol[0]+totCol[1]+totCol[2]+totCol[3];
@@ -636,18 +643,18 @@ async function renderConfList(){
     if(qn && !norm(i.nome).includes(qn)) return false;   // busca por nome (sem acento)
     if(f==='todos') return true;
     // filtro "pendente de pagamento": Gideões sem pagamento completo
-    if(f==='pend') return statusPag(i)!=='pago';
+    if(f==='pend') return !podeProduzir(i);
     // mantém visível qualquer card em edição, para não sumir ao trocar status antes de salvar
     if(i.id in state.confDirty) return true;
     // gate de pagamento: sem pagamento completo não entra em nenhuma etapa (A fazer/Em conf/Pronta/Entregue)
-    if(statusPag(i)!=='pago') return false;
+    if(!podeProduzir(i)) return false;
     return (i.camisaEstado||0)===+f;
   });
   const el=$('#confList');
   if(!filtered.length){ el.innerHTML=`<div class="empty">${t('vazio')}</div>`; return; }
   const EST_LABELS=['est0','est1','est2','est3'];
   el.innerHTML=filtered.map(i=>{
-    const pago = statusPag(i)==='pago';
+    const pago = podeProduzir(i);
     const e = effEstado(i);
     const datas = effDatas(i);
     const dirty = i.id in state.confDirty;
@@ -679,7 +686,7 @@ async function renderConfList(){
   $$('#confList .pill-st').forEach(p=>p.onclick=()=>{
     const id=+p.dataset.id, est=+p.dataset.est;
     const rec=all.find(x=>x.id===id);
-    if(statusPag(rec)!=='pago') return;
+    if(!podeProduzir(rec)) return;
     setDirtyEstado(rec, est);
     updateSaveBtn(); renderConfList();
   });
@@ -845,6 +852,8 @@ async function openModal(id){
   const restanteOpen=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   $('#p-valor').value = restanteOpen>0 ? String(restanteOpen) : ''; $('#p-data').value=hoje();
   $('#del').classList.toggle('hidden', !rec);
+  const isEl=$('#f-isento'); if(isEl){ isEl.checked = rec?!!rec.isento:false; }
+  updateIsentoVis();
   renderPays();
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
@@ -926,6 +935,14 @@ function renderPays(){
   // esconde a área de adicionar pagamento quando a cota já está completa
   const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', soma>=COTA);
 }
+// Isento: esconde pagamentos (lista + adicionar) quando marcado
+function updateIsentoVis(){
+  const on = $('#f-isento') && $('#f-isento').checked;
+  const pl=$('#paysList'); if(pl) pl.classList.toggle('hidden', on);
+  const sb=$('#saldoBox'); if(sb) sb.classList.toggle('hidden', on);
+  const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', on || (state.draftPays.reduce((a,p)=>a+(+p.valor||0),0)>=COTA));
+}
+$('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); });
 $('#addPay').onclick=()=>{
   const v=parseFloat(($('#p-valor').value||'').replace(',','.'));
   if(!v||v<=0) return;
@@ -952,11 +969,12 @@ $('#save').onclick=async()=>{
   if(writeBlocked()) return;
   const nome=$('#f-nome').value.trim();
   if(!nome){ alert(t('nomeObrig')); return; }
+  const isento = !!($('#f-isento') && $('#f-isento').checked);
   // reforço defensivo: valor de pagamento digitado mas NÃO adicionado
   // (ignora o "restante" auto-preenchido — só avisa se o usuário digitou algo diferente)
   const pv=parseFloat(($('#p-valor').value||'').replace(',','.'));
   const restanteAtual=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
-  if(pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
+  if(!isento && pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
     if(confirm(t('pagamentoNaoAdicionado'))){ $('#addPay').click(); }
   }
   const all=await getAll();
@@ -967,7 +985,8 @@ $('#save').onclick=async()=>{
   rec.telefone=$('#f-telefone').value.trim();
   rec.tamanho=$('#f-tamanho').value;
   rec.cota=COTA;
-  rec.pagamentos=state.draftPays;
+  rec.isento=isento;
+  rec.pagamentos=isento? [] : state.draftPays;   // isento não tem pagamentos
   if(rec.camisaEstado===undefined) rec.camisaEstado=0;
   rec.aRevisar=$('#f-revisar').checked;
   rec.observacoes=$('#f-obs').value.trim();
@@ -1058,7 +1077,7 @@ async function buildPrint(){
   const rows=all.map(i=>{
     const soma=somaPago(i), st=statusPag(i);
     const stTxt=st==='pago'?t('sPago'):st==='parcial'?t('faltam',{v:i.cota-soma}):t('sPend');
-    const camisa = statusPag(i)==='pago' ? t(estKey(i.camisaEstado||0)) : t('pendPag');
+    const camisa = podeProduzir(i) ? t(estKey(i.camisaEstado||0)) : t('pendPag');
     return `<tr>
       <td>${esc(fmtNum(i.numero))}</td>
       <td>${esc(i.nome)}</td>

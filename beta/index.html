@@ -177,7 +177,10 @@
   .b.pend{background:var(--soft-grey);color:var(--grey)}
   .b.entregue{background:var(--accent-soft);color:var(--accent)}
   .b.pronta{background:#eae6dc;color:#7a6a45}
+  .b.isento{background:#e4eefc;color:#0050CA}
   .b.revisar{background:var(--soft-red);color:var(--red)}
+  .isento-row{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink);background:#eceaf4;border:1px solid #d8d2e6;border-radius:8px;padding:9px 11px;margin:2px 0 10px;cursor:pointer}
+  .isento-row input{width:18px;height:18px;accent-color:#0050CA}
   .b.cust-pastor{background:#e4eefc;color:#0050CA}
   .b.cust-teso{background:#e9f1eb;color:#329864}
   .card .tam{font-weight:600;color:var(--ink);font-size:13px;background:var(--soft-grey);border-radius:6px;padding:3px 7px}
@@ -694,6 +697,7 @@
 
     <div class="grp" id="addPayArea">
     <div class="gh" data-i="pagamentos">Pagamentos (cota 300€)</div>
+    <label class="isento-row"><input type="checkbox" id="f-isento"> <span data-i="isentoLabel">Isento (não paga — pastor/convidado)</span></label>
     <div id="paysList"></div>
     <div class="saldo" id="saldoBox"></div>
     <div class="pay-sub" id="addPaySub">
