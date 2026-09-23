@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta6';
+const APP_VERSION = 'v4.1.1-beta7';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -21,7 +21,7 @@ const estColor = e => ['var(--grey)','var(--amber)','#7a6a45','var(--green)'][e|
 /* ---------- i18n ---------- */
 const I18N = {
   pt:{
-    appTitle:'Projeto Gideão 300', buscar:'Buscar por nome...', buscaAvancada:'Busca avançada', buscaAvancadaHint:'(inclui observação, notas e tamanho)',
+    appTitle:'Projeto Gideão 300', buscar:'Buscar por nome...', buscaAvancada:'Busca avançada', buscaAvancadaHint:'(inclui observação, notas e tamanho)', avancada:'Avançada',
     navLista:'Gideões', navPainel:'Painel', navMais:'Mais',
     novoInscrito:'Novo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Tamanho', nome:'Nome', telefone:'Telefone',
@@ -112,7 +112,7 @@ const I18N = {
     fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
   es:{
-    appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...', buscaAvancada:'Búsqueda avanzada', buscaAvancadaHint:'(incluye observación, notas y talla)',
+    appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...', buscaAvancada:'Búsqueda avanzada', buscaAvancadaHint:'(incluye observación, notas y talla)', avancada:'Avanzada',
     navLista:'Gedeones', navPainel:'Panel', navMais:'Más',
     novoInscrito:'Nuevo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Talla', nome:'Nombre', telefone:'Teléfono',
