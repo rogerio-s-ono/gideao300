@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta1';
+const APP_VERSION = 'v4.1.1-beta2';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -32,7 +32,8 @@ const I18N = {
     maisRecente:'Mais recente', maisAntigo:'Mais antigo',
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
-    salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar',
+    salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
+    restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     porTamanho:'Por tamanho (para a gráfica)', financeiro:'Financeiro',
     dadosBackup:'Dados e backup', exportarExcel:'Exportar Excel (CSV)', baixarBackup:'Baixar backup (JSON)',
     restaurarBackup:'Restaurar backup (JSON)', imprimirPdf:'Imprimir / PDF',
@@ -121,7 +122,8 @@ const I18N = {
     maisRecente:'Más reciente', maisAntigo:'Más antiguo',
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
-    salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar',
+    salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
+    restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     porTamanho:'Por talla (para la imprenta)', financeiro:'Finanzas',
     dadosBackup:'Datos y copia', exportarExcel:'Exportar Excel (CSV)', baixarBackup:'Descargar copia (JSON)',
     restaurarBackup:'Restaurar copia (JSON)', imprimirPdf:'Imprimir / PDF',
@@ -255,6 +257,43 @@ async function seedIfEmpty(){
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
+
+/* ---------- UI: confirmação (modal) e toast (feedback) — substitui confirm()/alert() nativos ---------- */
+// confirmDialog(titulo,msg,{perigo,okText,cancelText}) -> Promise<bool>
+function confirmDialog(titulo, msg, opts){
+  opts=opts||{};
+  return new Promise((resolve)=>{
+    const m=$('#appConfirm'); if(!m){ resolve(window.confirm(msg||titulo)); return; }
+    const perigo=!!opts.perigo;
+    $('#acTitle').textContent=titulo||'';
+    $('#acMsg').textContent=msg||'';
+    const iw=$('#acIconWrap'); iw.classList.remove('danger','warn'); iw.classList.add(perigo?'danger':'warn');
+    $('#acIconDanger').classList.toggle('hidden', !perigo);
+    $('#acIconWarn').classList.toggle('hidden', perigo);
+    const ok=$('#acOk'); ok.textContent=opts.okText || (perigo? t('excluir') : t('confirmar'));
+    ok.className='btn '+(perigo?'danger':'primary'); ok.id='acOk';
+    const cancel=$('#acCancel'); cancel.textContent=opts.cancelText || t('cancelar');
+    const close=(val)=>{ m.classList.add('hidden'); ok.onclick=null; cancel.onclick=null; m.onclick=null; resolve(val); };
+    ok.onclick=()=>close(true);
+    cancel.onclick=()=>close(false);
+    m.onclick=(e)=>{ if(e.target===m) close(false); };   // clicar no fundo = cancela
+    m.classList.remove('hidden');
+  });
+}
+// toast(msg, tipo) — tipo: 'ok' | 'err' | 'info' (default info). Some em ~2.6s.
+let _toastTimer=null;
+function toast(msg, tipo){
+  const wrap=$('#toastWrap'); if(!wrap){ return; }
+  tipo=tipo||'info';
+  const icon = tipo==='ok' ? '<path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>'
+             : tipo==='err' ? '<path d="M12 2 1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>'
+             : '<path d="M11 7h2v2h-2V7zm0 4h2v6h-2v-6zm1-9a10 10 0 100 20 10 10 0 000-20z"/>';
+  wrap.innerHTML=`<div class="toast ${tipo}"><svg class="ti" viewBox="0 0 24 24">${icon}</svg><span>${esc(msg)}</span></div>`;
+  const el=wrap.querySelector('.toast');
+  requestAnimationFrame(()=>el.classList.add('show'));
+  if(_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>{ if(el){ el.classList.remove('show'); setTimeout(()=>{ if(wrap.contains(el)) wrap.innerHTML=''; },250); } }, 2600);
+}
 const somaPago=i=>(i.pagamentos||[]).reduce((a,p)=>a+(+p.valor||0),0);
 const isIsento=i=>!!(i&&i.isento);
 function statusPag(i){ if(isIsento(i)) return 'isento'; const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
@@ -1033,7 +1072,7 @@ $('#save').onclick=async()=>{
   const pv=parseFloat(($('#p-valor').value||'').replace(',','.'));
   const restanteAtual=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   if(!isento && pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
-    if(confirm(t('pagamentoNaoAdicionado'))){ $('#addPay').click(); }
+    if(await confirmDialog(t('pagamentoNaoAddT'), t('pagamentoNaoAdicionado'), {perigo:false, okText:t('adicionarESalvar'), cancelText:t('salvarSemAdd')})){ $('#addPay').click(); }
   }
   // sobe comprovantes pendentes de CADA parcela (Cartão/Outros) antes de gravar; aborta se falhar
   if(!isento){
@@ -1073,7 +1112,7 @@ $('#save').onclick=async()=>{
   closeModal(); refresh();
   if(ONLINE_ENABLED) syncNow();
 };
-$('#del').onclick=async()=>{ if(!state.editing) return; if(!confirm(t('confirmDel'))) return; await del(state.editing); closeModal(); refresh(); };
+$('#del').onclick=async()=>{ if(!state.editing) return; if(!(await confirmDialog(t('excluirGideaoT'), t('confirmDel'), {perigo:true}))) return; await del(state.editing); closeModal(); refresh(); };
 $('#cancel').onclick=()=>tryCloseModal();
 $('#modalBack').onclick=()=>tryCloseModal();
 $('#modal').addEventListener('click',(e)=>{ if(e.target.id==='modal') tryCloseModal(); });  // clicar no fundo
@@ -1183,7 +1222,7 @@ async function buildPrint(){
 $('#btnImprimir').onclick=async()=>{ await buildPrint(); window.print(); };
 $('#fileRestore').onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
-  if(!confirm(t('confirmRestore'))){ e.target.value=''; return; }
+  if(!(await confirmDialog(t('restaurarBackupT'), t('confirmRestore'), {perigo:true, okText:t('restaurar')}))){ e.target.value=''; return; }
   const txt=await f.text();
   // 1) valida o JSON ANTES de tocar em qualquer dado (se invalido, nada e apagado)
   let arr, despIn, movIn;
@@ -1460,7 +1499,7 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   const newId=await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id!=null?rec.id:newId);
   $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
-$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
+$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!(await confirmDialog(t('excluirDespT'), t('confirmDelDesp'), {perigo:true}))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
 $('#despCancel') && ($('#despCancel').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despBack') && ($('#despBack').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal'){ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
@@ -1514,7 +1553,7 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   const newId=await sPut(STORE_MOV, rec); markPendingKV('mov', rec.id!=null?rec.id:newId);
   $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
-$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
+$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!(await confirmDialog(t('excluirMovT'), t('confirmDelMov'), {perigo:true}))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
 $('#movCancel') && ($('#movCancel').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movBack') && ($('#movBack').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
@@ -2330,7 +2369,7 @@ $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   catch(e){ setSync('err'); alert('Erro: '+e.message); }
 });
 $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
-  if(!confirm(t('confirmRecarregar'))) return;
+  if(!(await confirmDialog(t('recarregarBaseT'), t('confirmRecarregar'), {perigo:true}))) return;
   try{
     setSync('syncing');
     // 1) carrega os 70 originais do seed.json
@@ -2367,7 +2406,7 @@ $('#btnBackupUsers') && ($('#btnBackupUsers').onclick=async()=>{
 $('#fileRestoreUsers') && ($('#fileRestoreUsers').onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
   if(effectiveRole()!=='admin' && !auth.realAdmin){ e.target.value=''; return; }
-  if(!confirm(t('confirmRestoreUsers'))){ e.target.value=''; return; }
+  if(!(await confirmDialog(t('restaurarUsersT'), t('confirmRestoreUsers'), {perigo:true, okText:t('restaurar')}))){ e.target.value=''; return; }
   const txt=await f.text();
   let users;
   try{
