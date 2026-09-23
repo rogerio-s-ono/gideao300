@@ -249,6 +249,9 @@
   .btn.danger{background:var(--soft-red);color:var(--red)}
   .btn.ok{background:var(--soft-green);color:var(--green)}
   .btn.accent{background:var(--accent);color:#fff}
+  .obs-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .revisar-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;margin:0}
+  .revisar-chk input{width:15px;height:15px;accent-color:var(--amber)}
   #updateRow{padding:0} #updateRow .btn{margin-top:6px}
   /* bloco de adicionar pagamento (item 6) */
   .pay-block{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfaf7;margin-top:10px}
@@ -767,10 +770,12 @@
     </div>
     </div>
 
-    <label data-i="observacoes">Observações</label><textarea id="f-obs"></textarea>
+    <div class="obs-head">
+      <label data-i="observacoes">Observações</label>
+      <label class="revisar-chk hidden" id="revisarLine"><input type="checkbox" id="f-revisar"> <span data-i="aRevisar">A revisar</span></label>
+    </div>
+    <textarea id="f-obs"></textarea>
     <details style="margin-top:8px"><summary class="note" data-i="textoOriginal">Texto original</summary><p class="note" id="f-orig"></p></details>
-
-    <div class="toggle hidden" id="revisarLine"><span data-i="aRevisar">A revisar</span><input type="checkbox" id="f-revisar"></div>
 
     <div class="toggle hidden" id="camisaStatusLine" style="cursor:pointer;margin-top:12px">
       <span data-i="camisaStatus">Estado da camisa</span>
