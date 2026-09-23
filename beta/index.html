@@ -164,6 +164,9 @@
   .q-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;padding:6px;display:flex;align-items:center;color:var(--muted);cursor:pointer}
   .q-clear svg{width:18px;height:18px;fill:currentColor}
   .q-clear:hover{color:var(--accent)}
+  .adv-search{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin:8px 2px 0;cursor:pointer}
+  .adv-search input{width:15px;height:15px;accent-color:var(--accent)}
+  .adv-search .adv-hint{color:var(--muted);opacity:.75;font-size:11px}
   .viewtoggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
   .viewtoggle button{border:0;background:none;padding:10px 11px;color:var(--muted);display:flex;align-items:center}
   .viewtoggle button.active{background:var(--primary);color:#fff}
@@ -561,6 +564,7 @@
         </button>
       </div>
     </div>
+    <label class="adv-search"><input type="checkbox" id="qAdv"> <span data-i="buscaAvancada">Busca avançada</span> <span class="adv-hint" data-i="buscaAvancadaHint">(inclui observação, notas e tamanho)</span></label>
     <div class="filters" id="filters"></div>
     <div id="list"></div>
     <div id="listTable" class="tablewrap hidden"></div>

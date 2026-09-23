@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta5';
+const APP_VERSION = 'v4.1.1-beta6';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -21,7 +21,7 @@ const estColor = e => ['var(--grey)','var(--amber)','#7a6a45','var(--green)'][e|
 /* ---------- i18n ---------- */
 const I18N = {
   pt:{
-    appTitle:'Projeto Gideão 300', buscar:'Buscar por nome...',
+    appTitle:'Projeto Gideão 300', buscar:'Buscar por nome...', buscaAvancada:'Busca avançada', buscaAvancadaHint:'(inclui observação, notas e tamanho)',
     navLista:'Gideões', navPainel:'Painel', navMais:'Mais',
     novoInscrito:'Novo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Tamanho', nome:'Nome', telefone:'Telefone',
@@ -112,7 +112,7 @@ const I18N = {
     fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
   es:{
-    appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
+    appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...', buscaAvancada:'Búsqueda avanzada', buscaAvancadaHint:'(incluye observación, notas y talla)',
     navLista:'Gedeones', navPainel:'Panel', navMais:'Más',
     novoInscrito:'Nuevo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Talla', nome:'Nombre', telefone:'Teléfono',
@@ -354,7 +354,7 @@ function fmtNum(v){
   return (!isNaN(n) && n>=0 && n<10 && /^\d+$/.test(s)) ? ('0'+n) : s;
 }
 
-let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{}, sizePhaseSel:'fazer' };
+let state={ view:'lista', filter:'todos', q:'', qAdv: localStorage.getItem('qAdv')==='1', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{}, sizePhaseSel:'fazer' };
 
 /* ---------- render lista ---------- */
 const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['isento','fIsento'],['revisar','fRevisar']];
@@ -376,7 +376,15 @@ async function getFiltered(){
       const matchNome=norm(i.nome).includes(qn);
       const matchNum=(i.numero||'').includes(q);
       const matchTel=qd.length>=3 && telDigits.includes(qd);
-      if(!matchNome && !matchNum && !matchTel) return false;
+      let matched = matchNome || matchNum || matchTel;
+      // busca avançada (aditiva): observação + notas dos pagamentos + tamanho
+      if(!matched && state.qAdv){
+        const matchObs=norm(i.observacoes).includes(qn);
+        const matchTam=norm(i.tamanho).includes(qn);
+        const matchNota=(i.pagamentos||[]).some(p=>norm(p.nota).includes(qn));
+        matched = matchObs || matchTam || matchNota;
+      }
+      if(!matched) return false;
     }
     const st=statusPag(i);
     switch(state.filter){
@@ -1718,6 +1726,7 @@ $('#btnSaveConf').onclick=saveConf;
 $$('nav button').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 $('#fab').onclick=()=>openModal(null);
 $('#q').oninput=e=>{ state.q=e.target.value; $('#qClear').classList.toggle('hidden', !e.target.value); renderList(); };
+$('#qAdv') && (()=>{ $('#qAdv').checked=state.qAdv; $('#qAdv').onchange=e=>{ state.qAdv=e.target.checked; try{ localStorage.setItem('qAdv', state.qAdv?'1':'0'); }catch(_){ } renderList(); }; })();
 $('#confQ') && ($('#confQ').oninput=e=>{ state.confQ=e.target.value; $('#confQClear').classList.toggle('hidden', !e.target.value); renderConfList(); });
 $('#confQClear') && ($('#confQClear').onclick=()=>{ const q=$('#confQ'); q.value=''; state.confQ=''; $('#confQClear').classList.add('hidden'); renderConfList(); q.focus(); });
 $('#qClear') && ($('#qClear').onclick=()=>{ const q=$('#q'); q.value=''; state.q=''; $('#qClear').classList.add('hidden'); renderList(); q.focus(); });
