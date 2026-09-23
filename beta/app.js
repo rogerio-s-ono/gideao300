@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta1';
+const APP_VERSION = 'v4.1.0-beta2';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -42,6 +42,7 @@ const I18N = {
     sPago:'Pago', sPend:'Pendente',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
+    metaCampanha:'Meta da campanha', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
     saldoPago:'Pago — cota completa', saldoFalta:'Faltam {v}€', saldoPend:'Nenhum pagamento',
     faltam:'faltam {v}€', semNumero:'s/n', confirmDel:'Excluir este inscrito?',
     confirmReset:'Apagar TODOS os dados e recarregar a lista inicial? Faça um backup antes.',
@@ -127,6 +128,7 @@ const I18N = {
     sPago:'Pagado', sPend:'Pendiente',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
+    metaCampanha:'Meta de la campaña', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
     saldoPago:'Pagado — cuota completa', saldoFalta:'Faltan {v}€', saldoPend:'Sin pagos',
     faltam:'faltan {v}€', semNumero:'s/n', confirmDel:'¿Eliminar este inscrito?',
     confirmReset:'¿Borrar TODOS los datos y recargar la lista inicial? Haz una copia antes.',
@@ -424,40 +426,70 @@ async function renderPainel(){
   const totalCota=all.reduce((a,i)=>a+i.cota,0);
   const areceber=totalCota-arrec;
   const pct=Math.min(100,Math.round(n/META*100));
-  // --- termometro da meta financeira (arrecadado vs 300 cotas) ---
+  // --- META: termometro financeiro + 2 aneis (inscritos e pagos) ---
   const metaFin = META * COTA;                     // 300 x 300 = 90.000
   const pctFin = metaFin>0 ? Math.min(100, arrec/metaFin*100) : 0;
   const faltaFin = Math.max(0, metaFin - arrec);
   const cotasFalta = Math.max(0, META - pagos);
-  // geometria do termometro: tubo y 8..158 (150px), bulbo em 172
-  const tubeTop=8, tubeH=150, tubeBottom=tubeTop+tubeH;   // 158
-  const fillH = Math.round(tubeH * pctFin/100);
-  const fillY = tubeBottom - fillH;
+  const pagantes = pagos + parcial;                // pessoas que já contribuíram (pago + parcial)
+  const aInscrever = Math.max(0, META - n);
+  const aReceberN = Math.max(0, n - pagos);        // inscritos que ainda não pagaram integral
+  const pctInsc = Math.round(n/META*100);
+  const pctPagos = n>0 ? Math.round(pagos/n*100) : 0;
+  // termometro: tubo y 10..170 (160px), bulbo 188
+  const tT=10, tH=160, tB=tT+tH;
+  const fH = Math.round(tH * pctFin/100), fY = tB - fH;
+  // dasharray dos aneis (circunferencia ~100)
+  const dInsc = Math.min(100, pctInsc);
+  const dPagos = Math.min(100, pctPagos);
   $('#metaThermo').innerHTML=`
     <div class="thermo-card">
-      <svg class="thermo-svg" width="64" height="196" viewBox="0 0 64 196" aria-label="Termômetro da meta">
-        <rect x="23" y="${tubeTop}" width="18" height="${tubeH}" rx="9" fill="#eee4d0"/>
-        <circle cx="32" cy="172" r="19" fill="#eee4d0"/>
-        <rect x="26" y="${fillY}" width="12" height="${fillH}" rx="6" fill="var(--accent)"/>
-        <circle cx="32" cy="172" r="14" fill="var(--accent)"/>
-        <text x="32" y="176" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">${Math.round(pctFin)}%</text>
-        <line x1="44" y1="${tubeTop}" x2="50" y2="${tubeTop}" stroke="#c9bfa8"/><text x="52" y="${tubeTop+4}" font-size="8" fill="#a99f88">${Math.round(metaFin/1000)}k</text>
-        <line x1="44" y1="${tubeTop+tubeH/2}" x2="50" y2="${tubeTop+tubeH/2}" stroke="#c9bfa8"/><text x="52" y="${tubeTop+tubeH/2+3}" font-size="8" fill="#a99f88">${Math.round(metaFin/2000)}k</text>
-        <line x1="44" y1="${tubeBottom}" x2="50" y2="${tubeBottom}" stroke="#c9bfa8"/><text x="52" y="${tubeBottom+3}" font-size="8" fill="#a99f88">0</text>
-      </svg>
-      <div class="thermo-info">
-        <div class="big">${arrec.toLocaleString('pt-PT')} €</div>
-        <div class="sub">${t('de')} ${metaFin.toLocaleString('pt-PT')} € (${t('meta')} ${META}×${COTA}€)</div>
-        <div class="falta"><b>${t('faltaMeta')}: ${faltaFin.toLocaleString('pt-PT')} €</b> · ${cotasFalta} ${t('cotasLabel')}</div>
+      <h3 class="meta-title">${t('metaCampanha')}</h3>
+      <div class="thermo-body">
+        <svg class="thermo-svg" width="82" height="222" viewBox="0 0 82 222" aria-label="Termômetro da meta">
+          <rect x="28" y="${tT}" width="20" height="${tH}" rx="10" fill="#efe6d3"/>
+          <circle cx="38" cy="188" r="22" fill="#efe6d3"/>
+          <rect x="31" y="${fY}" width="14" height="${fH}" rx="7" fill="url(#thg)"/>
+          <circle cx="38" cy="188" r="16" fill="#c08a2d"/>
+          <defs><linearGradient id="thg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d9a441"/><stop offset="1" stop-color="#c08a2d"/></linearGradient></defs>
+          <text x="38" y="194" text-anchor="middle" font-size="15" fill="#fff" font-weight="bold">${Math.round(pctFin)}%</text>
+          <line x1="50" y1="${tT}"       x2="57" y2="${tT}"       stroke="#c9bfa8" stroke-width="1.5"/><text x="60" y="${tT+4}"  font-size="9" fill="#a99f88">${Math.round(metaFin/1000)}k</text>
+          <line x1="50" y1="${tT+tH*.25}" x2="55" y2="${tT+tH*.25}" stroke="#d8cfbc"/><text x="58" y="${tT+tH*.25+3}" font-size="7.5" fill="#bdb39c">75%</text>
+          <line x1="50" y1="${tT+tH*.5}"  x2="57" y2="${tT+tH*.5}"  stroke="#c9bfa8" stroke-width="1.5"/><text x="60" y="${tT+tH*.5+3}"  font-size="9" fill="#a99f88">${Math.round(metaFin/2000)}k</text>
+          <line x1="50" y1="${tT+tH*.75}" x2="55" y2="${tT+tH*.75}" stroke="#d8cfbc"/><text x="58" y="${tT+tH*.75+3}" font-size="7.5" fill="#bdb39c">25%</text>
+          <line x1="50" y1="${tB}"        x2="57" y2="${tB}"        stroke="#c9bfa8" stroke-width="1.5"/><text x="60" y="${tB+3}"  font-size="9" fill="#a99f88">0</text>
+        </svg>
+        <div class="thermo-info">
+          <div class="big">${arrec.toLocaleString('pt-PT')} €</div>
+          <div class="of">${t('de')} ${metaFin.toLocaleString('pt-PT')} € · ${t('meta')} ${META}×${COTA}€</div>
+          <div class="by">${t('arrecadadoPor')} <b>${pagantes} ${t('pessoasLabel')}</b></div>
+          <div><span class="falta-pill">${t('faltaMeta')} ${faltaFin.toLocaleString('pt-PT')} € · ${cotasFalta} ${t('cotasLabel')}</span></div>
+        </div>
+      </div>
+      <div class="meta-rings">
+        <div class="mring">
+          <svg width="92" height="92" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#efe6d3" stroke-width="5"/>
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#c08a2d" stroke-width="5" stroke-dasharray="${dInsc} ${100-dInsc}" stroke-dashoffset="25" stroke-linecap="round" transform="rotate(-90 21 21)"/>
+            <text x="21" y="19.5" text-anchor="middle" font-size="8" font-weight="bold" fill="#1f1f1f">${n}</text>
+            <text x="21" y="26" text-anchor="middle" font-size="3.4" fill="#6f6a63">${t('deLabel')} ${META}</text>
+          </svg>
+          <div class="mring-cap">${t('inscritos')} · ${pctInsc}%</div>
+          <div class="mring-out">${aInscrever} ${t('aInscrever')}</div>
+        </div>
+        <div class="mring">
+          <svg width="92" height="92" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#efe6d3" stroke-width="5"/>
+            <circle cx="21" cy="21" r="15.9" fill="none" stroke="#3f7d54" stroke-width="5" stroke-dasharray="${dPagos} ${100-dPagos}" stroke-dashoffset="25" stroke-linecap="round" transform="rotate(-90 21 21)"/>
+            <text x="21" y="19.5" text-anchor="middle" font-size="8" font-weight="bold" fill="#1f1f1f">${pagos}</text>
+            <text x="21" y="26" text-anchor="middle" font-size="3.4" fill="#6f6a63">${t('pagaramLabel')}</text>
+          </svg>
+          <div class="mring-cap">${t('fPago')} · ${pctPagos}%</div>
+          <div class="mring-out">${aReceberN} ${t('aReceberLabel')}</div>
+        </div>
       </div>
     </div>`;
   $('#kpis').innerHTML=`
-    <div class="kpi progress">
-      <div class="prog-head"><div class="n">${n} / ${META}</div><div class="prog-money"><span class="pm-v">${arrec.toLocaleString('pt-PT')}€</span><span class="pm-l">${t('arrecadado')}</span></div></div>
-      <div class="l">${t('inscritos')} · ${t('meta')}</div>
-      <div class="bar"><span style="width:${pct}%"></span></div>
-      <div class="prog-foot"><span>${arrec.toLocaleString('pt-PT')}€ ${t('de')} ${totalCota.toLocaleString('pt-PT')}€</span><span>${t('aReceber')}: ${areceber.toLocaleString('pt-PT')}€</span></div>
-    </div>
     <div class="kpi"><div class="n" style="color:var(--green)">${pagos}</div><div class="l">${t('fPago')}</div></div>
     <div class="kpi"><div class="n" style="color:var(--amber)">${parcial}</div><div class="l">${t('fParcial')}</div></div>
     <div class="kpi"><div class="n" style="color:var(--grey)">${pend}</div><div class="l">${t('fPend')}</div></div>
