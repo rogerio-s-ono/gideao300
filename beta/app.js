@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta24';
+const APP_VERSION = 'v4.1.0-beta25';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -42,7 +42,7 @@ const I18N = {
     sPago:'Pago', sPend:'Pendente', sIsento:'Isento',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
-    metaCampanha:'Meta da campanha', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
+    metaCampanha:'Meta do Projeto Gideão', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
     saldoLabel:'saldo', custodiaLabel:'Custódia do dinheiro', pastoresLabel:'pastores', tesoureiroLabel:'tesoureiro',
     faseProduzido:'Produzido', faseProduzir:'A produzir', fasePotencial:'Potencial',
     confeccaoCamisas:'Confecção de camisas', entreguesNote:'camisas entregues', prontasAguardando:'prontas aguardando entrega',
@@ -131,7 +131,7 @@ const I18N = {
     sPago:'Pagado', sPend:'Pendiente', sIsento:'Exento',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
-    metaCampanha:'Meta de la campaña', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
+    metaCampanha:'Meta del Proyecto Gedeón', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
     saldoLabel:'saldo', custodiaLabel:'Custodia del efectivo', pastoresLabel:'pastores', tesoureiroLabel:'tesorero',
     faseProduzido:'Producido', faseProduzir:'Por producir', fasePotencial:'Potencial',
     confeccaoCamisas:'Confección de camisetas', entreguesNote:'camisetas entregadas', prontasAguardando:'listas esperando entrega',
@@ -862,7 +862,7 @@ async function openModal(id){
   const isEl=$('#f-isento'); if(isEl){ isEl.checked = rec?!!rec.isento:false; }
   updateIsentoVis();
   renderPays();
-  applyModalRO('#modal', effectiveRole()==='viewer', ['#save','#del','#addPay','#p-fotoInput']);
+  applyModalRO('#modal', effectiveRole()==='viewer', ['#save','#del','#addPay']);
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
   state.formSnapshot=formSnapshot();
@@ -914,7 +914,8 @@ function fotosRowHtml(p, idx){
     const src=f.dataUrl||thumbFromUrl(f.url);
     return `<div class="foto-thumb"><img src="${src}" alt="anexo" class="pf-open" data-p="${idx}" data-f="${fi}"><button type="button" class="pf-rm" data-p="${idx}" data-f="${fi}">×</button></div>`;
   }).join('');
-  const addBtn = arr.length<3 ? (arr.length===0
+  const podeAnexar = effectiveRole()!=='viewer';   // viewer não anexa (read-only); só vê as miniaturas
+  const addBtn = (podeAnexar && arr.length<3) ? (arr.length===0
       ? `<span class="pay-anexar pf-add" data-p="${idx}">📎 ${t('anexarComprovante')}</span>`
       : `<div class="pay-add pf-add" data-p="${idx}">＋<small>add</small></div>`) : '';
   const cnt = `<span class="pay-cnt">${arr.length}/3</span>`;
