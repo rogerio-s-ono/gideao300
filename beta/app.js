@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta25';
+const APP_VERSION = 'v4.1.0-beta26';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1780,9 +1780,34 @@ try{ sessionStorage.removeItem('gd_viewas'); }catch(e){}
 
 function parseJwt(tok){ try{ return JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }catch(e){ return {}; } }
 
+let loginVerifying=false;
+// alterna o botão Google (#gsiBtn) e o card "Verificando acesso…" com borda animada
+function setLoginChecking(on){
+  loginVerifying = on;
+  const btn=$('#gsiBtn'); if(btn) btn.classList.toggle('hidden', on);
+  const chk=$('#loginChecking'); if(chk) chk.classList.toggle('on', on);
+  const gate=$('#loginGate'); if(gate) gate.setAttribute('aria-busy', on?'true':'false');
+}
+// no login: re-checa version.json e mostra link "nova versão disponível" se houver
+async function checkLoginVersion(){
+  const lv=$('#loginVer'); if(lv) lv.textContent = APP_VERSION;
+  const nv=$('#loginNewVer'); if(!nv) return;
+  try{
+    const r=await fetchTimeout('version.json?ts='+Date.now(), {cache:'no-store'}, 6000);
+    if(!r.ok) return;
+    const data=await r.json();
+    if(data && data.version && data.version!==APP_VERSION){
+      newVersionAvail=data.version;
+      nv.textContent = t('novaVersao') + ' (' + data.version + ') — ' + t('atualizar');
+      nv.classList.remove('hidden');
+      nv.onclick=()=>applyUpdate(nv);
+    } else { nv.classList.add('hidden'); }
+  }catch(e){ /* offline: ignora */ }
+}
 function onGoogleCredential(resp){
   const jwt = resp && resp.credential;
   if(!jwt) return;
+  if(loginVerifying) return;   // já verificando: ignora clique/callback repetido
   const claims = parseJwt(jwt);
   const email = (claims.email||'').toLowerCase();
   // NÃO bloqueamos aqui pela lista local (config.js): a autoridade é o SERVIDOR (aba Admin).
@@ -1807,7 +1832,7 @@ function initGoogleLogin(){
   const savedEmail = sessionStorage.getItem('gd_email');
   if(saved && savedEmail){
     const c=parseJwt(saved);
-    if(c.exp && c.exp*1000 > Date.now()+60000){ auth.idToken=saved; auth.email=savedEmail; verifyAccessThenStart(); return; }
+    if(c.exp && c.exp*1000 > Date.now()+60000){ auth.idToken=saved; auth.email=savedEmail; showLoginGate(); verifyAccessThenStart(); return; }
   }
   showLoginGate();
   let tries=0;
@@ -1832,14 +1857,15 @@ function initGoogleLogin(){
   };
   tryInit();
 }
-function showLoginGate(){ $('#loginGate').classList.remove('hidden'); }
+function showLoginGate(){ $('#loginGate').classList.remove('hidden'); checkLoginVersion(); }
 function hideLoginGate(){ $('#loginGate').classList.add('hidden'); }
 // valida o acesso no servidor ANTES de abrir a UI (quando online); offline usa cache
 async function verifyAccessThenStart(){
   // offline ou app sem backend: mantém o comportamento offline-first (usa cache)
   if(!ONLINE_ENABLED || !navigator.onLine || !auth.idToken){ hideLoginGate(); startAppAfterLogin(); return; }
-  // mostra "verificando acesso…" e checa no servidor
-  const le=$('#loginError'); if(le){ le.textContent=t('verificandoAcesso'); le.classList.add('info'); le.classList.remove('hidden'); }
+  // mostra "verificando acesso…" (card com borda animada) e ESCONDE o botão Google (evita clique duplo)
+  const le=$('#loginError'); if(le){ le.classList.add('hidden'); le.textContent=''; }
+  setLoginChecking(true);
   try{
     const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) + '&idToken=' + encodeURIComponent(auth.idToken);
     const r = await fetchTimeout(url, {method:'GET'}, 15000);
@@ -1847,6 +1873,7 @@ async function verifyAccessThenStart(){
     if(data && data.ok){
       if(data.role){ auth.role=data.role; }
       if(le){ le.classList.add('hidden'); le.textContent=''; }
+      setLoginChecking(false);
       hideLoginGate(); startAppAfterLogin();
     } else {
       // servidor recusou -> não abre a UI. Mostra o motivo e o email tentado (diagnóstico).
@@ -1854,6 +1881,7 @@ async function verifyAccessThenStart(){
       const err = data && data.error ? data.error : 'unauthorized';
       auth={idToken:null,email:null,role:null,realAdmin:false,viewAs:null};
       sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
+      setLoginChecking(false);   // recusado -> volta a mostrar o botão Google
       showLoginGate();
       if(le){
         let msg = (err==='unauthorized') ? t('naoAutorizado') : (t('erroLogin')+' ('+err+')');
@@ -1865,6 +1893,7 @@ async function verifyAccessThenStart(){
   }catch(e){
     // sem resposta do servidor (rede instável): cai para o modo offline (usa cache)
     if(le){ le.classList.add('hidden'); le.textContent=''; }
+    setLoginChecking(false);
     hideLoginGate(); startAppAfterLogin();
   }
 }

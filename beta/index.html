@@ -44,6 +44,16 @@
   .login-title{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--accent);letter-spacing:.4px;text-shadow:0 2px 8px rgba(0,0,0,.4)}
   .login-sub{font-size:13.5px;color:#b8b2a6;margin:8px 0 0;max-width:280px;line-height:1.5}
   #gsiBtn{display:flex;justify-content:center;min-height:44px;margin-top:44px}
+  /* card "Verificando acesso" com borda dourada animada (CSS puro, iOS-compat) */
+  #loginChecking{margin-top:44px;position:relative;display:none;align-items:center;justify-content:center;gap:10px;padding:13px 20px;border-radius:14px;background:#171410;color:#e8e2d6;font-size:14px;font-weight:500;overflow:hidden;min-height:44px}
+  #loginChecking.on{display:inline-flex}
+  #loginChecking::before{content:"";position:absolute;inset:-150%;background:conic-gradient(from 0deg, transparent 0deg, transparent 250deg, #c08a2d 300deg, #f0cd82 330deg, #c08a2d 360deg);animation:lc-spin 1.6s linear infinite;z-index:0}
+  #loginChecking::after{content:"";position:absolute;inset:2px;border-radius:12px;background:#171410;z-index:1}
+  #loginChecking > *{position:relative;z-index:2}
+  #loginChecking .lc-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(192,138,45,.8)}
+  @keyframes lc-spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){ #loginChecking::before{animation:none} }
+  .login-newver{display:block;margin-top:6px;color:var(--accent);font-size:11px;text-decoration:underline;cursor:pointer}
   .login-error{margin-top:16px;background:rgba(178,59,59,.22);color:#ff9a9a;border:1px solid rgba(255,120,120,.3);border-radius:10px;padding:11px 14px;font-size:13px;max-width:300px}
   .login-error.info{background:rgba(255,255,255,.10);color:#e8e2d6;border-color:rgba(255,255,255,.2)}
   .login-foot{text-align:center;font-size:11px;color:#7d786e;letter-spacing:1px;text-transform:uppercase;padding:18px;border-top:1px solid rgba(192,138,45,.12)}
@@ -490,10 +500,12 @@
     <div class="login-title">Projeto Gideão 300</div>
     <div class="login-sub" data-i="loginSub">Entre com sua conta Google autorizada</div>
     <div id="gsiBtn"></div>
+    <div id="loginChecking"><span class="lc-dot"></span><span id="loginCheckingTxt" data-i="verificandoAcesso">Verificando acesso…</span></div>
     <div id="loginError" class="login-error hidden"></div>
   </div>
   <div class="login-foot" data-i="loginFoot">Acesso restrito aos líderes do projeto</div>
   <div class="login-ver" id="loginVer"></div>
+  <div class="login-ver"><span class="login-newver hidden" id="loginNewVer"></span></div>
 </div>
 <header>
   <div class="brand-logo-wrap"><img src="logo-cf-light.png" alt="Casa Fuerte Church" class="brand-logo"><span id="betaBadge" class="beta-badge hidden">BETA</span></div>
