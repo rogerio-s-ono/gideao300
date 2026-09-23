@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta9';
+const APP_VERSION = 'v4.1.0-beta10';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -38,7 +38,7 @@ const I18N = {
     restaurarBackup:'Restaurar backup (JSON)', imprimirPdf:'Imprimir / PDF',
     backupNota:'O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.',
     zerar:'Apagar tudo e recarregar dados iniciais',
-    fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos', fIsento:'Isentos', isentoLabel:'Isento (não paga — pastor/convidado)',
+    fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos', fIsento:'Isentos', isentoChk:'Isento', isentoNota:'Isento — não paga a cota.',
     sPago:'Pago', sPend:'Pendente', sIsento:'Isento',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
@@ -127,7 +127,7 @@ const I18N = {
     restaurarBackup:'Restaurar copia (JSON)', imprimirPdf:'Imprimir / PDF',
     backupNota:'La copia permite pasar los datos entre los líderes (WhatsApp, Drive). Importar reemplaza los datos actuales.',
     zerar:'Borrar todo y recargar datos iniciales',
-    fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos', fIsento:'Exentos', isentoLabel:'Exento (no paga — pastor/invitado)',
+    fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos', fIsento:'Exentos', isentoChk:'Exento', isentoNota:'Exento — no paga la cuota.',
     sPago:'Pagado', sPend:'Pendiente', sIsento:'Exento',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
@@ -883,8 +883,9 @@ function updateRevisarVis(){
 function updateCamisaStatusVis(rec){
   const line=$('#camisaStatusLine'); if(!line) return;
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
-  const pagoESalvo = !!rec && soma>=COTA;
-  line.classList.toggle('hidden', !pagoESalvo);
+  const isento = $('#f-isento') && $('#f-isento').checked;
+  const podeProd = isento || soma>=COTA;    // pago OU isento libera a confecção
+  line.classList.toggle('hidden', !podeProd);
 }
 $('#f-obs') && ($('#f-obs').addEventListener('input', updateRevisarVis));
 
@@ -933,16 +934,19 @@ function renderPays(){
   else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
   else { box.style.background='var(--soft-grey)';box.style.color='var(--grey)';box.textContent=t('saldoPend'); }
   // esconde a área de adicionar pagamento quando a cota já está completa
-  const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', soma>=COTA);
+  const ap=$('#payFields'); if(ap) ap.classList.toggle('hidden', soma>=COTA);
 }
-// Isento: esconde pagamentos (lista + adicionar) quando marcado
+// Isento: esconde os campos de pagamento (mantém o checkbox visível); mostra nota discreta
 function updateIsentoVis(){
   const on = $('#f-isento') && $('#f-isento').checked;
+  const soma = state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   const pl=$('#paysList'); if(pl) pl.classList.toggle('hidden', on);
   const sb=$('#saldoBox'); if(sb) sb.classList.toggle('hidden', on);
-  const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', on || (state.draftPays.reduce((a,p)=>a+(+p.valor||0),0)>=COTA));
+  const pf=$('#payFields'); if(pf) pf.classList.toggle('hidden', on || soma>=COTA);
+  const nota=$('#isentoNota'); if(nota) nota.classList.toggle('hidden', !on);
+  const ap=$('#addPaySub'); if(ap) ap.classList.remove('hidden');  // sempre visível (contém o checkbox)
 }
-$('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); });
+$('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); updateCamisaStatusVis(); });
 $('#addPay').onclick=()=>{
   const v=parseFloat(($('#p-valor').value||'').replace(',','.'));
   if(!v||v<=0) return;

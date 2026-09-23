@@ -177,10 +177,12 @@
   .b.pend{background:var(--soft-grey);color:var(--grey)}
   .b.entregue{background:var(--accent-soft);color:var(--accent)}
   .b.pronta{background:#eae6dc;color:#7a6a45}
-  .b.isento{background:#e4eefc;color:#0050CA}
+  .b.isento{background:var(--soft-grey);color:var(--muted)}
   .b.revisar{background:var(--soft-red);color:var(--red)}
-  .isento-row{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink);background:#eceaf4;border:1px solid #d8d2e6;border-radius:8px;padding:9px 11px;margin:2px 0 10px;cursor:pointer}
-  .isento-row input{width:18px;height:18px;accent-color:#0050CA}
+  .bh-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .isento-chk{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+  .isento-chk input{width:15px;height:15px;accent-color:var(--muted)}
+  .isento-nota{font-size:12.5px;color:var(--muted);font-style:italic;padding:4px 2px}
   .b.cust-pastor{background:#e4eefc;color:#0050CA}
   .b.cust-teso{background:#e9f1eb;color:#329864}
   .card .tam{font-weight:600;color:var(--ink);font-size:13px;background:var(--soft-grey);border-radius:6px;padding:3px 7px}
@@ -697,11 +699,14 @@
 
     <div class="grp" id="addPayArea">
     <div class="gh" data-i="pagamentos">Pagamentos (cota 300€)</div>
-    <label class="isento-row"><input type="checkbox" id="f-isento"> <span data-i="isentoLabel">Isento (não paga — pastor/convidado)</span></label>
     <div id="paysList"></div>
     <div class="saldo" id="saldoBox"></div>
     <div class="pay-sub" id="addPaySub">
-    <div class="bh" data-i="adicionarPagamento">Adicionar pagamento</div>
+    <div class="bh-row">
+      <span class="bh" data-i="adicionarPagamento">Adicionar pagamento</span>
+      <label class="isento-chk"><input type="checkbox" id="f-isento"> <span data-i="isentoChk">Isento</span></label>
+    </div>
+    <div id="payFields">
     <div class="row2">
       <div><label data-i="valor">Valor (€)</label><input id="p-valor" inputmode="decimal" placeholder="300"></div>
       <div><label data-i="tipo">Tipo</label><select id="p-tipo"></select></div>
@@ -716,6 +721,8 @@
     </div>
     <input id="p-data" type="hidden">
     <button class="add-pay" id="addPay" type="button"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg> <span data-i="adicionarEstePagamento">Adicionar este pagamento</span></button>
+    </div>
+    <div class="isento-nota hidden" id="isentoNota" data-i="isentoNota">Isento — não paga a cota.</div>
     </div>
     </div>
 
