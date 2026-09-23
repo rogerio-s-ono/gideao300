@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta4';
+const APP_VERSION = 'v4.1.0-beta5';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -45,6 +45,7 @@ const I18N = {
     metaCampanha:'Meta da campanha', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
     saldoLabel:'saldo', custodiaLabel:'Custódia do dinheiro', pastoresLabel:'pastores', tesoureiroLabel:'tesoureiro',
     faseProduzido:'Produzido', faseProduzir:'A produzir', fasePotencial:'Potencial',
+    confeccaoCamisas:'Confecção de camisas', entreguesNote:'camisas entregues', prontasAguardando:'prontas aguardando entrega',
     saldoPago:'Pago — cota completa', saldoFalta:'Faltam {v}€', saldoPend:'Nenhum pagamento',
     faltam:'faltam {v}€', semNumero:'s/n', confirmDel:'Excluir este inscrito?',
     confirmReset:'Apagar TODOS os dados e recarregar a lista inicial? Faça um backup antes.',
@@ -133,6 +134,7 @@ const I18N = {
     metaCampanha:'Meta de la campaña', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
     saldoLabel:'saldo', custodiaLabel:'Custodia del efectivo', pastoresLabel:'pastores', tesoureiroLabel:'tesorero',
     faseProduzido:'Producido', faseProduzir:'Por producir', fasePotencial:'Potencial',
+    confeccaoCamisas:'Confección de camisetas', entreguesNote:'camisetas entregadas', prontasAguardando:'listas esperando entrega',
     saldoPago:'Pagado — cuota completa', saldoFalta:'Faltan {v}€', saldoPend:'Sin pagos',
     faltam:'faltan {v}€', semNumero:'s/n', confirmDel:'¿Eliminar este inscrito?',
     confirmReset:'¿Borrar TODOS los datos y recargar la lista inicial? Haz una copia antes.',
@@ -447,8 +449,7 @@ async function renderPainel(){
   const dInsc = Math.min(100, pctInsc);
   const dPagos = Math.min(100, pctPagos);
   $('#metaThermo').innerHTML=`
-    <div class="thermo-card">
-      <h3 class="meta-title">${t('metaCampanha')}</h3>
+      <h3 class="pnl-h3">${t('metaCampanha')}</h3>
       <div class="thermo-body">
         <svg class="thermo-svg" width="82" height="222" viewBox="0 0 82 222" aria-label="Termômetro da meta">
           <rect x="28" y="${tT}" width="20" height="${tH}" rx="10" fill="#efe6d3"/>
@@ -492,14 +493,7 @@ async function renderPainel(){
           <div class="mring-out">${aReceberN} ${t('aReceberLabel')}</div>
         </div>
       </div>
-    </div>`;
-  $('#kpis').innerHTML=`
-    <div class="kpi"><div class="n" style="color:var(--green)">${pagos}</div><div class="l">${t('fPago')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--amber)">${parcial}</div><div class="l">${t('fParcial')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--grey)">${pend}</div><div class="l">${t('fPend')}</div></div>
-    <div class="kpi"><div class="n" style="color:var(--accent)">${entregues}</div><div class="l">${t('entregues')}</div></div>
-  `;
-  // por tamanho
+    `;
   // por tamanho — 3 fases: Produzido (pronta+entregue) / A produzir (pago, a fazer+em confecção) / Potencial (pendente)
   const bySize={}; let totProd=0, totFazer=0, totPot=0;
   all.forEach(i=>{
@@ -526,11 +520,12 @@ async function renderPainel(){
   const bars=keys.map(s=>{
     const b=bySize[s];
     const wp=(b.prod/maxTot*100).toFixed(1), wf=(b.fazer/maxTot*100).toFixed(1), wo=(b.pot/maxTot*100).toFixed(1);
+    const badge = b.fazer>0 ? `<span class="prod-badge">${b.fazer}</span>` : '';
     return `<div class="size-bar">
       <span class="sb-lbl">${esc(s)}</span>
       <span class="sb-track">
         <i style="width:${wp}%;background:var(--green)" title="${t('faseProduzido')}: ${b.prod}"></i>
-        <i style="width:${wf}%;background:var(--accent)" title="${t('faseProduzir')}: ${b.fazer}"></i>
+        <i class="seg-prod" style="width:${wf}%;background:var(--accent)" title="${t('faseProduzir')}: ${b.fazer}">${badge}</i>
         <i style="width:${wo}%;background:#e2d3b0" title="${t('fasePotencial')}: ${b.pot}"></i>
       </span>
       <span class="sb-val">${b.tot}</span>
@@ -542,7 +537,9 @@ async function renderPainel(){
       <span><i class="sw" style="background:var(--accent)"></i> ${t('faseProduzir')}</span>
       <span><i class="sw" style="background:#e2d3b0"></i> ${t('fasePotencial')}</span>
     </div>`;
-  $('#sizegrid').innerHTML = phases + bars + legend;
+  const prontasNaoEntr = Math.max(0, prontas - entregues);
+  const confNote = `<div class="conf-note"><b>${entregues} ${t('entreguesNote')}</b>${prontasNaoEntr>0?` · ${prontasNaoEntr} ${t('prontasAguardando')}`:''}</div>`;
+  $('#sizegrid').innerHTML = phases + bars + legend + confNote;
   // financeiro (A1: saldo herói + donut de bolsos + custódia expansível)
   const despAll = await sGetAll(STORE_DESP);
   const movAll  = await sGetAll(STORE_MOV);

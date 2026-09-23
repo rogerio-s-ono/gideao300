@@ -92,16 +92,20 @@
   .mring-cap{font-size:12px;color:var(--ink);font-weight:600;margin-top:2px}
   .mring-out{font-size:11px;color:var(--muted);margin-top:2px}
   /* financeiro A1 (Painel) */
+  .pnl-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:22px;box-shadow:0 3px 14px rgba(20,20,20,.06)}
+  .pnl-h3{font-family:var(--serif);font-size:17px;font-weight:600;position:relative;padding-left:12px;margin:0 0 16px;color:var(--ink)}
+  .pnl-h3::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:3px;border-radius:2px;background:var(--accent)}
   .fin-hero{display:flex;align-items:center;gap:16px}
   .fin-hero-num{flex:1;min-width:0}
   .fin-lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
   .fin-val{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--green);line-height:1.05}
   .fin-sub{font-size:12px;color:var(--muted);margin-top:4px}
   .fin-compo{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
-  .fin-row{display:flex;justify-content:space-between;align-items:center;font-size:.92rem;padding:6px 0}
-  .fin-row .lft{display:flex;gap:8px;align-items:center}
+  .fin-row{display:flex;align-items:center;font-size:.92rem;padding:6px 0}
+  .fin-row .lft{display:flex;gap:8px;align-items:center;width:118px;flex:0 0 118px}
+  .fin-row b{width:78px;text-align:right}
   .fdot{width:11px;height:11px;border-radius:3px;display:inline-block}
-  .fmini{height:7px;border-radius:4px;background:var(--soft-grey);overflow:hidden;flex:1;margin:0 10px;max-width:120px}
+  .fmini{height:8px;border-radius:4px;background:var(--soft-grey);overflow:hidden;flex:1;margin:0 10px}
   .fmini > i{display:block;height:100%}
   .fin-row.exp{cursor:pointer;user-select:none}
   .fin-row .caret{font-size:9px;color:var(--muted);transition:transform .2s;margin-left:3px;display:inline-block}
@@ -119,14 +123,19 @@
   .sphase .n{font-family:var(--serif);font-size:22px;font-weight:700;line-height:1}
   .sphase .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:4px}
   .sphase.a .n{color:var(--green)} .sphase.b .n{color:var(--accent)} .sphase.c .n{color:#a98d52}
-  .size-bar{display:flex;align-items:center;gap:10px;margin:8px 0}
-  .size-bar .sb-lbl{width:38px;font-size:.9rem;font-weight:600;text-align:right}
-  .size-bar .sb-track{flex:1;background:var(--soft-grey);border-radius:7px;height:22px;overflow:hidden;display:flex}
+  .size-bar{display:flex;align-items:center;gap:12px;margin:15px 0}
+  .size-bar .sb-lbl{width:42px;font-size:1rem;font-weight:700;text-align:right}
+  .size-bar .sb-track{flex:1;background:var(--soft-grey);border-radius:8px;height:30px;overflow:visible;display:flex;position:relative}
   .size-bar .sb-track > i{height:100%;display:block}
-  .size-bar .sb-val{width:32px;font-size:.85rem;font-weight:600;text-align:left}
-  .size-legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px;font-size:.76rem;color:var(--muted)}
+  .size-bar .sb-track > i:first-child{border-radius:8px 0 0 8px}
+  .size-bar .seg-prod{position:relative}
+  .size-bar .prod-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.18);z-index:2}
+  .size-bar .sb-val{width:34px;font-size:.95rem;font-weight:700;text-align:left}
+  .size-legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:.78rem;color:var(--muted)}
   .size-legend span{display:inline-flex;align-items:center;gap:6px}
   .size-legend .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .conf-note{background:var(--soft-grey);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.85rem;color:var(--ink)}
+  .conf-note b{color:var(--green)}
   .bar{height:10px;border-radius:8px;background:var(--soft-grey);overflow:hidden;margin-top:8px}
   .bar > span{display:block;height:100%;background:linear-gradient(90deg,#c08a2d,#d9a94e)}
 
@@ -501,12 +510,9 @@
 
   <!-- PAINEL -->
   <section id="view-painel" class="hidden">
-    <div id="metaThermo"></div>
-    <div class="kpis" id="kpis"></div>
-    <h3 data-i="porTamanho">Por tamanho (para a gráfica)</h3>
-    <div class="sizegrid" id="sizegrid"></div>
-    <h3 style="margin-top:16px" data-i="financeiro">Financeiro</h3>
-    <div id="fin"></div>
+    <div class="pnl-card" id="metaThermo"></div>
+    <div class="pnl-card"><h3 data-i="financeiro">Financeiro</h3><div id="fin"></div></div>
+    <div class="pnl-card"><h3 data-i="confeccaoCamisas">Confecção de camisas</h3><div id="sizegrid"></div></div>
   </section>
 
   <!-- CONFECCAO -->
