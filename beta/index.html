@@ -396,6 +396,9 @@
   /* banner de atualização */
   #updateBanner{position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:var(--primary);color:#fff;border:1px solid rgba(192,138,45,.5);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:720px;margin:0 auto;font-size:14px}
   #updateBanner button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-family:var(--sans);font-size:14px;flex:none}
+  #updateBanner .ub-actions{display:flex;align-items:center;gap:6px;flex:none}
+  #updateBanner .ub-x{background:transparent;color:rgba(255,255,255,.6);padding:4px 8px;font-size:22px;line-height:1;font-weight:400}
+  #updateBanner .ub-x:hover{color:#fff}
   /* confecção pills + states */
   .confcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
   .confcard.dirty{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
@@ -638,7 +641,10 @@
 
 <div id="updateBanner" class="hidden">
   <span id="updateMsg">Nova versão disponível</span>
-  <button id="updateBtn">Atualizar</button>
+  <div class="ub-actions">
+    <button id="updateBtn">Atualizar</button>
+    <button id="updateDismiss" class="ub-x" aria-label="Ignorar" title="Ignorar">&times;</button>
+  </div>
 </div>
 
 <button class="fab" id="fab" title="Novo">+</button>
