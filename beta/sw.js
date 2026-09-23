@@ -1,5 +1,5 @@
 /* Service worker — Gideão 300 */
-const CACHE = 'gideao300-beta-v410b16';
+const CACHE = 'gideao300-beta-v410b17';
 const ASSETS = [
   './',
   './index.html',

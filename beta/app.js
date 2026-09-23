@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta16';
+const APP_VERSION = 'v4.1.0-beta17';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -59,7 +59,7 @@ const I18N = {
     vazio:'Nenhum inscrito encontrado.',
     thNum:'Nº', thNome:'Nome', thTam:'Tam.', thTel:'Telefone', thPago:'Pago', thStatus:'Status',
     thPronta:'Pronta', thEntregue:'Entregue', thRevisar:'Rev.', thCamisa:'Camisa',
-    navConfeccao:'Confecção', camisa:'Camisa', camisaStatus:'Estado da camisa',
+    navConfeccao:'Confecção', camisa:'Camisa', camisaStatus:'Estado da camisa:',
     est0:'A fazer', est1:'Em confecção', est2:'Pronta', est3:'Entregue',
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
     avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
@@ -148,7 +148,7 @@ const I18N = {
     vazio:'Ningún inscrito encontrado.',
     thNum:'Nº', thNome:'Nombre', thTam:'Talla', thTel:'Teléfono', thPago:'Pagado', thStatus:'Estado',
     thPronta:'Lista', thEntregue:'Entreg.', thRevisar:'Rev.', thCamisa:'Camiseta',
-    navConfeccao:'Confección', camisa:'Camiseta', camisaStatus:'Estado de la camiseta',
+    navConfeccao:'Confección', camisa:'Camiseta', camisaStatus:'Estado de la camiseta:',
     est0:'Por hacer', est1:'En confección', est2:'Lista', est3:'Entregada',
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
     avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
