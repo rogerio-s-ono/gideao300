@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta7';
+const APP_VERSION = 'v4.1.1-beta8';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -21,7 +21,7 @@ const estColor = e => ['var(--grey)','var(--amber)','#7a6a45','var(--green)'][e|
 /* ---------- i18n ---------- */
 const I18N = {
   pt:{
-    appTitle:'Projeto Gideão 300', buscar:'Buscar por nome...', buscaAvancada:'Busca avançada', buscaAvancadaHint:'(inclui observação, notas e tamanho)', avancada:'Avançada',
+    appTitle:'Projeto Gideão 300', buscar:'Buscar por nome...', buscarAvancado:'Busca avançada (nome, obs, notas, tamanho)...', buscaAvancada:'Busca avançada', buscaAvancadaHint:'(inclui observação, notas e tamanho)', avancada:'Avançada',
     navLista:'Gideões', navPainel:'Painel', navMais:'Mais',
     novoInscrito:'Novo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Tamanho', nome:'Nome', telefone:'Telefone',
@@ -112,7 +112,7 @@ const I18N = {
     fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
   es:{
-    appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...', buscaAvancada:'Búsqueda avanzada', buscaAvancadaHint:'(incluye observación, notas y talla)', avancada:'Avanzada',
+    appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...', buscarAvancado:'Búsqueda avanzada (nombre, obs, notas, talla)...', buscaAvancada:'Búsqueda avanzada', buscaAvancadaHint:'(incluye observación, notas y talla)', avancada:'Avanzada',
     navLista:'Gedeones', navPainel:'Panel', navMais:'Más',
     novoInscrito:'Nuevo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Talla', nome:'Nombre', telefone:'Teléfono',
@@ -1726,7 +1726,8 @@ $('#btnSaveConf').onclick=saveConf;
 $$('nav button').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 $('#fab').onclick=()=>openModal(null);
 $('#q').oninput=e=>{ state.q=e.target.value; $('#qClear').classList.toggle('hidden', !e.target.value); renderList(); };
-$('#qAdv') && (()=>{ $('#qAdv').checked=state.qAdv; $('#qAdv').onchange=e=>{ state.qAdv=e.target.checked; try{ localStorage.setItem('qAdv', state.qAdv?'1':'0'); }catch(_){ } renderList(); }; })();
+function updateBuscaPlaceholder(){ const el=$('#q'); if(el) el.placeholder = state.qAdv ? t('buscarAvancado') : t('buscar'); }
+$('#qAdv') && (()=>{ $('#qAdv').checked=state.qAdv; updateBuscaPlaceholder(); $('#qAdv').onchange=e=>{ state.qAdv=e.target.checked; try{ localStorage.setItem('qAdv', state.qAdv?'1':'0'); }catch(_){ } updateBuscaPlaceholder(); renderList(); }; })();
 $('#confQ') && ($('#confQ').oninput=e=>{ state.confQ=e.target.value; $('#confQClear').classList.toggle('hidden', !e.target.value); renderConfList(); });
 $('#confQClear') && ($('#confQClear').onclick=()=>{ const q=$('#confQ'); q.value=''; state.confQ=''; $('#confQClear').classList.add('hidden'); renderConfList(); q.focus(); });
 $('#qClear') && ($('#qClear').onclick=()=>{ const q=$('#q'); q.value=''; state.q=''; $('#qClear').classList.add('hidden'); renderList(); q.focus(); });
@@ -1744,7 +1745,7 @@ function applyLang(){
   document.documentElement.lang=lang;
   $$('[data-i]').forEach(el=>el.textContent=t(el.dataset.i));
   $$('[data-i-ph]').forEach(el=>el.placeholder=t(el.dataset.iPh));
-  $('#q').placeholder=t('buscar');
+  updateBuscaPlaceholder();
   $$('.lang button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
   renderFilters();
   if(typeof refreshUpdateRow==='function') refreshUpdateRow();
