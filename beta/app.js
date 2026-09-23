@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta6';
+const APP_VERSION = 'v4.1.0-beta7';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -339,7 +339,7 @@ async function getFiltered(){
       case 'pago': return st==='pago';
       case 'parcial': return st==='parcial';
       case 'pend': return st==='pend';
-      case 'entregar': return i.camisaEstado!==EST.ENTREGUE;
+      case 'entregar': return statusPag(i)==='pago' && i.camisaEstado===EST.PRONTA;
       case 'revisar': return i.aRevisar;
       default: return true;
     }
@@ -1630,7 +1630,7 @@ function initGoogleLogin(){
       tries++;
       if(tries>40){   // ~8s sem carregar o script do Google
         const le=$('#loginError');
-        if(le){ le.innerHTML = t('loginGoogleFalhou')+' <button id="loginReload" class="btn ghost" style="margin-top:8px">'+t('recarregar')+'</button>'; le.classList.remove('hidden'); }
+        if(le){ le.innerHTML = t('loginGoogleFalhou')+' <button id="loginReload" class="btn ghost" style="margin-top:8px">'+t('recarregar')+'</button>'; le.classList.remove('info'); le.classList.remove('hidden'); }
         const rb=$('#loginReload'); if(rb) rb.onclick=()=>location.reload();
         return;
       }
@@ -1641,7 +1641,7 @@ function initGoogleLogin(){
       google.accounts.id.renderButton($('#gsiBtn'), { theme:'filled_black', size:'large', shape:'pill', text:'signin_with', width:260 });
       // NÃO usar One Tap prompt() — causa cooldown/travas no iOS/FedCM. O botão é o caminho confiável.
     }catch(e){
-      const le=$('#loginError'); if(le){ le.textContent=t('loginGoogleFalhou'); le.classList.remove('hidden'); }
+      const le=$('#loginError'); if(le){ le.textContent=t('loginGoogleFalhou'); le.classList.remove('info'); le.classList.remove('hidden'); }
     }
   };
   tryInit();
@@ -1653,7 +1653,7 @@ async function verifyAccessThenStart(){
   // offline ou app sem backend: mantém o comportamento offline-first (usa cache)
   if(!ONLINE_ENABLED || !navigator.onLine || !auth.idToken){ hideLoginGate(); startAppAfterLogin(); return; }
   // mostra "verificando acesso…" e checa no servidor
-  const le=$('#loginError'); if(le){ le.textContent=t('verificandoAcesso'); le.classList.remove('hidden'); }
+  const le=$('#loginError'); if(le){ le.textContent=t('verificandoAcesso'); le.classList.add('info'); le.classList.remove('hidden'); }
   try{
     const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) + '&idToken=' + encodeURIComponent(auth.idToken);
     const r = await fetchTimeout(url, {method:'GET'}, 15000);
@@ -1672,7 +1672,7 @@ async function verifyAccessThenStart(){
       if(le){
         let msg = (err==='unauthorized') ? t('naoAutorizado') : (t('erroLogin')+' ('+err+')');
         if(tentativa) msg += '\n('+tentativa+')';
-        le.textContent = msg; le.style.whiteSpace='pre-line'; le.classList.remove('hidden');
+        le.textContent = msg; le.style.whiteSpace='pre-line'; le.classList.remove('info'); le.classList.remove('hidden');
       }
       try{ google.accounts.id.disableAutoSelect(); }catch(_){}
     }
@@ -2010,7 +2010,7 @@ async function syncNow(){
       auth={idToken:null,email:null,role:null,realAdmin:false,viewAs:null};
       sessionStorage.removeItem('gd_idtoken'); sessionStorage.removeItem('gd_email');
       showLoginGate(); setSync('err');
-      const el=$('#loginError'); if(el){ el.textContent=t('naoAutorizado'); el.classList.remove('hidden'); }
+      const el=$('#loginError'); if(el){ el.textContent=t('naoAutorizado'); el.classList.remove('info'); el.classList.remove('hidden'); }
       try{ google.accounts.id.disableAutoSelect(); }catch(_){}
     }
     else { setSync('err'); scheduleRetry(); }   // falha de rede/servidor/db -> re-tenta sozinho
