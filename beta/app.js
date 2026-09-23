@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta12';
+const APP_VERSION = 'v4.1.0-beta14';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -558,9 +558,9 @@ async function renderPainel(){
   const dP=Math.max(0,din), bP=Math.max(0,ban), oP=Math.max(0,out);
   const totBolso = (dP+bP+oP) || 1;
   const pDin=dP/totBolso*100, pBan=bP/totBolso*100, pOut=oP/totBolso*100;
-  // dasharray do donut (circunf ~100); offsets acumulados a partir de -25 (topo)
-  const offBan = -(25 + pDin);
-  const offOut = -(25 + pDin + pBan);
+  // dasharray do donut (circunf ~100); offsets acumulados a partir de 25 (topo, sentido horário)
+  const offBan = 25 - pDin;
+  const offOut = 25 - pDin - pBan;
   const maxB = Math.max(dP,bP,oP,1);
   const custPastor=cx.cashPastor||0, custTeso=cx.cashTeso||0;
   const cpP=Math.max(0,custPastor), ctP=Math.max(0,custTeso), custTot=(cpP+ctP)||1;
@@ -570,7 +570,7 @@ async function renderPainel(){
       <svg width="112" height="112" viewBox="0 0 42 42" aria-label="Composição do saldo">
         <circle cx="21" cy="21" r="15.9" fill="none" stroke="#efe6d3" stroke-width="6"/>
         <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--accent)" stroke-width="6" stroke-dasharray="${pDin.toFixed(1)} ${(100-pDin).toFixed(1)}" stroke-dashoffset="25" transform="rotate(-90 21 21)"/>
-        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#0050CA" stroke-width="6" stroke-dasharray="${pBan.toFixed(1)} ${(100-pBan).toFixed(1)}" stroke-dashoffset="${offBan.toFixed(1)}" transform="rotate(-90 21 21)"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#5b4a8a" stroke-width="6" stroke-dasharray="${pBan.toFixed(1)} ${(100-pBan).toFixed(1)}" stroke-dashoffset="${offBan.toFixed(1)}" transform="rotate(-90 21 21)"/>
         <circle cx="21" cy="21" r="15.9" fill="none" stroke="#8a6d3b" stroke-width="6" stroke-dasharray="${pOut.toFixed(1)} ${(100-pOut).toFixed(1)}" stroke-dashoffset="${offOut.toFixed(1)}" transform="rotate(-90 21 21)"/>
         <text x="21" y="20.5" text-anchor="middle" font-size="5" font-weight="bold" fill="#1f1f1f">${Math.round(cx.saldoProjeto).toLocaleString('pt-PT')}€</text>
         <text x="21" y="25.5" text-anchor="middle" font-size="3" fill="#6f6a63">${t('saldoLabel')}</text>
@@ -595,7 +595,7 @@ async function renderPainel(){
           <span class="seg"><i class="fdotc" style="background:var(--green)"></i> ${t('tesoureiroLabel')} <b>${Math.round(custTeso).toLocaleString('pt-PT')} €</b></span>
         </div>
       </div>
-      <div class="fin-row"><span class="lft"><i class="fdot" style="background:#0050CA"></i> ${t('bolsoBanco')}</span><span class="fmini"><i style="width:${(bP/maxB*100).toFixed(0)}%;background:#0050CA"></i></span><b>${Math.round(ban).toLocaleString('pt-PT')} €</b></div>
+      <div class="fin-row"><span class="lft"><i class="fdot" style="background:#5b4a8a"></i> ${t('bolsoBanco')}</span><span class="fmini"><i style="width:${(bP/maxB*100).toFixed(0)}%;background:#5b4a8a"></i></span><b>${Math.round(ban).toLocaleString('pt-PT')} €</b></div>
       <div class="fin-row"><span class="lft"><i class="fdot" style="background:#8a6d3b"></i> ${t('bolsoOutros')}</span><span class="fmini"><i style="width:${(oP/maxB*100).toFixed(0)}%;background:#8a6d3b"></i></span><b>${Math.round(out).toLocaleString('pt-PT')} €</b></div>
     </div>`;
   const dinRow=$('#finDinRow');
@@ -944,6 +944,7 @@ function updateIsentoVis(){
   const sb=$('#saldoBox'); if(sb) sb.classList.toggle('hidden', on);
   const pf=$('#payFields'); if(pf) pf.classList.toggle('hidden', on || soma>=COTA);
   const nota=$('#isentoNota'); if(nota) nota.classList.toggle('hidden', !on);
+  const ttl=$('#addPayTitle'); if(ttl) ttl.classList.toggle('hidden', on);  // esconde "Adicionar pagamento" quando isento
   const ap=$('#addPaySub'); if(ap) ap.classList.remove('hidden');  // sempre visível (contém o checkbox)
 }
 $('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); updateCamisaStatusVis(); });
