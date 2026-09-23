@@ -232,6 +232,8 @@
 
   /* modal / sheet */
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-end}
+  .overlay.overlay-center{align-items:center;justify-content:center;padding:16px}
+  .overlay.overlay-center .confirm-sheet{margin:0}
   .sheet{background:#fff;width:100%;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:16px;max-width:720px;margin:0 auto}
   .sheet h2{font-size:22px}
   .sheet-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
@@ -845,7 +847,7 @@
 </div>
 
 <!-- MODAL GENÉRICO: confirmação (destrutivo/aviso) — usado por confirmDialog() -->
-<div class="overlay hidden" id="appConfirm">
+<div class="overlay overlay-center hidden" id="appConfirm">
   <div class="sheet confirm-sheet">
     <div class="confirm-icon" id="acIconWrap">
       <svg id="acIconDanger" class="hidden" viewBox="0 0 24 24"><path d="M6 7h12v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7zm3 2v9h2V9H9zm4 0v9h2V9h-2zM9 4V3a1 1 0 011-1h4a1 1 0 011 1v1h4v2H5V4h4z"/></svg>
