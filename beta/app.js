@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0-beta21';
+const APP_VERSION = 'v4.1.0-beta22';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1454,9 +1454,9 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   rec.fotos=(caixaState.draftFotos||[]).map(f=>f.url).filter(Boolean);
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id!=null?rec.id:newId);
-  $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
+  $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
-$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
+$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
 $('#despCancel') && ($('#despCancel').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despBack') && ($('#despBack').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal'){ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
@@ -1508,9 +1508,9 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   rec.fotos=(caixaState.draftFotosMov||[]).map(f=>f.url).filter(Boolean);
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await sPut(STORE_MOV, rec); markPendingKV('mov', rec.id!=null?rec.id:newId);
-  $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow();
+  $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
-$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); await renderCaixa(); if(ONLINE_ENABLED) syncNow(); });
+$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
 $('#movCancel') && ($('#movCancel').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movBack') && ($('#movBack').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
