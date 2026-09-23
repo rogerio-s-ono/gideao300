@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta3';
+const APP_VERSION = 'v4.1.1-beta4';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -1112,7 +1112,7 @@ $('#save').onclick=async()=>{
   closeModal(); refresh();
   if(ONLINE_ENABLED) syncNow();
 };
-$('#del').onclick=async()=>{ if(!state.editing) return; if(!(await confirmDialog(t('excluirGideaoT'), t('confirmDel'), {perigo:true}))) return; await del(state.editing); closeModal(); refresh(); };
+$('#del').onclick=async()=>{ if(!state.editing) return; if(!(await confirmDialog(t('excluirGideaoT'), t('confirmDel'), {perigo:true}))) return; const id=state.editing; await del(id); markPendingDel(id); closeModal(); refresh(); if(ONLINE_ENABLED) syncNow(); };
 $('#cancel').onclick=()=>tryCloseModal();
 $('#modalBack').onclick=()=>tryCloseModal();
 $('#modal').addEventListener('click',(e)=>{ if(e.target.id==='modal') tryCloseModal(); });  // clicar no fundo
@@ -2168,6 +2168,16 @@ function markPending(id){
 }
 function pendingIds(){ return Object.keys(JSON.parse(localStorage.getItem('gd_pending')||'{}')); }
 function clearPending(){ localStorage.removeItem('gd_pending'); }
+// tombstones de inscritos apagados (para propagar a deleção ao servidor no próximo push)
+function markPendingDel(id){
+  const p=JSON.parse(localStorage.getItem('gd_pending_del')||'{}'); p[String(id)]=1;
+  localStorage.setItem('gd_pending_del', JSON.stringify(p));
+  // se estava pendente de upsert, remove (não faz sentido enviar edição de algo apagado)
+  const up=JSON.parse(localStorage.getItem('gd_pending')||'{}'); delete up[String(id)];
+  localStorage.setItem('gd_pending', JSON.stringify(up));
+}
+function pendingDelIds(){ return Object.keys(JSON.parse(localStorage.getItem('gd_pending_del')||'{}')); }
+function clearPendingDel(){ localStorage.removeItem('gd_pending_del'); }
 
 // fetch com timeout — evita ficar preso em "Sincronizando" se a rede/Apps Script travar
 async function fetchTimeout(url, opts, ms){
@@ -2190,11 +2200,13 @@ async function pull(){
   if(data.role){ auth.role=data.role; applyAdminUI(); }
   // reconcilia: servidor como verdade (só a pastora escreve); preserva pendentes locais não enviados
   const pend = pendingIds();
+  const delPend = pendingDelIds();   // apagados localmente ainda não confirmados no servidor
   const localAll = await getAll();
   const localById = {}; localAll.forEach(i=>localById[i.id]=i);
   await clearAll();
   let maxId=0;
   for(const s of data.inscritos){
+    if(delPend.indexOf(String(s.id))>=0) { if(s.id>maxId) maxId=s.id; continue; }  // apagado local pendente -> não regrava
     // se há alteração local pendente para esse id, mantém a local (será enviada no push)
     if(pend.indexOf(String(s.id))>=0 && localById[s.id]){ await put(localById[s.id]); }
     else { await put(s); }
@@ -2226,12 +2238,15 @@ async function reconcileColl(store, serverArr, kind, pendKeys){
 async function pushPending(){
   if(!ONLINE_ENABLED || !auth.idToken) return;
   const ids=pendingIds();
+  const delIds=pendingDelIds();
   const pcx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
   const cxKeys=Object.keys(pcx);
-  if(!ids.length && !cxKeys.length) return;
+  if(!ids.length && !delIds.length && !cxKeys.length) return;
   const payload={token:CFG.SYNC_TOKEN, idToken:auth.idToken};
   // inscritos pendentes
   if(ids.length){ const all=await getAll(); payload.inscritos=all.filter(i=>ids.indexOf(String(i.id))>=0); }
+  // inscritos apagados (tombstones)
+  if(delIds.length){ payload.inscritosDel=delIds.map(x=>+x); }
   // despesas/movimentos pendentes + deleções
   const despAll=await sGetAll(STORE_DESP), movAll=await sGetAll(STORE_MOV);
   const despIds=cxKeys.filter(k=>k.indexOf('desp:')===0).map(k=>+k.split(':')[1]);
@@ -2247,6 +2262,7 @@ async function pushPending(){
   const data=await r.json();
   if(!data.ok) throw new Error(data.error||'push_failed');
   clearPending();
+  clearPendingDel();
   localStorage.removeItem('gd_pending_cx');
   return data;
 }
