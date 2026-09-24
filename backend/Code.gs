@@ -35,7 +35,7 @@ const HEADERS = ['id','numero','nome','telefone','tamanho','cota','pagamentos_js
                  'atualizadoEm','atualizadoPor'];
 // coleções financeiras (fase Caixa)
 const DESP_SHEET='Despesas';
-const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','fotos_json','atualizadoEm','atualizadoPor'];
+const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','fotos_json','atualizadoEm','atualizadoPor','status','suspensoPor','suspensoEm'];
 const MOV_SHEET='Movimentos';
 const MOV_HEADERS=['id','de','para','valor','data','comentario','atualizadoEm','atualizadoPor','fotos_json'];
 

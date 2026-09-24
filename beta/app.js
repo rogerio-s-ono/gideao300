@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta9';
+const APP_VERSION = 'v4.1.1-beta10';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -35,6 +35,7 @@ const I18N = {
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
+    suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
     porTamanho:'Por tamanho (para a gráfica)', financeiro:'Financeiro',
     dadosBackup:'Dados e backup', exportarExcel:'Exportar Excel (CSV)', baixarBackup:'Baixar backup (JSON)',
     restaurarBackup:'Restaurar backup (JSON)', imprimirPdf:'Imprimir / PDF',
@@ -126,6 +127,7 @@ const I18N = {
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
+    suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
     porTamanho:'Por talla (para la imprenta)', financeiro:'Finanzas',
     dadosBackup:'Datos y copia', exportarExcel:'Exportar Excel (CSV)', baixarBackup:'Descargar copia (JSON)',
     restaurarBackup:'Restaurar copia (JSON)', imprimirPdf:'Imprimir / PDF',
@@ -337,7 +339,7 @@ function computeCaixa(inscritos, despesas, movimentos){
   (movimentos||[]).forEach(m=>{ const v=+m.valor||0; if(bolso[m.de]!==undefined) bolso[m.de]-=v; if(bolso[m.para]!==undefined) bolso[m.para]+=v; });
   // despesas: saem do bolso escolhido
   let despTotal=0;
-  (despesas||[]).forEach(d=>{ const v=+d.valor||0; despTotal+=v; const b=d.bolso||'banco'; if(bolso[b]!==undefined) bolso[b]-=v; });
+  (despesas||[]).forEach(d=>{ if(d.status==='suspenso') return; const v=+d.valor||0; despTotal+=v; const b=d.bolso||'banco'; if(bolso[b]!==undefined) bolso[b]-=v; });
   const saldoProjeto = arrecadado - despTotal;
   return { bolso, arrecadado, despTotal, saldoProjeto, forma, cashPastor:cashPastor, cashTeso:cashTeso };
 }
@@ -1325,9 +1327,9 @@ function renderCaixaList(){
   if(caixaState.tab==='despesas'){
     const arr=caixaState.despesas.slice().sort(cmpDate);
     if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
-    el.innerHTML=arr.map(d=>`<div class="cx-item" data-id="${d.id}" data-k="desp:${d.id}">
-      <div><div class="desc">${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
-      <div class="amt out">−${eur(d.valor)}</div></div>`).join('');
+    el.innerHTML=arr.map(d=>{ const susp=(d.status==='suspenso'); return `<div class="cx-item${susp?' susp':''}" data-id="${d.id}" data-k="desp:${d.id}">
+      <div><div class="desc">${susp?`<span class="selo-susp">${t('suspensa')}</span>`:''}${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
+      <div class="amt out">−${eur(d.valor)}</div></div>`; }).join('');
     el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>{ cxHighlight=it.dataset.k; extHighlight=null; openDesp(+it.dataset.id); });
   } else {
     const arr=caixaState.movimentos.slice().sort(cmpDate);
@@ -1368,7 +1370,13 @@ function openDesp(id){
   renderDraftFotos();
   // user pode criar/editar despesa (nao deletar). Managers (admin/tesoureiro) podem tudo.
   const despRO = !auth.podeAddDespesa;                       // read-only só se nem adicionar pode (viewer nunca chega aqui)
-  $('#despDel').classList.toggle('hidden', !d || !auth.podeCaixaMgr);   // Excluir só admin/tesoureiro
+  const suspensa = !!(d && d.status==='suspenso');
+  // Suspender: despesa existente ativa, quem pode editar despesa (pastora+mgr)
+  $('#despSuspend').classList.toggle('hidden', !(d && !suspensa && auth.podeAddDespesa));
+  // Reativar: despesa existente suspensa, quem pode editar
+  $('#despReactivate').classList.toggle('hidden', !(d && suspensa && auth.podeAddDespesa));
+  // Excluir (hard delete): só admin/tesoureiro
+  $('#despDel').classList.toggle('hidden', !d || !auth.podeCaixaMgr);
   $('#despModal').classList.remove('hidden');
   applyModalRO('#despModal', despRO, ['#despSave','#d-addFoto']);
 }
@@ -1510,6 +1518,27 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
 $('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!(await confirmDialog(t('excluirDespT'), t('confirmDelDesp'), {perigo:true}))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
+// Suspender (soft delete): marca status='suspenso' — fica no histórico, sai do saldo
+$('#despSuspend') && ($('#despSuspend').onclick=async()=>{
+  if(writeBlocked() || !caixaState.editDesp) return;
+  if(!(await confirmDialog(t('suspenderDespT'), t('confirmSuspenderDesp'), {perigo:false, okText:t('suspender')}))) return;
+  const rec=caixaState.despesas.find(x=>x.id===caixaState.editDesp); if(!rec) return;
+  rec.status='suspenso'; rec.suspensoPor=auth.email||''; rec.suspensoEm=new Date().toISOString();
+  rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
+  await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id);
+  $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
+  toast(t('despSuspensa'),'info');
+});
+// Reativar: volta status para ativo
+$('#despReactivate') && ($('#despReactivate').onclick=async()=>{
+  if(writeBlocked() || !caixaState.editDesp) return;
+  const rec=caixaState.despesas.find(x=>x.id===caixaState.editDesp); if(!rec) return;
+  rec.status='ativo'; rec.suspensoPor=''; rec.suspensoEm='';
+  rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
+  await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id);
+  $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
+  toast(t('despReativada'),'ok');
+});
 $('#despCancel') && ($('#despCancel').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despBack') && ($('#despBack').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal'){ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
@@ -1612,7 +1641,7 @@ async function openExtrato(bolso){
       cust: isCash? payCustody(p) : null });
   }));
   // despesas pagas deste bolso
-  caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor:-(+d.valor||0), kind:'desp', refId:d.id, cust: isCash? (d.origemCusto==='pastor'?'pastor':'teso') : null }); });
+  caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; const susp=(d.status==='suspenso'); lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor: susp?0:-(+d.valor||0), valorReal:-(+d.valor||0), susp:susp, kind:'desp', refId:d.id, cust: isCash? (d.origemCusto==='pastor'?'pastor':'teso') : null }); });
   // movimentações que afetam este bolso
   caixaState.movimentos.forEach(m=>{
     if(m.para===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:(+m.valor||0), kind:'mov', refId:m.id });
@@ -1638,6 +1667,12 @@ async function openExtrato(bolso){
   const lkey=(l)=> l.kind==='pag' ? ('pag:'+l.gid+':'+l.pidx) : (l.kind+':'+l.refId);
   if(!shown.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
   else el.innerHTML=shown.map((l)=>{
+    if(l.susp){
+      return `<div class="ext-item clickable susp" data-idx="${lanc.indexOf(l)}" data-key="${lkey(l)}">
+        <div><div class="e-d"><span class="selo-susp">${t('suspensa')}</span>${esc(l.desc)}</div><div class="e-m">${fmtShort(l.data)}</div></div>
+        <div class="e-right"><div class="e-v neg susp-val">−${eur(Math.abs(l.valorReal||0))}</div></div>
+      </div>`;
+    }
     const pos=l.valor>=0;
     const tag = l.cust ? custodyPill(l.cust) : '';
     const balHtml = custActive ? '' : `<div class="e-bal">${eur(l.bal)}</div>`;  // saldo corrente só sem filtro
