@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta18';
+const APP_VERSION = 'v4.1.1-beta19';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -67,7 +67,7 @@ const I18N = {
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
     avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
     estoqueTitulo:'Estoque de camisas', estoqueLabel:'Estoque', estColEstoque:'Estoque', estColProjecao:'Projeção', estColEstado:'Estado',
-    secLista:'Lista da confecção', confNaProducao:'{n} na produção', confEntreguesN:'{e} entregues / {t}', estFaltamN:'faltam {n}', selecioneTam:'— Selecione —',
+    secLista:'Lista da confecção', confNaProducao:'{n} na produção', confEmProducao:'{n} em produção', confEntreguesN:'{e} entregues / {t}', estFaltamN:'faltam {n}', selecioneTam:'— Selecione —',
     estOk:'OK', estComprar:'Comprar', estFaltam:'Faltam {n}', estFaltaAgora:'Falta agora (impacta produção)', estUrgente:'comprar com urgência', estComprarPreventivo:'Comprar para não faltar', estCompraOk:'Estoque em dia — nada a comprar',
     estVazio:'Sem dados de estoque ainda.', estLegenda:'Estoque = disponível (ajustes − consumido pela produção). A fazer = camisas por produzir. Projeção = A fazer + pendentes. Estado: OK cobre a projeção · Comprar cobre "A fazer" mas não a projeção · Faltam já impacta produção.',
     ajustarEstoque:'Ajustar estoque', ajustar:'Ajustar', disponivelAtual:'Disponível atual', estMotivo:'Motivo (opcional)', estHistorico:'Histórico de ajustes', estiloExtrato:'estilo extrato', saldoCorrente:'saldo', semAjustes:'Sem ajustes ainda.', estInformeQtd:'Informe uma quantidade (+ ou −).', estAjusteOk:'Estoque ajustado.',
@@ -164,7 +164,7 @@ const I18N = {
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
     avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
     estoqueTitulo:'Stock de camisetas', estoqueLabel:'Stock', estColEstoque:'Stock', estColProjecao:'Proyección', estColEstado:'Estado',
-    secLista:'Lista de confección', confNaProducao:'{n} en producción', confEntreguesN:'{e} entregadas / {t}', estFaltamN:'faltan {n}', selecioneTam:'— Selecciona —',
+    secLista:'Lista de confección', confNaProducao:'{n} en producción', confEmProducao:'{n} en producción', confEntreguesN:'{e} entregadas / {t}', estFaltamN:'faltan {n}', selecioneTam:'— Selecciona —',
     estOk:'OK', estComprar:'Comprar', estFaltam:'Faltan {n}', estFaltaAgora:'Falta ahora (afecta producción)', estUrgente:'comprar con urgencia', estComprarPreventivo:'Comprar para no faltar', estCompraOk:'Stock al día — nada que comprar',
     estVazio:'Sin datos de stock aún.', estLegenda:'Stock = disponible (ajustes − consumido por producción). Por hacer = camisetas por producir. Proyección = Por hacer + pendientes. Estado: OK cubre la proyección · Comprar cubre "Por hacer" pero no la proyección · Faltan ya afecta producción.',
     ajustarEstoque:'Ajustar stock', ajustar:'Ajustar', disponivelAtual:'Disponible actual', estMotivo:'Motivo (opcional)', estHistorico:'Historial de ajustes', estiloExtrato:'estilo extracto', saldoCorrente:'saldo', semAjustes:'Sin ajustes aún.', estInformeQtd:'Indica una cantidad (+ o −).', estAjusteOk:'Stock ajustado.',
@@ -367,7 +367,7 @@ function fmtNum(v){
   return (!isNaN(n) && n>=0 && n<10 && /^\d+$/.test(s)) ? ('0'+n) : s;
 }
 
-let state={ view:'lista', filter:'todos', q:'', qAdv: localStorage.getItem('qAdv')==='1', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{}, sizePhaseSel:'fazer' };
+let state={ view:'lista', filter:'todos', q:'', qAdv: localStorage.getItem('qAdv')==='1', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilters:['0','1'], confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{}, sizePhaseSel:'fazer' };
 
 /* ---------- render lista ---------- */
 const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['isento','fIsento'],['revisar','fRevisar']];
@@ -674,13 +674,29 @@ async function renderPainel(){
 /* ---------- confecção ---------- */
 // [filtro key, label i18n, classe do badge de cor]
 const CONF_FILTERS=[['todos','fTodos',''],['0','cAfazer','cb-grey'],['1','cEmConf','cb-amber'],['2','cPronta','cb-gold'],['3','cEntregue','cb-green'],['pend','pendPag','cb-red']];
+const CONF_ALL_STATES=['0','1','2','3','pend'];   // estados selecionáveis (exceto o 'todos')
 function renderConfFilters(counts){
   const cc=counts||{};
+  const active=state.confFilters||[];
+  const allOn = CONF_ALL_STATES.every(k=>active.indexOf(k)>=0);
   $('#confFilters').innerHTML=CONF_FILTERS.map(([k,l,cls])=>{
     const n=(cc[k]!=null)?cc[k]:0;
-    return `<div class="chip ${state.confFilter===k?'active':''}" data-f="${k}">${t(l)} <span class="cbadge ${cls}">${n}</span></div>`;
+    const on = (k==='todos') ? allOn : (active.indexOf(k)>=0);
+    return `<div class="chip ${on?'active':''}" data-f="${k}">${t(l)} <span class="cbadge ${cls}">${n}</span></div>`;
   }).join('');
-  $$('#confFilters .chip').forEach(c=>c.onclick=()=>{state.confFilter=c.dataset.f;renderConfeccao();});
+  $$('#confFilters .chip').forEach(c=>c.onclick=()=>{
+    const k=c.dataset.f;
+    if(k==='todos'){
+      // marca todos; se já estavam todos, mantém todos (não deixa vazio ao clicar Todos)
+      state.confFilters = CONF_ALL_STATES.slice();
+    } else {
+      const arr=state.confFilters.slice();
+      const i=arr.indexOf(k);
+      if(i>=0) arr.splice(i,1); else arr.push(k);
+      state.confFilters = arr;   // pode ficar vazio -> lista vazia (nenhum estado selecionado)
+    }
+    renderConfeccao();
+  });
 }
 async function renderConfeccao(){
   const all=await getAll();
@@ -706,8 +722,8 @@ async function renderConfeccao(){
   caixaState.estoque = await sGetAll(STORE_EST);
   renderEstoque(all);
   // resumos nos cabeçalhos das seções (contexto mesmo colapsado)
-  const naProd = totGeral;   // pagos+isentos que entram na produção
-  const sl=$('#sumLista'); if(sl) sl.textContent = t('confNaProducao', {n:naProd});
+  const emProducao = c[0]+c[1];   // A fazer + Em confecção (Pronta/Entregue não contam como "em produção")
+  const sl=$('#sumLista'); if(sl) sl.textContent = t('confEmProducao', {n:emProducao});
   const sr=$('#sumResumo'); if(sr) sr.textContent = t('confEntreguesN', {e:totCol[3], t:totGeral});
   const se=$('#sumEstoque'); if(se){
     const rows=computeEstoque(all);
@@ -830,7 +846,6 @@ $('#estSave') && ($('#estSave').onclick=async()=>{
   toast(t('estAjusteOk'),'ok');
 });
 // botão "Estoque" no topo da Confecção -> rola até a seção
-$('#btnGoEstoque') && ($('#btnGoEstoque').onclick=()=>{ setConfSec('secEstoque', true); const s=$('#secEstoque'); if(s){ setTimeout(()=>s.scrollIntoView({behavior:'smooth',block:'start'}),80); } });
 // ---- accordion da Confecção (seções colapsáveis, estado persistido) ----
 function setConfSec(id, open){
   const sec=$('#'+id); if(!sec) return;
@@ -850,18 +865,15 @@ function setupConfAccordion(){
 
 async function renderConfList(){
   const all=(await getAll()).sort((a,b)=>numOrder(a.numero)-numOrder(b.numero)||a.nome.localeCompare(b.nome));
-  const f=state.confFilter;
+  const active=state.confFilters||[];
   const qn=norm(state.confQ||'');
   const filtered=all.filter(i=>{
     if(qn && !norm(i.nome).includes(qn)) return false;   // busca por nome (sem acento)
-    if(f==='todos') return true;
-    // filtro "pendente de pagamento": Gideões sem pagamento completo
-    if(f==='pend') return !podeProduzir(i);
     // mantém visível qualquer card em edição, para não sumir ao trocar status antes de salvar
     if(i.id in state.confDirty) return true;
-    // gate de pagamento: sem pagamento completo não entra em nenhuma etapa (A fazer/Em conf/Pronta/Entregue)
-    if(!podeProduzir(i)) return false;
-    return (i.camisaEstado||0)===+f;
+    // estado do card: 'pend' se não paga/isento; senão o camisaEstado (0-3)
+    const estadoCard = !podeProduzir(i) ? 'pend' : String(i.camisaEstado||0);
+    return active.indexOf(estadoCard)>=0;   // acumulativo (OR): aparece se seu estado está selecionado
   });
   const el=$('#confList');
   if(!filtered.length){ el.innerHTML=`<div class="empty">${t('vazio')}</div>`; return; }
@@ -1307,7 +1319,7 @@ $('#modal').addEventListener('click',(e)=>{ if(e.target.id==='modal') tryCloseMo
 $('#camisaStatusLine').onclick=()=>{
   const pid=$('#camisaStatusLine').dataset.pid;
   closeModal();
-  state.confFilter='todos';
+  state.confFilters=CONF_ALL_STATES.slice();   // mostra tudo p/ garantir que o card destacado apareça
   state.confHighlight=pid?+pid:null;
   setView('confeccao');
 };
