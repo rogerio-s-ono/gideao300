@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta8';
+const APP_VERSION = 'v4.1.2-beta9';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -573,7 +573,7 @@ async function renderList(){
     const metaParts=[];
     if(i.tamanho) metaParts.push(esc(i.tamanho));
     if(i.telefone) metaParts.push(esc(i.telefone));
-    metaParts.push(`${soma}€ / ${i.cota}€`);
+    metaParts.push(`${soma}€`);
     // ícone WhatsApp (à direita dos tags): A2 pendente / A4 reenviar / nada
     const waSt=waCardState(i);
     const waCls = waSt==='pendente'?'wa-ic-a2' : waSt==='enviado'?'wa-ic-a4' : 'wa-ic-off';
