@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta19';
+const APP_VERSION = 'v4.1.1-beta20';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -2453,8 +2453,9 @@ async function pull(){
     else { await put(s); }
     if(s.id>maxId) maxId=s.id;
   }
-  // registros locais novos (criados offline) que ainda não estão no servidor
-  for(const i of localAll){ if(!data.inscritos.find(s=>s.id===i.id)){ await put(i); } }
+  // registros locais criados offline (PENDENTES) que ainda não estão no servidor — só esses são preservados.
+  // (um registro local ausente do servidor E sem pendência = fantasma: foi apagado no servidor/planilha → NÃO reinjetar)
+  for(const i of localAll){ if(pend.indexOf(String(i.id))>=0 && !data.inscritos.find(s=>s.id===i.id)){ await put(i); } }
   // ---- coleções financeiras (despesas/movimentos) ----
   const pcx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
   const pendKeys=Object.keys(pcx);
@@ -2474,8 +2475,8 @@ async function reconcileColl(store, serverArr, kind, pendKeys){
     if(pendIds.indexOf(s.id)>=0 && localById[s.id]) await sPut(store, localById[s.id]); // edição local pendente
     else await sPut(store, s);
   }
-  // itens locais criados offline ainda não no servidor
-  for(const l of local){ if(!serverArr.find(s=>s.id===l.id) && delIds.indexOf(l.id)<0) await sPut(store, l); }
+  // itens locais criados offline (PENDENTES) ainda não no servidor — só esses; o resto ausente = fantasma (apagado no servidor)
+  for(const l of local){ if(pendIds.indexOf(l.id)>=0 && !serverArr.find(s=>s.id===l.id) && delIds.indexOf(l.id)<0) await sPut(store, l); }
 }
 async function pushPending(){
   if(!ONLINE_ENABLED || !auth.idToken) return;
