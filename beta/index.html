@@ -572,11 +572,14 @@
   .wa-empty{color:var(--muted);font-size:.9rem;padding:8px 4px}
   .wa-ic-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;border:none;flex:none;background:transparent}
   .wa-ic-btn svg{width:20px;height:20px}
-  .wa-ic-a2{background:#fff;border:2px solid #25D366} .wa-ic-a2 svg{fill:#25D366}
+  /* pendente (A2): só o símbolo, sem círculo/contorno */
+  .wa-ic-a2{background:transparent;border:none} .wa-ic-a2 svg{fill:#25D366;width:26px;height:26px}
+  /* enviado (A4): mantém o círculo/fundo */
   .wa-ic-a4{background:#eaf7ef} .wa-ic-a4 svg{fill:#128C7E}
-  /* slot do ícone no card */
-  .card .wa-slot{display:flex;flex-direction:column;align-items:center;flex:none;border-left:1px solid var(--line);padding-left:10px;margin-left:2px}
+  /* slot do ícone no card (sem barra de separação) */
+  .card .wa-slot{display:flex;flex-direction:column;align-items:center;flex:none;margin-left:4px}
   .card .wa-slot .wa-ic-btn{width:36px;height:36px} .card .wa-slot .wa-ic-btn svg{width:18px;height:18px}
+  .card .wa-slot .wa-ic-a2 svg{width:24px;height:24px}
   .card .wa-slot .wa-reenviar{font-size:.6rem;color:#128C7E;font-weight:700;margin-top:1px}
   /* toast de feedback */
   #toastWrap{position:fixed;left:0;right:0;bottom:86px;z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 16px}
