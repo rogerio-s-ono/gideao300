@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta21';
+const APP_VERSION = 'v4.1.2-beta1';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
