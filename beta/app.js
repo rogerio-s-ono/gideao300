@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta1';
+const APP_VERSION = 'v4.1.2-beta2';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -33,6 +33,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
+    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
     suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
@@ -130,6 +131,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
+    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
     suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
@@ -314,6 +316,135 @@ const isIsento=i=>!!(i&&i.isento);
 function statusPag(i){ if(isIsento(i)) return 'isento'; const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
 // pode entrar na confecção/produção: quem pagou a cota OU é isento (pastor/convidado)
 const podeProduzir=i=>statusPag(i)==='pago' || isIsento(i);
+
+// ============ Notificações WhatsApp (wa.me) — MVP Modelo A, marca local ============
+// Normaliza o telefone para o formato wa.me (só dígitos, DDI). Padrão: Espanha (+34).
+function normPhone(tel){
+  if(!tel) return '';
+  let d=String(tel).replace(/[^\d+]/g,'');       // mantém dígitos e +
+  if(d.indexOf('+')>0) d=d.replace(/\+/g,'');     // + só vale no início
+  if(d[0]==='+') d=d.slice(1);
+  else if(d.slice(0,2)==='00') d=d.slice(2);      // 00 internacional -> tira
+  else d=d.replace(/^0+/,'');                      // zeros à esquerda (nacional)
+  if(!d) return '';
+  // se já começa por um DDI conhecido, respeita; senão prefixa 34 (Espanha)
+  const DDI=['34','351','55','1','44','39','33','49','54','52','598','595'];
+  const hasDDI = DDI.some(c=>d.slice(0,c.length)===c && d.length>=c.length+6);
+  if(!hasDDI) d='34'+d;
+  return d;
+}
+const primeiroNome=n=>String(n||'').trim().split(/\s+/)[0]||'';
+// Textos dos 4 avisos, PT/ES. vars: {nome}(completo) {tam} {num} {valor} {falta}
+function waTexto(tipo, i){
+  const nome=esc0(i.nome)||'';
+  const tam=i.tamanho||'—';
+  const num=fmtNum(i.numero)||'—';
+  const soma=somaPago(i), falta=Math.max(0,(i.cota||COTA)-soma);
+  const ult=(i.pagamentos||[]).slice(-1)[0]; const valor=ult?(+ult.valor||0):soma;
+  const T={
+    pt:{
+      pagtoParcial:`Olá ${nome}! 🙏 Confirmamos o recebimento de ${valor}€ da tua cota do Projeto Gideão 300 (camisa tamanho ${tam}). Faltam ${falta}€ para completar os 300€. Se alguma informação estiver incorreta, por favor responde a esta mensagem. Deus te abençoe! — Casa Fuerte Church`,
+      cotaCompleta:`Olá ${nome}! 🎉 A tua cota do Projeto Gideão 300 está completa (300€) — camisa tamanho ${tam}. Muito obrigado! Avisaremos quando a tua camisa estiver pronta. Se alguma informação estiver incorreta, por favor responde a esta mensagem. Deus te abençoe! — Casa Fuerte Church`,
+      camisaPronta:`Olá ${nome}! 👕 A tua camisa do Projeto Gideão 300 (tamanho ${tam}, nº ${num}) já está pronta. Em breve combinamos a entrega. Deus te abençoe! — Casa Fuerte Church`,
+      camisaEntregue:`Olá ${nome}! ✅ Confirmamos a entrega da tua camisa do Projeto Gideão 300. Vista com fé! Deus te abençoe! — Casa Fuerte Church`
+    },
+    es:{
+      pagtoParcial:`¡Hola ${nome}! 🙏 Confirmamos la recepción de ${valor}€ de tu cuota del Proyecto Gedeón 300 (camiseta talla ${tam}). Faltan ${falta}€ para completar los 300€. Si algún dato es incorrecto, por favor responde a este mensaje. ¡Que Dios te bendiga! — Casa Fuerte Church`,
+      cotaCompleta:`¡Hola ${nome}! 🎉 Tu cuota del Proyecto Gedeón 300 está completa (300€) — camiseta talla ${tam}. ¡Muchas gracias! Te avisaremos cuando tu camiseta esté lista. Si algún dato es incorrecto, por favor responde a este mensaje. ¡Que Dios te bendiga! — Casa Fuerte Church`,
+      camisaPronta:`¡Hola ${nome}! 👕 Tu camiseta del Proyecto Gedeón 300 (talla ${tam}, nº ${num}) ya está lista. Pronto coordinamos la entrega. ¡Que Dios te bendiga! — Casa Fuerte Church`,
+      camisaEntregue:`¡Hola ${nome}! ✅ Confirmamos la entrega de tu camiseta del Proyecto Gedeón 300. ¡Vístela con fe! ¡Que Dios te bendiga! — Casa Fuerte Church`
+    }
+  };
+  return (T[lang]||T.pt)[tipo]||'';
+}
+// texto sem escape HTML (a mensagem vai para URL, não para o DOM)
+function esc0(s){ return String(s==null?'':s); }
+// rótulos curtos dos tipos (para o modal/linha)
+function waLabel(tipo, i){
+  const L={ pt:{pagtoParcial:'Confirmar pagamento (parcial)', cotaCompleta:'Cota completa (300€)', camisaPronta:'Camisa pronta', camisaEntregue:'Camisa entregue'},
+            es:{pagtoParcial:'Confirmar pago (parcial)', cotaCompleta:'Cuota completa (300€)', camisaPronta:'Camiseta lista', camisaEntregue:'Camiseta entregada'} };
+  return (L[lang]||L.pt)[tipo]||tipo;
+}
+// marca local (por dispositivo) — sincronização virá com o backend depois
+function waKey(id,tipo){ return 'gd_wa_'+id+'_'+tipo; }
+function waGetSent(id,tipo){ try{ return JSON.parse(localStorage.getItem(waKey(id,tipo))||'null'); }catch(e){ return null; } }
+function waMarkSent(id,tipo){ const quem=(auth&&(auth.role||auth.email))||'?'; localStorage.setItem(waKey(id,tipo), JSON.stringify({data:new Date().toISOString(), quem:quem})); }
+// quais avisos se aplicam a este Gideão, e o estado (pendente/enviado) de cada
+function computeAvisos(i){
+  const st=statusPag(i);
+  const aplic=[];
+  if(st==='parcial') aplic.push('pagtoParcial');
+  if(st==='pago') aplic.push('cotaCompleta');
+  if(i.camisaEstado===EST.PRONTA) aplic.push('camisaPronta');
+  if(i.camisaEstado===EST.ENTREGUE) aplic.push('camisaEntregue');
+  const tel=normPhone(i.telefone);
+  return aplic.map(tipo=>{
+    const sent=waGetSent(i.id,tipo);
+    return { tipo, label:waLabel(tipo,i), estado: sent?'enviado':'pendente',
+             data: sent?sent.data:null, quem: sent?sent.quem:null,
+             url: tel? ('https://wa.me/'+tel+'?text='+encodeURIComponent(waTexto(tipo,i))) : null };
+  });
+}
+// resumo para o card: 'pendente' (há algum pendente) | 'enviado' (só enviados) | null (nada / sem tel)
+function waCardState(i){
+  if(!normPhone(i.telefone)) return null;
+  const a=computeAvisos(i); if(!a.length) return null;
+  return a.some(x=>x.estado==='pendente') ? 'pendente' : 'enviado';
+}
+const WA_SVG='<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.8.8-2.7-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.1-.3.1-.5 0-.7-.3-1.4-.7-2-1.5-.2-.3.2-.3.4-.9.1-.1 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.1 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2 1 2.4c.1.1 1.6 2.5 4 3.4.5.2 1 .3 1.3.4.5.1 1 .1 1.3.1.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z"/></svg>';
+// dispara o envio a partir do card: 1 pendente = wa direto; vários pendentes OU reenvio = modal
+function waTrigger(i){
+  const a=computeAvisos(i);
+  if(!a.length) return;
+  const pend=a.filter(x=>x.estado==='pendente');
+  if(pend.length===1 && a.length===1){    // caso simples: 1 aviso, pendente -> direto
+    return waSend(i, pend[0]);
+  }
+  openWaModal(i);                          // vários OU há enviados (reenvio) -> modal
+}
+// abre a URL do wa.me e marca como enviado (local)
+function waSend(i, aviso){
+  if(!aviso.url){ toast(t('waSemTel'),'err'); return; }
+  window.open(aviso.url,'_blank');
+  waMarkSent(i.id, aviso.tipo);
+  toast(t('waEnviado'),'ok');
+}
+// modal de notificações (reutilizado pelo card e pela seção do modal de edição)
+function openWaModal(i){
+  const m=$('#waModal'); if(!m) return;
+  $('#waTitle').textContent=t('waTitulo')+' '+primeiroNome(i.nome);
+  const render=()=>{
+    const a=computeAvisos(i);
+    const box=$('#waList');
+    if(!a.length){ box.innerHTML=`<div class="wa-empty">${t('waNada')}</div>`; return; }
+    const noTel=!normPhone(i.telefone);
+    box.innerHTML=a.map((x,idx)=>{
+      const cls=x.estado==='pendente'?'wa-ic-a2':'wa-ic-a4';
+      const meta = x.estado==='pendente'
+        ? `<span class="wmeta pend">${t('waPendente')}</span>`
+        : `<span class="wmeta">✅ ${fmtWaDate(x.data)} · ${esc(x.quem||'')}${x.estado==='enviado'?' · '+t('waReenviar'):''}</span>`;
+      const dis = (noTel||!x.url)?' disabled':'';
+      return `<div class="wa-row${dis}" data-idx="${idx}">
+        <button class="wa-ic-btn ${cls}">${WA_SVG}</button>
+        <div class="wtx"><b>${esc(x.label)}</b>${noTel?`<span class="wmeta">${t('waSemTel')}</span>`:meta}</div>
+      </div>`;
+    }).join('');
+    $$('#waList .wa-row').forEach(row=>{
+      if(row.classList.contains('disabled')) return;
+      row.onclick=()=>{ const x=computeAvisos(i)[+row.dataset.idx]; waSend(i,x); render(); if(typeof renderList==='function' && state.view==='lista') renderList(); };
+    });
+  };
+  render();
+  const close=()=>{ m.classList.add('hidden'); $('#waClose').onclick=null; m.onclick=null; };
+  $('#waClose').textContent=t('fechar');
+  $('#waClose').onclick=close;
+  m.onclick=(e)=>{ if(e.target===m) close(); };
+  m.classList.remove('hidden');
+}
+function fmtWaDate(iso){ try{ const d=new Date(iso); return d.toLocaleDateString(lang==='es'?'es':'pt-BR',{day:'2-digit',month:'short'}); }catch(e){ return ''; } }
+
+// ===================================================================================
+
 // calcula os 3 bolsos (dinheiro/banco/outros), saldo do projeto e formas
 function computeCaixa(inscritos, despesas, movimentos){
   const bolso={dinheiro:0,banco:0,outros:0};
@@ -438,6 +569,12 @@ async function renderList(){
     if(i.tamanho) metaParts.push(esc(i.tamanho));
     if(i.telefone) metaParts.push(esc(i.telefone));
     metaParts.push(`${soma}€ / ${i.cota}€`);
+    // ícone WhatsApp (à direita dos tags): A2 pendente / A4 reenviar / nada
+    const waSt=waCardState(i);
+    const waSlot = waSt ? `<div class="wa-slot" data-wa="${i.id}">
+        <button class="wa-ic-btn ${waSt==='pendente'?'wa-ic-a2':'wa-ic-a4'}" aria-label="${t('waTitulo')}" title="${t('waTitulo')}">${WA_SVG}</button>
+        ${waSt==='enviado'?`<span class="wa-reenviar">${t('waReenviar')}</span>`:''}
+      </div>` : '';
     return `<div class="card" data-id="${i.id}">
       <div class="num">${fmtNum(i.numero)}</div>
       <div class="info">
@@ -445,9 +582,14 @@ async function renderList(){
         <div class="meta">${metaParts.join(' · ')}</div>
       </div>
       <div class="badges">${right.join('')}</div>
+      ${waSlot}
     </div>`;
   }).join('');
   $$('#list .card').forEach(c=>c.onclick=()=>openModal(+c.dataset.id));
+  // ícone WhatsApp: clique isolado (não abre o modal de edição)
+  $$('#list .wa-slot').forEach(slot=>{
+    slot.onclick=async(e)=>{ e.stopPropagation(); const all=await getAll(); const i=all.find(x=>String(x.id)===String(slot.dataset.wa)); if(i) waTrigger(i); };
+  });
   // highlight + scroll no card de onde viemos (ao fechar o modal)
   if(state.listHighlight!=null){
     const card=cardsEl.querySelector(`.card[data-id="${state.listHighlight}"]`);
@@ -1099,6 +1241,20 @@ async function openModal(id){
     if(rec && rec.atualizadoEm && (!rec.criadoEm || fmtStampCurto(rec.atualizadoEm)!==fmtStampCurto(rec.criadoEm))) bits.push(t('tsAtual')+' '+fmtStampCurto(rec.atualizadoEm));
     tsEl.textContent = bits.join(' · ');
     tsEl.classList.toggle('hidden', bits.length===0);
+  }
+  // linha "Avisos WhatsApp" (só p/ registro já salvo; marca local)
+  const waLine=$('#waLine');
+  if(waLine){
+    const show = !!rec;
+    waLine.classList.toggle('hidden', !show);
+    if(show){
+      const avisos=computeAvisos(rec);
+      const nPend=avisos.filter(x=>x.estado==='pendente').length;
+      const pill=$('#waLinePill');
+      pill.textContent = !avisos.length ? t('waNada')
+        : (nPend>0 ? (nPend+' '+t('waPendente')) : t('waReenviar'));
+      waLine.onclick=()=>{ const cur=(state.editing!=null)?rec:rec; openWaModal(rec); };
+    }
   }
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;

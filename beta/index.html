@@ -555,6 +555,29 @@
   #acIconWrap.warn{background:var(--soft-amber)} #acIconWrap.warn svg{fill:var(--accent)}
   #appConfirm .btn#acOk.danger{background:var(--red);color:#fff}
   #appConfirm .btn#acOk.primary{background:var(--accent);color:#fff}
+
+  /* Notificações WhatsApp */
+  #waModal{z-index:150}
+  .wa-sheet{text-align:left;max-width:400px}
+  .wa-sheet h2{text-align:left;font-size:1.05rem;margin:0 0 10px}
+  #waList{margin-bottom:10px}
+  .wa-row{display:flex;align-items:center;gap:11px;padding:10px 4px;cursor:pointer;border-radius:8px}
+  .wa-row+.wa-row{border-top:1px dashed var(--line)}
+  .wa-row:active{background:var(--soft)}
+  .wa-row .wtx{flex:1;min-width:0}
+  .wa-row .wtx b{display:block;font-size:.9rem}
+  .wa-row .wtx .wmeta{font-size:.75rem;color:var(--muted)}
+  .wa-row .wtx .wmeta.pend{color:#128C7E;font-weight:700}
+  .wa-row.disabled{opacity:.55;cursor:default}
+  .wa-empty{color:var(--muted);font-size:.9rem;padding:8px 4px}
+  .wa-ic-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;border:none;flex:none;background:transparent}
+  .wa-ic-btn svg{width:20px;height:20px}
+  .wa-ic-a2{background:#fff;border:2px solid #25D366} .wa-ic-a2 svg{fill:#25D366}
+  .wa-ic-a4{background:#eaf7ef} .wa-ic-a4 svg{fill:#128C7E}
+  /* slot do ícone no card */
+  .card .wa-slot{display:flex;flex-direction:column;align-items:center;flex:none;border-left:1px solid var(--line);padding-left:10px;margin-left:2px}
+  .card .wa-slot .wa-ic-btn{width:36px;height:36px} .card .wa-slot .wa-ic-btn svg{width:18px;height:18px}
+  .card .wa-slot .wa-reenviar{font-size:.6rem;color:#128C7E;font-weight:700;margin-top:1px}
   /* toast de feedback */
   #toastWrap{position:fixed;left:0;right:0;bottom:86px;z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 16px}
   #toastWrap .toast{display:inline-flex;align-items:center;gap:10px;background:#232019;color:#fff;padding:12px 16px;border-radius:12px;font-size:.9rem;box-shadow:0 6px 20px rgba(0,0,0,.3);max-width:360px;opacity:0;transform:translateY(10px);transition:opacity .22s,transform .22s}
@@ -905,6 +928,14 @@
       </span>
     </div>
 
+    <div class="toggle hidden" id="waLine" style="cursor:pointer;margin-top:12px">
+      <span style="display:inline-flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#128C7E"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.3A10 10 0 1 0 12 2z"/></svg>
+        <span data-i="waSecTitulo">Avisos WhatsApp</span>
+      </span>
+      <span class="cml-right"><b id="waLinePill"></b></span>
+    </div>
+
     <div class="modal-divider"></div>
     <div class="modal-ts hidden" id="modalTs"></div>
     <div class="action-bar">
@@ -968,6 +999,15 @@
 
 <!-- TOAST de feedback (some sozinho) -->
 <div id="toastWrap" aria-live="polite"></div>
+
+<!-- MODAL: notificações WhatsApp -->
+<div class="overlay overlay-center hidden" id="waModal">
+  <div class="sheet confirm-sheet wa-sheet">
+    <h2 id="waTitle">WhatsApp</h2>
+    <div id="waList"></div>
+    <button class="btn ghost" id="waClose" type="button">Fechar</button>
+  </div>
+</div>
 
 <!-- MODAL: nova/editar despesa -->
 <div class="overlay hidden" id="despModal">
