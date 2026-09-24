@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta11';
+const APP_VERSION = 'v4.1.2-beta12';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -425,11 +425,7 @@ async function waUnmarkOne(i, aviso){
 function waTrigger(i){
   const a=computeAvisos(i);
   if(!a.length) return;
-  const pend=a.filter(x=>x.estado==='pendente');
-  if(pend.length===1 && a.length===1){    // caso simples: 1 aviso, pendente -> direto
-    return waSend(i, pend[0]);
-  }
-  openWaModal(i);                          // vários OU há enviados (reenvio) -> modal
+  openWaModal(i);   // sempre abre o modal (envio só é confirmado tocando a linha lá dentro)
 }
 // abre a URL do wa.me e marca como enviado (local)
 function waSend(i, aviso){
