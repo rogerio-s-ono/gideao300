@@ -240,6 +240,7 @@
   /* modal / sheet */
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-end}
   .overlay.overlay-center{align-items:center;justify-content:center;padding:16px}
+  #appConfirm{z-index:150}   /* confirmação sempre acima de qualquer modal de edição (overlays usam z-index:100) */
   .overlay.overlay-center .confirm-sheet{margin:0}
   .sheet{background:#fff;width:100%;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:16px;max-width:720px;margin:0 auto}
   .sheet h2{font-size:22px}
@@ -385,6 +386,8 @@
   .ext-item.susp{opacity:.6}
   .cx-item.susp{opacity:.6} .cx-item.susp .desc{text-decoration:line-through}
   .ext-item.susp .e-d{text-decoration:line-through}
+  /* o selo "Suspensa" NÃO deve ser riscado — só o texto da despesa */
+  .cx-item.susp .desc .selo-susp, .ext-item.susp .e-d .selo-susp{text-decoration:none;display:inline-block}
   .ext-item.susp .susp-val{text-decoration:line-through;color:var(--muted)}
   .selo-susp{font-size:10px;padding:1px 7px;border-radius:8px;background:var(--soft-amber);color:#8a6a20;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-right:6px}
   .fotos-grid{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
