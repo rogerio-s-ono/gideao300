@@ -561,6 +561,7 @@
   .wa-sheet{text-align:left;max-width:400px}
   .wa-sheet h2{text-align:left;font-size:1.05rem;margin:0 0 10px}
   #waList{margin-bottom:10px}
+  .wa-hint{font-size:.72rem;color:var(--muted);margin:-4px 0 10px;padding:0 2px}
   .wa-row{display:flex;align-items:center;gap:11px;padding:10px 4px;cursor:pointer;border-radius:8px}
   .wa-row+.wa-row{border-top:1px dashed var(--line)}
   .wa-row:active{background:var(--soft)}
@@ -1011,6 +1012,7 @@
   <div class="sheet confirm-sheet wa-sheet">
     <h2 id="waTitle">WhatsApp</h2>
     <div id="waList"></div>
+    <div id="waHint" class="wa-hint hidden"></div>
     <button class="btn ghost" id="waClose" type="button">Fechar</button>
   </div>
 </div>
