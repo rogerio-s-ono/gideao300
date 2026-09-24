@@ -222,6 +222,23 @@
   /* list (cards) */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;box-shadow:0 2px 8px rgba(20,20,20,.04);transition:box-shadow .15s;position:relative}
   .modal-ts{font-size:11px;color:var(--muted);text-align:center;margin:-4px 0 8px;font-variant-numeric:tabular-nums}
+  /* seções colapsáveis da Confecção (accordion) */
+  .conf-quick{display:flex;justify-content:flex-end;margin-bottom:10px}
+  .conf-sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(20,20,20,.04)}
+  .conf-sec-head{width:100%;display:flex;align-items:center;gap:10px;padding:13px 14px;background:none;border:0;cursor:pointer;font-family:var(--sans);text-align:left}
+  .conf-sec-head .csh-ico{width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+  .conf-sec-head .csh-ico svg{width:16px;height:16px;fill:currentColor}
+  .conf-sec-head .csh-title{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink)}
+  .conf-sec-head .csh-sum{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .conf-sec-head .caret{color:var(--muted);font-size:13px;transition:transform .22s;flex:none;margin-left:8px}
+  .conf-sec.open .conf-sec-head .caret{transform:rotate(180deg)}
+  .conf-sec-body{max-height:0;overflow:hidden;transition:max-height .28s ease;padding:0 14px}
+  .conf-sec.open .conf-sec-body{max-height:20000px;padding:0 14px 14px}
+  /* badge de resumo no cabeçalho (ex.: estoque faltando) */
+  .csh-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+  .csh-badge.falta{background:var(--soft-red);color:var(--red)}
+  .csh-badge.comprar{background:var(--soft-amber);color:#8a6a20}
+  .csh-badge.ok{background:var(--soft-green);color:var(--green)}
   .card:active{box-shadow:0 2px 14px rgba(192,138,45,.18)}
   .card .num{min-width:34px;height:34px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:14px}
   .card .info{flex:1;min-width:0}
@@ -631,23 +648,57 @@
 
   <!-- CONFECCAO -->
   <section id="view-confeccao" class="hidden">
-    <div class="search">
-      <div class="search-wrap">
-        <input id="confQ" type="text" data-i-ph="buscar" placeholder="Buscar por nome...">
-        <button id="confQClear" class="q-clear hidden" aria-label="Limpar busca">
-          <svg viewBox="0 0 24 24"><path d="M12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5z"/></svg>
-        </button>
-      </div>
+    <div class="conf-quick">
       <button class="est-jump" id="btnGoEstoque" type="button" title="Ir para o estoque">
         <svg viewBox="0 0 24 24"><path d="M16 2l4 3-2 3-2-1v15H8V7L6 8 4 5l4-3 2 2h4z"/></svg>
         <span data-i="estoqueLabel">Estoque</span>
       </button>
     </div>
-    <div class="filters" id="confFilters"></div>
-    <div id="confList"></div>
-    <h3 style="margin-top:16px" data-i="porTamanhoConf">Resumo por tamanho</h3>
-    <div id="confSize"></div>
-    <div id="estoque" style="margin-top:18px"></div>
+
+    <div class="conf-sec" id="secLista">
+      <button class="conf-sec-head" type="button" aria-expanded="false">
+        <span class="csh-ico"><svg viewBox="0 0 24 24"><path d="M4 5h16v3H4zm0 5h16v3H4zm0 5h10v3H4z"/></svg></span>
+        <span class="csh-title" data-i="secLista">Lista da confecção</span>
+        <span class="csh-sum" id="sumLista"></span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="conf-sec-body">
+        <div class="search">
+          <div class="search-wrap">
+            <input id="confQ" type="text" data-i-ph="buscar" placeholder="Buscar por nome...">
+            <button id="confQClear" class="q-clear hidden" aria-label="Limpar busca">
+              <svg viewBox="0 0 24 24"><path d="M12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="filters" id="confFilters"></div>
+        <div id="confList"></div>
+      </div>
+    </div>
+
+    <div class="conf-sec" id="secResumo">
+      <button class="conf-sec-head" type="button" aria-expanded="false">
+        <span class="csh-ico"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zm0 7h6v-5H4zm8 0h6V11h-6zm0-16v5h6V4z"/></svg></span>
+        <span class="csh-title" data-i="porTamanhoConf">Resumo por tamanho</span>
+        <span class="csh-sum" id="sumResumo"></span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="conf-sec-body">
+        <div id="confSize"></div>
+      </div>
+    </div>
+
+    <div class="conf-sec" id="secEstoque">
+      <button class="conf-sec-head" type="button" aria-expanded="false">
+        <span class="csh-ico"><svg viewBox="0 0 24 24"><path d="M16 2l4 3-2 3-2-1v15H8V7L6 8 4 5l4-3 2 2h4z"/></svg></span>
+        <span class="csh-title" data-i="estoqueLabel">Estoque</span>
+        <span class="csh-sum" id="sumEstoque"></span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="conf-sec-body">
+        <div id="estoque"></div>
+      </div>
+    </div>
   </section>
 
   <!-- CAIXA (admin/tesoureiro editam; user = somente leitura) -->

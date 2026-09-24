@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta16';
+const APP_VERSION = 'v4.1.1-beta17';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -67,6 +67,7 @@ const I18N = {
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
     avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
     estoqueTitulo:'Estoque de camisas', estoqueLabel:'Estoque', estColEstoque:'Estoque', estColProjecao:'Projeção', estColEstado:'Estado',
+    secLista:'Lista da confecção', confNaProducao:'{n} na produção', confEntreguesN:'{e} entregues / {t}', estFaltamN:'faltam {n}',
     estOk:'OK', estComprar:'Comprar', estFaltam:'Faltam {n}', estFaltaAgora:'Falta agora (impacta produção)', estUrgente:'comprar com urgência', estComprarPreventivo:'Comprar para não faltar', estCompraOk:'Estoque em dia — nada a comprar',
     estVazio:'Sem dados de estoque ainda.', estLegenda:'Estoque = disponível (ajustes − consumido pela produção). A fazer = camisas por produzir. Projeção = A fazer + pendentes. Estado: OK cobre a projeção · Comprar cobre "A fazer" mas não a projeção · Faltam já impacta produção.',
     ajustarEstoque:'Ajustar estoque', ajustar:'Ajustar', disponivelAtual:'Disponível atual', estMotivo:'Motivo (opcional)', estHistorico:'Histórico de ajustes', estiloExtrato:'estilo extrato', saldoCorrente:'saldo', semAjustes:'Sem ajustes ainda.', estInformeQtd:'Informe uma quantidade (+ ou −).', estAjusteOk:'Estoque ajustado.',
@@ -163,6 +164,7 @@ const I18N = {
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
     avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
     estoqueTitulo:'Stock de camisetas', estoqueLabel:'Stock', estColEstoque:'Stock', estColProjecao:'Proyección', estColEstado:'Estado',
+    secLista:'Lista de confección', confNaProducao:'{n} en producción', confEntreguesN:'{e} entregadas / {t}', estFaltamN:'faltan {n}',
     estOk:'OK', estComprar:'Comprar', estFaltam:'Faltan {n}', estFaltaAgora:'Falta ahora (afecta producción)', estUrgente:'comprar con urgencia', estComprarPreventivo:'Comprar para no faltar', estCompraOk:'Stock al día — nada que comprar',
     estVazio:'Sin datos de stock aún.', estLegenda:'Stock = disponible (ajustes − consumido por producción). Por hacer = camisetas por producir. Proyección = Por hacer + pendientes. Estado: OK cubre la proyección · Comprar cubre "Por hacer" pero no la proyección · Faltan ya afecta producción.',
     ajustarEstoque:'Ajustar stock', ajustar:'Ajustar', disponivelAtual:'Disponible actual', estMotivo:'Motivo (opcional)', estHistorico:'Historial de ajustes', estiloExtrato:'estilo extracto', saldoCorrente:'saldo', semAjustes:'Sin ajustes aún.', estInformeQtd:'Indica una cantidad (+ o −).', estAjusteOk:'Stock ajustado.',
@@ -703,6 +705,18 @@ async function renderConfeccao(){
   $('#confSize').innerHTML=html;
   caixaState.estoque = await sGetAll(STORE_EST);
   renderEstoque(all);
+  // resumos nos cabeçalhos das seções (contexto mesmo colapsado)
+  const naProd = totGeral;   // pagos+isentos que entram na produção
+  const sl=$('#sumLista'); if(sl) sl.textContent = t('confNaProducao', {n:naProd});
+  const sr=$('#sumResumo'); if(sr) sr.textContent = t('confEntreguesN', {e:totCol[3], t:totGeral});
+  const se=$('#sumEstoque'); if(se){
+    const rows=computeEstoque(all);
+    const urg=rows.filter(r=>r.estado==='falta'), pv=rows.filter(r=>r.estado==='comprar');
+    if(urg.length){ const nf=urg.reduce((a,r)=>a+r.falta,0); se.innerHTML=`<span class="csh-badge falta">${t('estFaltamN',{n:nf})}</span>`; }
+    else if(pv.length){ se.innerHTML=`<span class="csh-badge comprar">${t('estComprar')}</span>`; }
+    else se.innerHTML=`<span class="csh-badge ok">${t('estOk')}</span>`;
+  }
+  setupConfAccordion();
 }
 // ---- Estoque de camisas por tamanho ----
 // saldo de ajustes por tamanho (Σ delta dos movimentos)
@@ -726,7 +740,7 @@ function computeEstoque(inscritos){
   Object.keys(map).forEach(s=>{
     const m=map[s];
     const saldo=estoqueSaldo(s);
-    const disponivel=saldo - m.consumido;
+    const disponivel=Math.max(0, saldo - m.consumido);   // não fica negativo (consumo anterior ao registro do estoque não puxa abaixo de 0)
     const projecao=m.aFazer + m.pendentes;
     let estado;   // 'ok' | 'comprar' | 'falta'
     if(disponivel < m.aFazer) estado='falta';
@@ -816,7 +830,23 @@ $('#estSave') && ($('#estSave').onclick=async()=>{
   toast(t('estAjusteOk'),'ok');
 });
 // botão "Estoque" no topo da Confecção -> rola até a seção
-$('#btnGoEstoque') && ($('#btnGoEstoque').onclick=()=>{ const s=$('#estoque'); if(s){ s.scrollIntoView({behavior:'smooth',block:'start'}); } });
+$('#btnGoEstoque') && ($('#btnGoEstoque').onclick=()=>{ setConfSec('secEstoque', true); const s=$('#secEstoque'); if(s){ setTimeout(()=>s.scrollIntoView({behavior:'smooth',block:'start'}),80); } });
+// ---- accordion da Confecção (seções colapsáveis, estado persistido) ----
+function setConfSec(id, open){
+  const sec=$('#'+id); if(!sec) return;
+  sec.classList.toggle('open', open);
+  const head=sec.querySelector('.conf-sec-head'); if(head) head.setAttribute('aria-expanded', open?'true':'false');
+  try{ localStorage.setItem('confsec_'+id, open?'1':'0'); }catch(_){ }
+}
+function setupConfAccordion(){
+  ['secLista','secResumo','secEstoque'].forEach(id=>{
+    const sec=$('#'+id); if(!sec) return;
+    const head=sec.querySelector('.conf-sec-head'); if(!head) return;
+    let open=false; try{ open=localStorage.getItem('confsec_'+id)==='1'; }catch(_){ }  // default: colapsado
+    setConfSec(id, open);
+    head.onclick=()=>setConfSec(id, !sec.classList.contains('open'));
+  });
+}
 
 async function renderConfList(){
   const all=(await getAll()).sort((a,b)=>numOrder(a.numero)-numOrder(b.numero)||a.nome.localeCompare(b.nome));
