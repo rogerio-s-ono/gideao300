@@ -3,8 +3,8 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta17';
-const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
+const APP_VERSION = 'v4.1.1-beta18';
+const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
 function bolsoDaForma(tipo){
@@ -67,7 +67,7 @@ const I18N = {
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
     avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
     estoqueTitulo:'Estoque de camisas', estoqueLabel:'Estoque', estColEstoque:'Estoque', estColProjecao:'Projeção', estColEstado:'Estado',
-    secLista:'Lista da confecção', confNaProducao:'{n} na produção', confEntreguesN:'{e} entregues / {t}', estFaltamN:'faltam {n}',
+    secLista:'Lista da confecção', confNaProducao:'{n} na produção', confEntreguesN:'{e} entregues / {t}', estFaltamN:'faltam {n}', selecioneTam:'— Selecione —',
     estOk:'OK', estComprar:'Comprar', estFaltam:'Faltam {n}', estFaltaAgora:'Falta agora (impacta produção)', estUrgente:'comprar com urgência', estComprarPreventivo:'Comprar para não faltar', estCompraOk:'Estoque em dia — nada a comprar',
     estVazio:'Sem dados de estoque ainda.', estLegenda:'Estoque = disponível (ajustes − consumido pela produção). A fazer = camisas por produzir. Projeção = A fazer + pendentes. Estado: OK cobre a projeção · Comprar cobre "A fazer" mas não a projeção · Faltam já impacta produção.',
     ajustarEstoque:'Ajustar estoque', ajustar:'Ajustar', disponivelAtual:'Disponível atual', estMotivo:'Motivo (opcional)', estHistorico:'Histórico de ajustes', estiloExtrato:'estilo extrato', saldoCorrente:'saldo', semAjustes:'Sem ajustes ainda.', estInformeQtd:'Informe uma quantidade (+ ou −).', estAjusteOk:'Estoque ajustado.',
@@ -164,7 +164,7 @@ const I18N = {
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
     avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
     estoqueTitulo:'Stock de camisetas', estoqueLabel:'Stock', estColEstoque:'Stock', estColProjecao:'Proyección', estColEstado:'Estado',
-    secLista:'Lista de confección', confNaProducao:'{n} en producción', confEntreguesN:'{e} entregadas / {t}', estFaltamN:'faltan {n}',
+    secLista:'Lista de confección', confNaProducao:'{n} en producción', confEntreguesN:'{e} entregadas / {t}', estFaltamN:'faltan {n}', selecioneTam:'— Selecciona —',
     estOk:'OK', estComprar:'Comprar', estFaltam:'Faltan {n}', estFaltaAgora:'Falta ahora (afecta producción)', estUrgente:'comprar con urgencia', estComprarPreventivo:'Comprar para no faltar', estCompraOk:'Stock al día — nada que comprar',
     estVazio:'Sin datos de stock aún.', estLegenda:'Stock = disponible (ajustes − consumido por producción). Por hacer = camisetas por producir. Proyección = Por hacer + pendientes. Estado: OK cubre la proyección · Comprar cubre "Por hacer" pero no la proyección · Faltan ya afecta producción.',
     ajustarEstoque:'Ajustar stock', ajustar:'Ajustar', disponivelAtual:'Disponible actual', estMotivo:'Motivo (opcional)', estHistorico:'Historial de ajustes', estiloExtrato:'estilo extracto', saldoCorrente:'saldo', semAjustes:'Sin ajustes aún.', estInformeQtd:'Indica una cantidad (+ o −).', estAjusteOk:'Stock ajustado.',
@@ -1044,7 +1044,7 @@ async function openModal(id){
   $('#f-numero').value=rec?(rec.numero||''):nextNum;
   $('#f-numero').placeholder=nextNum||'auto';
   updateNumFreeBtn();
-  fillSelect('#f-tamanho',TAMANHOS,rec?rec.tamanho:'');
+  fillTamanho('#f-tamanho', rec?rec.tamanho:'');
   fillSelect('#p-tipo',TIPOS,'Dinheiro');
   if($('#p-outros-wrap')){ $('#p-outros-wrap').classList.add('hidden'); $('#p-comentario').value=''; }
   if($('#p-receb-wrap')){ $('#p-receb-wrap').classList.remove('hidden'); const pr=$('#p-receb-wrap input[value="pastor"]'); if(pr) pr.checked=true; }
@@ -1095,6 +1095,15 @@ function formSnapshot(){
 function formDirty(){ return state.formSnapshot!==undefined && state.formSnapshot!==formSnapshot(); }
 function fillSelect(sel,opts,val){
   $(sel).innerHTML=opts.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o||'—'}</option>`).join('');
+}
+// dropdown de tamanho com placeholder "— Selecione —" (força escolha consciente; sem-tamanho antigo cai no placeholder)
+function fillTamanho(sel, val){
+  const ph=`<option value="" ${!val?'selected':''} disabled>${t('selecioneTam')}</option>`;
+  const has=TAMANHOS.indexOf(val)>=0;
+  // se o inscrito tem um tamanho fora da lista atual (ex.: S/M, 2XL antigo), mantém como opção para não perder o dado
+  const extra=(val && !has)?`<option value="${esc(val)}" selected>${esc(val)}</option>`:'';
+  const body=TAMANHOS.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o}</option>`).join('');
+  $(sel).innerHTML=ph+extra+body;
 }
 // edita a data (campo 'data' ou 'dataEntregaTesoureiro') de um pagamento via seletor nativo
 // item 7: Revisar aparece se há texto na Observação OU já está marcado
