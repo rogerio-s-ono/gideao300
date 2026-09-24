@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta14';
+const APP_VERSION = 'v4.1.1-beta15';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -42,7 +42,7 @@ const I18N = {
     backupNota:'O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.',
     zerar:'Apagar tudo e recarregar dados iniciais',
     fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos', fIsento:'Isentos', isentoChk:'Isento', isentoNota:'Isento — não paga a cota.',
-    sPago:'Pago', sPend:'Pendente', sIsento:'Isento',
+    sPago:'Pago', sPend:'Pendente', sIsento:'Isento', tsCriado:'criado', tsAtual:'atual.',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
     metaCampanha:'Meta do Projeto Gideão', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
@@ -138,7 +138,7 @@ const I18N = {
     backupNota:'La copia permite pasar los datos entre los líderes (WhatsApp, Drive). Importar reemplaza los datos actuales.',
     zerar:'Borrar todo y recargar datos iniciales',
     fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos', fIsento:'Exentos', isentoChk:'Exento', isentoNota:'Exento — no paga la cuota.',
-    sPago:'Pagado', sPend:'Pendiente', sIsento:'Exento',
+    sPago:'Pagado', sPend:'Pendiente', sIsento:'Exento', tsCriado:'creado', tsAtual:'act.',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
     metaCampanha:'Meta del Proyecto Gedeón', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
@@ -436,7 +436,13 @@ async function renderList(){
     if(i.tamanho) metaParts.push(esc(i.tamanho));
     if(i.telefone) metaParts.push(esc(i.telefone));
     metaParts.push(`${soma}€ / ${i.cota}€`);
+    // timestamp discreto (criado / atualizado) no topo direito
+    const tsBits=[];
+    if(i.criadoEm) tsBits.push(t('tsCriado')+' '+fmtStampCurto(i.criadoEm));
+    if(i.atualizadoEm && (!i.criadoEm || fmtStampCurto(i.atualizadoEm)!==fmtStampCurto(i.criadoEm))) tsBits.push(t('tsAtual')+' '+fmtStampCurto(i.atualizadoEm));
+    const tsHtml = tsBits.length ? `<div class="card-ts">${tsBits.join(' · ')}</div>` : '';
     return `<div class="card" data-id="${i.id}">
+      ${tsHtml}
       <div class="num">${fmtNum(i.numero)}</div>
       <div class="info">
         <div class="nome">${esc(i.nome)}</div>
@@ -941,6 +947,8 @@ function toISODate(v){
   return s;
 }
 function fmtShort(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${(MESES[lang]||MESES.pt)[(+p[1])-1]||p[1]}`; }
+// timestamp compacto para o card: dd/mmm HH:mm (aceita ISO datetime)
+function fmtStampCurto(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return ''; const mon=(MESES[lang]||MESES.pt)[d.getMonth()]||''; const p=n=>String(n).padStart(2,'0'); return `${p(d.getDate())}/${mon} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 function fmtFull(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${p[1]}/${p[0].slice(2)}`; }
 // dd/mês-abrev/aa (ex.: 21/set/26)
 function fmtDMY(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; const mes=(MESES[lang]||MESES.pt)[(+p[1])-1]||p[1]; return `${p[2]}/${mes}/${p[0].slice(2)}`; }
@@ -1243,6 +1251,7 @@ $('#save').onclick=async()=>{
   rec.aRevisar=$('#f-revisar').checked;
   rec.observacoes=$('#f-obs').value.trim();
   if(!('motivoRevisar' in rec)) rec.motivoRevisar='';
+  if(!rec.criadoEm) rec.criadoEm=new Date().toISOString();   // só na 1ª vez (criação)
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await put(rec);
   markPending(rec.id!=null?rec.id:newId);
