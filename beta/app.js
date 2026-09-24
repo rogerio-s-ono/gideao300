@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta13';
+const APP_VERSION = 'v4.1.1-beta14';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -66,6 +66,10 @@ const I18N = {
     est0:'A fazer', est1:'Em confecção', est2:'Pronta', est3:'Entregue',
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
     avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
+    estoqueTitulo:'Estoque de camisas', estoqueLabel:'Estoque', estColEstoque:'Estoque', estColProjecao:'Projeção', estColEstado:'Estado',
+    estOk:'OK', estComprar:'Comprar', estFaltam:'Faltam {n}', estFaltaAgora:'Falta agora (impacta produção)', estUrgente:'comprar com urgência', estComprarPreventivo:'Comprar para não faltar', estCompraOk:'Estoque em dia — nada a comprar',
+    estVazio:'Sem dados de estoque ainda.', estLegenda:'Estoque = disponível (ajustes − consumido pela produção). A fazer = camisas por produzir. Projeção = A fazer + pendentes. Estado: OK cobre a projeção · Comprar cobre "A fazer" mas não a projeção · Faltam já impacta produção.',
+    ajustarEstoque:'Ajustar estoque', ajustar:'Ajustar', disponivelAtual:'Disponível atual', estMotivo:'Motivo (opcional)', estHistorico:'Histórico de ajustes', estiloExtrato:'estilo extrato', saldoCorrente:'saldo', semAjustes:'Sem ajustes ainda.', estInformeQtd:'Informe uma quantidade (+ ou −).', estAjusteOk:'Estoque ajustado.',
     verConfeccao:'Abrir na Confecção',
     pendPag:'Pendente pagamento', pago:'Pago', alteracoesSalvas:'Alterações salvas',
     semAlteracoes:'Sem alterações', confirmSairConf:'Há alterações não salvas. Sair mesmo assim?',
@@ -158,6 +162,10 @@ const I18N = {
     est0:'Por hacer', est1:'En confección', est2:'Lista', est3:'Entregada',
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
     avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
+    estoqueTitulo:'Stock de camisetas', estoqueLabel:'Stock', estColEstoque:'Stock', estColProjecao:'Proyección', estColEstado:'Estado',
+    estOk:'OK', estComprar:'Comprar', estFaltam:'Faltan {n}', estFaltaAgora:'Falta ahora (afecta producción)', estUrgente:'comprar con urgencia', estComprarPreventivo:'Comprar para no faltar', estCompraOk:'Stock al día — nada que comprar',
+    estVazio:'Sin datos de stock aún.', estLegenda:'Stock = disponible (ajustes − consumido por producción). Por hacer = camisetas por producir. Proyección = Por hacer + pendientes. Estado: OK cubre la proyección · Comprar cubre "Por hacer" pero no la proyección · Faltan ya afecta producción.',
+    ajustarEstoque:'Ajustar stock', ajustar:'Ajustar', disponivelAtual:'Disponible actual', estMotivo:'Motivo (opcional)', estHistorico:'Historial de ajustes', estiloExtrato:'estilo extracto', saldoCorrente:'saldo', semAjustes:'Sin ajustes aún.', estInformeQtd:'Indica una cantidad (+ o −).', estAjusteOk:'Stock ajustado.',
     verConfeccao:'Abrir en Confección',
     pendPag:'Pago pendiente', pago:'Pagado', alteracoesSalvas:'Cambios guardados',
     semAlteracoes:'Sin cambios', confirmSairConf:'Hay cambios sin guardar. ¿Salir de todos modos?',
@@ -211,15 +219,16 @@ const t = (k,vars) => { let s=(I18N[lang][k]||k); if(vars) for(const p in vars) 
 function btnLabel(elOrSel, txt){ const b=(typeof elOrSel==='string')?$(elOrSel):elOrSel; if(!b) return; const sp=b.querySelector('span'); if(sp) sp.textContent=txt; else b.textContent=txt; }
 
 /* ---------- IndexedDB ---------- */
-const DB_NAME='gideao300', STORE='inscritos', STORE_DESP='despesas', STORE_MOV='movimentos';
+const DB_NAME='gideao300', STORE='inscritos', STORE_DESP='despesas', STORE_MOV='movimentos', STORE_EST='estoque';
 let db;
 function openDB(){
   return new Promise((res,rej)=>{
-    const r=indexedDB.open(DB_NAME,2);
+    const r=indexedDB.open(DB_NAME,3);
     r.onupgradeneeded=e=>{ const d=e.target.result;
       if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});
       if(!d.objectStoreNames.contains(STORE_DESP)) d.createObjectStore(STORE_DESP,{keyPath:'id',autoIncrement:true});
       if(!d.objectStoreNames.contains(STORE_MOV)) d.createObjectStore(STORE_MOV,{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains(STORE_EST)) d.createObjectStore(STORE_EST,{keyPath:'id',autoIncrement:true});
     };
     r.onsuccess=e=>{db=e.target.result;res();};
     r.onerror=e=>rej(e);
@@ -692,7 +701,123 @@ async function renderConfeccao(){
   keys.forEach(s=>{const a=bySize[s];const tot=a[0]+a[1]+a[2]+a[3];html+=`<tr><td>${esc(s)}</td><td class="c">${a[0]||''}</td><td class="c">${a[1]||''}</td><td class="c">${a[2]||''}</td><td class="c">${a[3]||''}</td><td class="c"><b>${tot}</b></td></tr>`;});
   html+=`</tbody><tfoot><tr><td>${t('totalGeral')}</td><td class="c">${totCol[0]}</td><td class="c">${totCol[1]}</td><td class="c">${totCol[2]}</td><td class="c">${totCol[3]}</td><td class="c">${totGeral}</td></tr></tfoot></table></div>`;
   $('#confSize').innerHTML=html;
+  caixaState.estoque = await sGetAll(STORE_EST);
+  renderEstoque(all);
 }
+// ---- Estoque de camisas por tamanho ----
+// saldo de ajustes por tamanho (Σ delta dos movimentos)
+function estoqueSaldo(tam){ return (caixaState.estoque||[]).filter(a=>String(a.tamanho)===String(tam)).reduce((s,a)=>s+(+a.delta||0),0); }
+// calcula, por tamanho: disponivel, aFazer, projecao, estado
+function computeEstoque(inscritos){
+  const norms=(s)=>((s||'').trim()||'—');
+  const map={};   // tam -> {aFazer, consumido, pendentes}
+  (inscritos||[]).forEach(i=>{
+    const s=norms(i.tamanho); if(!map[s]) map[s]={aFazer:0,consumido:0,pendentes:0};
+    if(podeProduzir(i)){
+      if((i.camisaEstado||0)===EST.AFAZER) map[s].aFazer++;   // ainda vai consumir
+      else map[s].consumido++;                                 // já saiu de A fazer -> consumiu estoque
+    } else {
+      map[s].pendentes++;                                      // não paga/isento ainda -> projeção
+    }
+  });
+  // inclui tamanhos que têm ajustes de estoque mas sem inscritos
+  (caixaState.estoque||[]).forEach(a=>{ const s=norms(a.tamanho); if(!map[s]) map[s]={aFazer:0,consumido:0,pendentes:0}; });
+  const out=[];
+  Object.keys(map).forEach(s=>{
+    const m=map[s];
+    const saldo=estoqueSaldo(s);
+    const disponivel=saldo - m.consumido;
+    const projecao=m.aFazer + m.pendentes;
+    let estado;   // 'ok' | 'comprar' | 'falta'
+    if(disponivel < m.aFazer) estado='falta';
+    else if(disponivel < projecao) estado='comprar';
+    else estado='ok';
+    out.push({tam:s, disponivel, aFazer:m.aFazer, pendentes:m.pendentes, projecao, estado, falta: Math.max(0, m.aFazer - disponivel), folga: Math.max(0, disponivel - projecao)});
+  });
+  // só mostra tamanhos relevantes (com projeção, disponível!=0, ou algum ajuste)
+  const rel=out.filter(r=>r.projecao>0 || r.disponivel!==0 || estoqueSaldo(r.tam)!==0);
+  const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
+  rel.sort((a,b)=>{const ia=order.indexOf(a.tam),ib=order.indexOf(b.tam);return (ia<0?99:ia)-(ib<0?99:ib);});
+  return rel;
+}
+function renderEstoque(inscritos){
+  const host=$('#estoque'); if(!host) return;
+  const rows=computeEstoque(inscritos);
+  // resumo consolidado 2 partes
+  const urg=rows.filter(r=>r.estado==='falta');
+  const prev=rows.filter(r=>r.estado==='comprar');
+  const pedIcon='<svg viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2zm0 5 7.5 13h-15L12 7zm-1 4v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg>';
+  const boxIcon='<svg viewBox="0 0 24 24"><path d="M20 6H4V4h16v2zm-1 2H5l1 12h12l1-12zM9 11h6v2H9v-2z"/></svg>';
+  const okIcon='<svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>';
+  let reco='';
+  if(urg.length) reco += `<div class="est-reco urg">${pedIcon}<div><b>${t('estFaltaAgora')}:</b> ${urg.map(r=>r.falta+' '+r.tam).join(' · ')} — ${t('estUrgente')}</div></div>`;
+  if(prev.length) reco += `<div class="est-reco prev">${boxIcon}<div><b>${t('estComprarPreventivo')}:</b> ${prev.map(r=>r.tam).join(' · ')}</div></div>`;
+  if(!urg.length && !prev.length) reco = `<div class="est-reco ok">${okIcon}<div><b>${t('estCompraOk')}</b></div></div>`;
+  const canEdit = (effectiveRole()==='admin'||effectiveRole()==='tesoureiro'||effectiveRole()==='user') && !isImpersonating();
+  const lapis='<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+  const estadoPill=(r)=> r.estado==='ok' ? `<span class="est-pill ok">${t('estOk')}${r.folga>0?' · +'+r.folga:''}</span>`
+                       : r.estado==='comprar' ? `<span class="est-pill comprar">${t('estComprar')}</span>`
+                       : `<span class="est-pill falta">${t('estFaltam',{n:r.falta})}</span>`;
+  const body = rows.map(r=>`<tr>
+      <td class="est-tam">${esc(r.tam)}</td>
+      <td class="c"><span class="est-cell"><b>${r.disponivel}</b>${canEdit?`<button class="est-adj" data-tam="${esc(r.tam)}" aria-label="${t('ajustar')}">${lapis}</button>`:''}</span></td>
+      <td class="c">${r.aFazer}</td>
+      <td class="c">${r.projecao}</td>
+      <td class="c">${estadoPill(r)}</td>
+    </tr>`).join('');
+  host.innerHTML = `
+    <h3 class="est-h">${t('estoqueTitulo')}</h3>
+    ${reco}
+    <div class="tablewrap"><table class="grid est-table"><thead><tr>
+      <th>${t('thTam')}</th><th class="c">${t('estColEstoque')}</th><th class="c">${t('cAfazer')}</th><th class="c">${t('estColProjecao')}</th><th class="c">${t('estColEstado')}</th>
+    </tr></thead><tbody>${body || `<tr><td colspan="5" class="c" style="color:var(--muted)">${t('estVazio')}</td></tr>`}</tbody></table></div>
+    <p class="est-leg">${t('estLegenda')}</p>`;
+  host.querySelectorAll('.est-adj').forEach(b=>b.onclick=()=>openEstoqueModal(b.dataset.tam));
+}
+// ---- modal de ajuste de estoque ----
+let estModalTam=null;
+function openEstoqueModal(tam){
+  if(writeBlocked()) return;
+  estModalTam=tam;
+  $('#estModalTitle').textContent = t('ajustarEstoque') + ' — ' + tam;
+  const saldo=estoqueSaldo(tam);
+  $('#estModalCur').innerHTML = t('disponivelAtual') + ': <b>' + saldo + '</b>';
+  $('#estQty').value='+1';
+  $('#estMotivo').value='';
+  renderEstHist(tam);
+  $('#estoqueModal').classList.remove('hidden');
+}
+function estQtyVal(){ const v=parseInt(String($('#estQty').value).replace(/[^0-9-]/g,''),10); return isNaN(v)?0:v; }
+function setEstQty(v){ $('#estQty').value = (v>0?'+':'') + v; }
+function renderEstHist(tam){
+  const el=$('#estHist'); if(!el) return;
+  const arr=(caixaState.estoque||[]).filter(a=>String(a.tamanho)===String(tam)).sort((a,b)=>String(a.data||a.atualizadoEm||'').localeCompare(String(b.data||b.atualizadoEm||'')));
+  if(!arr.length){ el.innerHTML=`<div class="eh-t">${t('estHistorico')} — ${esc(tam)}</div><div class="eh-row"><span class="eh-d">${t('semAjustes')}</span></div>`; return; }
+  let saldo=0;
+  const rows=arr.map(a=>{ const d=(+a.delta||0); saldo+=d; const nome=(a.atualizadoPor||'').split('@')[0];
+    return `<div class="eh-row"><span>${esc(a.motivo||'—')}</span><span><span class="${d>=0?'eh-pos':'eh-neg'}">${d>=0?'+':''}${d}</span> <span class="eh-d">→ ${t('saldoCorrente')} ${saldo}${a.data?' · '+fmtShort(a.data):''}${nome?' · '+esc(nome):''}</span></span></div>`; }).join('');
+  el.innerHTML=`<div class="eh-t">${t('estHistorico')} — ${esc(tam)} (${t('estiloExtrato')})</div>${rows}`;
+}
+$('#estMinus') && ($('#estMinus').onclick=()=>setEstQty(estQtyVal()-1));
+$('#estPlus') && ($('#estPlus').onclick=()=>setEstQty(estQtyVal()+1));
+$('#estCancel') && ($('#estCancel').onclick=()=>$('#estoqueModal').classList.add('hidden'));
+$('#estoqueModal') && $('#estoqueModal').addEventListener('click',e=>{ if(e.target.id==='estoqueModal') $('#estoqueModal').classList.add('hidden'); });
+$('#estSave') && ($('#estSave').onclick=async()=>{
+  if(writeBlocked() || !estModalTam) return;
+  const delta=estQtyVal();
+  if(!delta){ toast(t('estInformeQtd'),'info'); return; }
+  const rec={ tamanho:estModalTam, delta:delta, motivo:($('#estMotivo').value||'').trim(), data:hoje(), atualizadoEm:new Date().toISOString() };
+  if(auth.email) rec.atualizadoPor=auth.email;
+  const newId=await sPut(STORE_EST, rec); markPendingKV('est', rec.id!=null?rec.id:newId);
+  $('#estoqueModal').classList.add('hidden');
+  caixaState.estoque = await sGetAll(STORE_EST);
+  await renderConfeccao();
+  if(ONLINE_ENABLED) syncNow();
+  toast(t('estAjusteOk'),'ok');
+});
+// botão "Estoque" no topo da Confecção -> rola até a seção
+$('#btnGoEstoque') && ($('#btnGoEstoque').onclick=()=>{ const s=$('#estoque'); if(s){ s.scrollIntoView({behavior:'smooth',block:'start'}); } });
+
 async function renderConfList(){
   const all=(await getAll()).sort((a,b)=>numOrder(a.numero)-numOrder(b.numero)||a.nome.localeCompare(b.nome));
   const f=state.confFilter;
@@ -1287,12 +1412,13 @@ $('#fileRestore').onchange=async e=>{
 /* ---------- CAIXA (financeiro, só admin) ---------- */
 const CATEGORIAS=['Camisas','Material','Outros'];
 const BOLSO_LABEL={dinheiro:'Dinheiro',banco:'Banco',outros:'Outros'};
-let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], draftFotosMov:[], sortDesc:true };
+let caixaState={ despesas:[], movimentos:[], estoque:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], draftFotosMov:[], sortDesc:true };
 function eur(n){ return (Math.round((+n||0)*100)/100).toLocaleString('pt-PT')+' €'; }
 
 async function loadCaixa(){
   caixaState.despesas = await sGetAll(STORE_DESP);
   caixaState.movimentos = await sGetAll(STORE_MOV);
+  caixaState.estoque = await sGetAll(STORE_EST);
 }
 async function renderCaixa(){
   await loadCaixa();
@@ -2209,6 +2335,11 @@ $('#brandLogoLink') && ($('#brandLogoLink').onclick=async()=>{
   try{ await checkVersion(); }catch(_){}
   applyUpdate(null);   // limpa cache + SW.update + reload
 });
+// logo Casa Fuerte na TELA DE LOGIN = refresh forçado + verificar nova versão (igual ao do header)
+$('#loginLogoLink') && ($('#loginLogoLink').onclick=async()=>{
+  try{ await checkVersion(); }catch(_){}
+  applyUpdate(null);
+});
 function markPending(id){
   const p=JSON.parse(localStorage.getItem('gd_pending')||'{}'); p[id]=1;
   localStorage.setItem('gd_pending', JSON.stringify(p));
@@ -2266,6 +2397,7 @@ async function pull(){
   const pendKeys=Object.keys(pcx);
   await reconcileColl(STORE_DESP, data.despesas||[], 'desp', pendKeys);
   await reconcileColl(STORE_MOV, data.movimentos||[], 'mov', pendKeys);
+  await reconcileColl(STORE_EST, data.estoque||[], 'est', pendKeys);
   return data;
 }
 async function reconcileColl(store, serverArr, kind, pendKeys){
@@ -2295,15 +2427,19 @@ async function pushPending(){
   // inscritos apagados (tombstones)
   if(delIds.length){ payload.inscritosDel=delIds.map(x=>+x); }
   // despesas/movimentos pendentes + deleções
-  const despAll=await sGetAll(STORE_DESP), movAll=await sGetAll(STORE_MOV);
+  const despAll=await sGetAll(STORE_DESP), movAll=await sGetAll(STORE_MOV), estAll=await sGetAll(STORE_EST);
   const despIds=cxKeys.filter(k=>k.indexOf('desp:')===0).map(k=>+k.split(':')[1]);
   const despDel=cxKeys.filter(k=>k.indexOf('desp_del:')===0).map(k=>+k.split(':')[1]);
   const movIds=cxKeys.filter(k=>k.indexOf('mov:')===0).map(k=>+k.split(':')[1]);
   const movDel=cxKeys.filter(k=>k.indexOf('mov_del:')===0).map(k=>+k.split(':')[1]);
+  const estIds=cxKeys.filter(k=>k.indexOf('est:')===0).map(k=>+k.split(':')[1]);
+  const estDel=cxKeys.filter(k=>k.indexOf('est_del:')===0).map(k=>+k.split(':')[1]);
   if(despIds.length) payload.despesas=despAll.filter(d=>despIds.indexOf(d.id)>=0);
   if(despDel.length) payload.despesasDel=despDel;
   if(movIds.length) payload.movimentos=movAll.filter(m=>movIds.indexOf(m.id)>=0);
   if(movDel.length) payload.movimentosDel=movDel;
+  if(estIds.length) payload.estoque=estAll.filter(x=>estIds.indexOf(x.id)>=0);
+  if(estDel.length) payload.estoqueDel=estDel;
   const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(payload)});
   const data=await r.json();
