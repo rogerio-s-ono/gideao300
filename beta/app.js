@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta5';
+const APP_VERSION = 'v4.1.2-beta6';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -405,9 +405,12 @@ function waTrigger(i){
 // abre a URL do wa.me e marca como enviado (local)
 function waSend(i, aviso){
   if(!aviso.url){ toast(t('waSemTel'),'err'); return; }
-  window.open(aviso.url,'_blank');
+  // marca ANTES de navegar (a navegação pode congelar o JS ao sair do app)
   waMarkSent(i.id, aviso.tipo);
   toast(t('waEnviado'),'ok');
+  // navega a própria janela: no iOS PWA o SO intercepta o wa.me e abre o WhatsApp
+  // sem deixar uma aba vazia do browser in-app (que era o "Search or enter website name").
+  window.location.href = aviso.url;
 }
 // modal de notificações (reutilizado pelo card e pela seção do modal de edição)
 function openWaModal(i){
