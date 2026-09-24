@@ -221,7 +221,7 @@
 
   /* list (cards) */
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;box-shadow:0 2px 8px rgba(20,20,20,.04);transition:box-shadow .15s;position:relative}
-  .card .card-ts{position:absolute;top:5px;right:9px;font-size:9.5px;color:var(--muted);opacity:.7;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+  .modal-ts{font-size:11px;color:var(--muted);text-align:center;margin:-4px 0 8px;font-variant-numeric:tabular-nums}
   .card:active{box-shadow:0 2px 14px rgba(192,138,45,.18)}
   .card .num{min-width:34px;height:34px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:14px}
   .card .info{flex:1;min-width:0}
@@ -862,6 +862,7 @@
     </div>
 
     <div class="modal-divider"></div>
+    <div class="modal-ts hidden" id="modalTs"></div>
     <div class="action-bar">
       <button class="act save" id="save" type="button">
         <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>

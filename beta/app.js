@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta15';
+const APP_VERSION = 'v4.1.1-beta16';
 const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -436,13 +436,7 @@ async function renderList(){
     if(i.tamanho) metaParts.push(esc(i.tamanho));
     if(i.telefone) metaParts.push(esc(i.telefone));
     metaParts.push(`${soma}€ / ${i.cota}€`);
-    // timestamp discreto (criado / atualizado) no topo direito
-    const tsBits=[];
-    if(i.criadoEm) tsBits.push(t('tsCriado')+' '+fmtStampCurto(i.criadoEm));
-    if(i.atualizadoEm && (!i.criadoEm || fmtStampCurto(i.atualizadoEm)!==fmtStampCurto(i.criadoEm))) tsBits.push(t('tsAtual')+' '+fmtStampCurto(i.atualizadoEm));
-    const tsHtml = tsBits.length ? `<div class="card-ts">${tsBits.join(' · ')}</div>` : '';
     return `<div class="card" data-id="${i.id}">
-      ${tsHtml}
       <div class="num">${fmtNum(i.numero)}</div>
       <div class="info">
         <div class="nome">${esc(i.nome)}</div>
@@ -1047,6 +1041,15 @@ async function openModal(id){
   updateIsentoVis();
   renderPays();
   applyModalRO('#modal', effectiveRole()==='viewer', ['#save','#del','#addPay']);
+  // timestamp criado/atualizado (só ao editar registro existente; criado em branco se não houver)
+  const tsEl=$('#modalTs');
+  if(tsEl){
+    const bits=[];
+    if(rec && rec.criadoEm) bits.push(t('tsCriado')+' '+fmtStampCurto(rec.criadoEm));
+    if(rec && rec.atualizadoEm && (!rec.criadoEm || fmtStampCurto(rec.atualizadoEm)!==fmtStampCurto(rec.criadoEm))) bits.push(t('tsAtual')+' '+fmtStampCurto(rec.atualizadoEm));
+    tsEl.textContent = bits.join(' · ');
+    tsEl.classList.toggle('hidden', bits.length===0);
+  }
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
   state.formSnapshot=formSnapshot();
