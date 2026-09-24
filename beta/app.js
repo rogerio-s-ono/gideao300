@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta6';
+const APP_VERSION = 'v4.1.2-beta7';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -425,11 +425,12 @@ function openWaModal(i){
       const cls=x.estado==='pendente'?'wa-ic-a2':'wa-ic-a4';
       const meta = x.estado==='pendente'
         ? `<span class="wmeta pend">${t('waPendente')}</span>`
-        : `<span class="wmeta">✅ ${fmtWaDate(x.data)} · ${esc(x.quem||'')}${x.estado==='enviado'?' · '+t('waReenviar'):''}</span>`;
+        : `<span class="wmeta">✅ ${fmtWaDate(x.data)} · ${esc(x.quem||'')}</span>`;
+      const labelTxt = x.estado==='enviado' ? `${esc(x.label)} - <span class="wreenviar">${t('waReenviar')}</span>` : esc(x.label);
       const dis = (noTel||!x.url)?' disabled':'';
       return `<div class="wa-row${dis}" data-idx="${idx}">
         <button class="wa-ic-btn ${cls}">${WA_SVG}</button>
-        <div class="wtx"><b>${esc(x.label)}</b>${noTel?`<span class="wmeta">${t('waSemTel')}</span>`:meta}</div>
+        <div class="wtx"><b>${labelTxt}</b>${noTel?`<span class="wmeta">${t('waSemTel')}</span>`:meta}</div>
       </div>`;
     }).join('');
     $$('#waList .wa-row').forEach(row=>{
@@ -576,7 +577,6 @@ async function renderList(){
     const waSt=waCardState(i);
     const waSlot = waSt ? `<div class="wa-slot" data-wa="${i.id}">
         <button class="wa-ic-btn ${waSt==='pendente'?'wa-ic-a2':'wa-ic-a4'}" aria-label="${t('waTitulo')}" title="${t('waTitulo')}">${WA_SVG}</button>
-        ${waSt==='enviado'?`<span class="wa-reenviar">${t('waReenviar')}</span>`:''}
       </div>` : '';
     return `<div class="card" data-id="${i.id}">
       <div class="num">${fmtNum(i.numero)}</div>
