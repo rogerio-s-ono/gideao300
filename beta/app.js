@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1-beta20';
+const APP_VERSION = 'v4.1.1-beta21';
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -70,7 +70,7 @@ const I18N = {
     secLista:'Lista da confecção', confNaProducao:'{n} na produção', confEmProducao:'{n} em produção', confEntreguesN:'{e} entregues / {t}', estFaltamN:'faltam {n}', selecioneTam:'— Selecione —',
     estOk:'OK', estComprar:'Comprar', estFaltam:'Faltam {n}', estFaltaAgora:'Falta agora (impacta produção)', estUrgente:'comprar com urgência', estComprarPreventivo:'Comprar para não faltar', estCompraOk:'Estoque em dia — nada a comprar',
     estVazio:'Sem dados de estoque ainda.', estLegenda:'Estoque = disponível (ajustes − consumido pela produção). A fazer = camisas por produzir. Projeção = A fazer + pendentes. Estado: OK cobre a projeção · Comprar cobre "A fazer" mas não a projeção · Faltam já impacta produção.',
-    ajustarEstoque:'Ajustar estoque', ajustar:'Ajustar', disponivelAtual:'Disponível atual', estMotivo:'Motivo (opcional)', estHistorico:'Histórico de ajustes', estiloExtrato:'estilo extrato', saldoCorrente:'saldo', semAjustes:'Sem ajustes ainda.', estInformeQtd:'Informe uma quantidade (+ ou −).', estAjusteOk:'Estoque ajustado.',
+    ajustarEstoque:'Ajustar estoque', ajustar:'Ajustar', disponivelAtual:'Disponível atual', estMotivo:'Motivo (opcional)', estHistorico:'Histórico de ajustes', estiloExtrato:'estilo extrato', saldoCorrente:'saldo', semAjustes:'Sem ajustes ainda.', estInformeQtd:'Informe uma quantidade (+ ou −).', estAjusteOk:'Estoque ajustado.', registrarAjuste:'Registrar ajuste', novoTotal:'novo total',
     verConfeccao:'Abrir na Confecção',
     pendPag:'Pendente pagamento', pago:'Pago', alteracoesSalvas:'Alterações salvas',
     semAlteracoes:'Sem alterações', confirmSairConf:'Há alterações não salvas. Sair mesmo assim?',
@@ -167,7 +167,7 @@ const I18N = {
     secLista:'Lista de confección', confNaProducao:'{n} en producción', confEmProducao:'{n} en producción', confEntreguesN:'{e} entregadas / {t}', estFaltamN:'faltan {n}', selecioneTam:'— Selecciona —',
     estOk:'OK', estComprar:'Comprar', estFaltam:'Faltan {n}', estFaltaAgora:'Falta ahora (afecta producción)', estUrgente:'comprar con urgencia', estComprarPreventivo:'Comprar para no faltar', estCompraOk:'Stock al día — nada que comprar',
     estVazio:'Sin datos de stock aún.', estLegenda:'Stock = disponible (ajustes − consumido por producción). Por hacer = camisetas por producir. Proyección = Por hacer + pendientes. Estado: OK cubre la proyección · Comprar cubre "Por hacer" pero no la proyección · Faltan ya afecta producción.',
-    ajustarEstoque:'Ajustar stock', ajustar:'Ajustar', disponivelAtual:'Disponible actual', estMotivo:'Motivo (opcional)', estHistorico:'Historial de ajustes', estiloExtrato:'estilo extracto', saldoCorrente:'saldo', semAjustes:'Sin ajustes aún.', estInformeQtd:'Indica una cantidad (+ o −).', estAjusteOk:'Stock ajustado.',
+    ajustarEstoque:'Ajustar stock', ajustar:'Ajustar', disponivelAtual:'Disponible actual', estMotivo:'Motivo (opcional)', estHistorico:'Historial de ajustes', estiloExtrato:'estilo extracto', saldoCorrente:'saldo', semAjustes:'Sin ajustes aún.', estInformeQtd:'Indica una cantidad (+ o −).', estAjusteOk:'Stock ajustado.', registrarAjuste:'Registrar ajuste', novoTotal:'nuevo total',
     verConfeccao:'Abrir en Confección',
     pendPag:'Pago pendiente', pago:'Pagado', alteracoesSalvas:'Cambios guardados',
     semAlteracoes:'Sin cambios', confirmSairConf:'Hay cambios sin guardar. ¿Salir de todos modos?',
@@ -815,10 +815,17 @@ function openEstoqueModal(tam){
   $('#estQty').value='+1';
   $('#estMotivo').value='';
   renderEstHist(tam);
+  updateEstNovoTotal();
   $('#estoqueModal').classList.remove('hidden');
 }
 function estQtyVal(){ const v=parseInt(String($('#estQty').value).replace(/[^0-9-]/g,''),10); return isNaN(v)?0:v; }
-function setEstQty(v){ $('#estQty').value = (v>0?'+':'') + v; }
+function setEstQty(v){ $('#estQty').value = (v>0?'+':'') + v; updateEstNovoTotal(); }
+// atualiza o botão "Registrar" mostrando o NOVO TOTAL resultante (saldo + delta), em tempo real
+function updateEstNovoTotal(){
+  const btn=$('#estSave'); if(!btn || estModalTam==null) return;
+  const novo=estoqueSaldo(estModalTam)+estQtyVal();
+  btn.textContent = t('registrarAjuste') + ' (' + t('novoTotal') + ': ' + novo + ')';
+}
 function renderEstHist(tam){
   const el=$('#estHist'); if(!el) return;
   const arr=(caixaState.estoque||[]).filter(a=>String(a.tamanho)===String(tam)).sort((a,b)=>String(a.data||a.atualizadoEm||'').localeCompare(String(b.data||b.atualizadoEm||'')));
@@ -830,6 +837,7 @@ function renderEstHist(tam){
 }
 $('#estMinus') && ($('#estMinus').onclick=()=>setEstQty(estQtyVal()-1));
 $('#estPlus') && ($('#estPlus').onclick=()=>setEstQty(estQtyVal()+1));
+$('#estQty') && ($('#estQty').oninput=()=>updateEstNovoTotal());
 $('#estCancel') && ($('#estCancel').onclick=()=>$('#estoqueModal').classList.add('hidden'));
 $('#estoqueModal') && $('#estoqueModal').addEventListener('click',e=>{ if(e.target.id==='estoqueModal') $('#estoqueModal').classList.add('hidden'); });
 $('#estSave') && ($('#estSave').onclick=async()=>{
