@@ -3,8 +3,8 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.0';
-const TAMANHOS = ['XS','S','S/M','M','L','XL','XXL','2XL','3XL',''];
+const APP_VERSION = 'v4.1.1';
+const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
 function bolsoDaForma(tipo){
@@ -21,7 +21,7 @@ const estColor = e => ['var(--grey)','var(--amber)','#7a6a45','var(--green)'][e|
 /* ---------- i18n ---------- */
 const I18N = {
   pt:{
-    appTitle:'Projeto Gideão 300', buscar:'Buscar por nome...',
+    appTitle:'Projeto Gideão 300', buscar:'Buscar por nome...', buscarAvancado:'Busca avançada (nome, obs, notas, tamanho)...', buscaAvancada:'Busca avançada', buscaAvancadaHint:'(inclui observação, notas e tamanho)', avancada:'Avançada',
     navLista:'Gideões', navPainel:'Painel', navMais:'Mais',
     novoInscrito:'Novo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Tamanho', nome:'Nome', telefone:'Telefone',
@@ -32,14 +32,17 @@ const I18N = {
     maisRecente:'Mais recente', maisAntigo:'Mais antigo',
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
-    salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar',
+    salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
+    restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
+    origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
+    suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
     porTamanho:'Por tamanho (para a gráfica)', financeiro:'Financeiro',
     dadosBackup:'Dados e backup', exportarExcel:'Exportar Excel (CSV)', baixarBackup:'Baixar backup (JSON)',
     restaurarBackup:'Restaurar backup (JSON)', imprimirPdf:'Imprimir / PDF',
     backupNota:'O backup permite passar os dados entre os líderes (WhatsApp, Drive). Importar substitui os dados atuais.',
     zerar:'Apagar tudo e recarregar dados iniciais',
     fPago:'Pagos', fParcial:'Parciais', fPend:'Pendentes', fEntregue:'A entregar', fRevisar:'A revisar', fTodos:'Todos', fIsento:'Isentos', isentoChk:'Isento', isentoNota:'Isento — não paga a cota.',
-    sPago:'Pago', sPend:'Pendente', sIsento:'Isento',
+    sPago:'Pago', sPend:'Pendente', sIsento:'Isento', tsCriado:'criado', tsAtual:'atual.',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Arrecadado', pendente:'A receber',
     prontas:'Prontas', entregues:'Entregues', aReceber:'Falta receber', faltaMeta:'Faltam', cotasLabel:'cotas',
     metaCampanha:'Meta do Projeto Gideão', arrecadadoPor:'arrecadado por', pessoasLabel:'pessoas', deLabel:'de', aInscrever:'a inscrever', pagaramLabel:'pagaram', aReceberLabel:'a receber',
@@ -63,6 +66,11 @@ const I18N = {
     est0:'A fazer', est1:'Em confecção', est2:'Pronta', est3:'Entregue',
     cAfazer:'A fazer', cEmConf:'Em confecção', cPronta:'Prontas', cEntregue:'Entregues',
     avancar:'Tocar para avançar', porTamanhoConf:'Resumo por tamanho', totalConf:'Total', totalGeral:'Total geral',
+    estoqueTitulo:'Estoque de camisas', estoqueLabel:'Estoque', estColEstoque:'Estoque', estColProjecao:'Projeção', estColEstado:'Estado',
+    secLista:'Lista da confecção', confNaProducao:'{n} na produção', confEmProducao:'{n} em produção', confEntreguesN:'{e} entregues / {t}', estFaltamN:'faltam {n}', selecioneTam:'— Selecione —',
+    estOk:'OK', estComprar:'Comprar', estFaltam:'Faltam {n}', estFaltaAgora:'Falta agora (impacta produção)', estUrgente:'comprar com urgência', estComprarPreventivo:'Comprar para não faltar', estCompraOk:'Estoque em dia — nada a comprar',
+    estVazio:'Sem dados de estoque ainda.', estLegenda:'Estoque = disponível (ajustes − consumido pela produção). A fazer = camisas por produzir. Projeção = A fazer + pendentes. Estado: OK cobre a projeção · Comprar cobre "A fazer" mas não a projeção · Faltam já impacta produção.',
+    ajustarEstoque:'Ajustar estoque', ajustar:'Ajustar', disponivelAtual:'Disponível atual', estMotivo:'Motivo (opcional)', estHistorico:'Histórico de ajustes', estiloExtrato:'estilo extrato', saldoCorrente:'saldo', semAjustes:'Sem ajustes ainda.', estInformeQtd:'Informe uma quantidade (+ ou −).', estAjusteOk:'Estoque ajustado.', registrarAjuste:'Registrar ajuste', novoTotal:'novo total',
     verConfeccao:'Abrir na Confecção',
     pendPag:'Pendente pagamento', pago:'Pago', alteracoesSalvas:'Alterações salvas',
     semAlteracoes:'Sem alterações', confirmSairConf:'Há alterações não salvas. Sair mesmo assim?',
@@ -110,7 +118,7 @@ const I18N = {
     fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
   },
   es:{
-    appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...',
+    appTitle:'Proyecto Gedeón 300', buscar:'Buscar por nombre...', buscarAvancado:'Búsqueda avanzada (nombre, obs, notas, talla)...', buscaAvancada:'Búsqueda avanzada', buscaAvancadaHint:'(incluye observación, notas y talla)', avancada:'Avanzada',
     navLista:'Gedeones', navPainel:'Panel', navMais:'Más',
     novoInscrito:'Nuevo inscrito', editarInscrito:'Editar inscrito',
     numero:'Número', tamanho:'Talla', nome:'Nombre', telefone:'Teléfono',
@@ -121,14 +129,17 @@ const I18N = {
     maisRecente:'Más reciente', maisAntigo:'Más antiguo',
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
-    salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar',
+    salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
+    restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
+    origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
+    suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
     porTamanho:'Por talla (para la imprenta)', financeiro:'Finanzas',
     dadosBackup:'Datos y copia', exportarExcel:'Exportar Excel (CSV)', baixarBackup:'Descargar copia (JSON)',
     restaurarBackup:'Restaurar copia (JSON)', imprimirPdf:'Imprimir / PDF',
     backupNota:'La copia permite pasar los datos entre los líderes (WhatsApp, Drive). Importar reemplaza los datos actuales.',
     zerar:'Borrar todo y recargar datos iniciales',
     fPago:'Pagados', fParcial:'Parciales', fPend:'Pendientes', fEntregue:'Por entregar', fRevisar:'Por revisar', fTodos:'Todos', fIsento:'Exentos', isentoChk:'Exento', isentoNota:'Exento — no paga la cuota.',
-    sPago:'Pagado', sPend:'Pendiente', sIsento:'Exento',
+    sPago:'Pagado', sPend:'Pendiente', sIsento:'Exento', tsCriado:'creado', tsAtual:'act.',
     inscritos:'Inscritos', meta:'Meta', arrecadado:'Recaudado', pendente:'Por cobrar',
     prontas:'Listas', entregues:'Entregadas', aReceber:'Falta cobrar', faltaMeta:'Faltan', cotasLabel:'cuotas',
     metaCampanha:'Meta del Proyecto Gedeón', arrecadadoPor:'recaudado por', pessoasLabel:'personas', deLabel:'de', aInscrever:'por inscribir', pagaramLabel:'pagaron', aReceberLabel:'por cobrar',
@@ -152,6 +163,11 @@ const I18N = {
     est0:'Por hacer', est1:'En confección', est2:'Lista', est3:'Entregada',
     cAfazer:'Por hacer', cEmConf:'En confección', cPronta:'Listas', cEntregue:'Entregadas',
     avancar:'Toca para avanzar', porTamanhoConf:'Resumen por talla', totalConf:'Total', totalGeral:'Total general',
+    estoqueTitulo:'Stock de camisetas', estoqueLabel:'Stock', estColEstoque:'Stock', estColProjecao:'Proyección', estColEstado:'Estado',
+    secLista:'Lista de confección', confNaProducao:'{n} en producción', confEmProducao:'{n} en producción', confEntreguesN:'{e} entregadas / {t}', estFaltamN:'faltan {n}', selecioneTam:'— Selecciona —',
+    estOk:'OK', estComprar:'Comprar', estFaltam:'Faltan {n}', estFaltaAgora:'Falta ahora (afecta producción)', estUrgente:'comprar con urgencia', estComprarPreventivo:'Comprar para no faltar', estCompraOk:'Stock al día — nada que comprar',
+    estVazio:'Sin datos de stock aún.', estLegenda:'Stock = disponible (ajustes − consumido por producción). Por hacer = camisetas por producir. Proyección = Por hacer + pendientes. Estado: OK cubre la proyección · Comprar cubre "Por hacer" pero no la proyección · Faltan ya afecta producción.',
+    ajustarEstoque:'Ajustar stock', ajustar:'Ajustar', disponivelAtual:'Disponible actual', estMotivo:'Motivo (opcional)', estHistorico:'Historial de ajustes', estiloExtrato:'estilo extracto', saldoCorrente:'saldo', semAjustes:'Sin ajustes aún.', estInformeQtd:'Indica una cantidad (+ o −).', estAjusteOk:'Stock ajustado.', registrarAjuste:'Registrar ajuste', novoTotal:'nuevo total',
     verConfeccao:'Abrir en Confección',
     pendPag:'Pago pendiente', pago:'Pagado', alteracoesSalvas:'Cambios guardados',
     semAlteracoes:'Sin cambios', confirmSairConf:'Hay cambios sin guardar. ¿Salir de todos modos?',
@@ -205,15 +221,16 @@ const t = (k,vars) => { let s=(I18N[lang][k]||k); if(vars) for(const p in vars) 
 function btnLabel(elOrSel, txt){ const b=(typeof elOrSel==='string')?$(elOrSel):elOrSel; if(!b) return; const sp=b.querySelector('span'); if(sp) sp.textContent=txt; else b.textContent=txt; }
 
 /* ---------- IndexedDB ---------- */
-const DB_NAME='gideao300', STORE='inscritos', STORE_DESP='despesas', STORE_MOV='movimentos';
+const DB_NAME='gideao300', STORE='inscritos', STORE_DESP='despesas', STORE_MOV='movimentos', STORE_EST='estoque';
 let db;
 function openDB(){
   return new Promise((res,rej)=>{
-    const r=indexedDB.open(DB_NAME,2);
+    const r=indexedDB.open(DB_NAME,3);
     r.onupgradeneeded=e=>{ const d=e.target.result;
       if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});
       if(!d.objectStoreNames.contains(STORE_DESP)) d.createObjectStore(STORE_DESP,{keyPath:'id',autoIncrement:true});
       if(!d.objectStoreNames.contains(STORE_MOV)) d.createObjectStore(STORE_MOV,{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains(STORE_EST)) d.createObjectStore(STORE_EST,{keyPath:'id',autoIncrement:true});
     };
     r.onsuccess=e=>{db=e.target.result;res();};
     r.onerror=e=>rej(e);
@@ -255,6 +272,43 @@ async function seedIfEmpty(){
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
+
+/* ---------- UI: confirmação (modal) e toast (feedback) — substitui confirm()/alert() nativos ---------- */
+// confirmDialog(titulo,msg,{perigo,okText,cancelText}) -> Promise<bool>
+function confirmDialog(titulo, msg, opts){
+  opts=opts||{};
+  return new Promise((resolve)=>{
+    const m=$('#appConfirm'); if(!m){ resolve(window.confirm(msg||titulo)); return; }
+    const perigo=!!opts.perigo;
+    $('#acTitle').textContent=titulo||'';
+    $('#acMsg').textContent=msg||'';
+    const iw=$('#acIconWrap'); iw.classList.remove('danger','warn'); iw.classList.add(perigo?'danger':'warn');
+    $('#acIconDanger').classList.toggle('hidden', !perigo);
+    $('#acIconWarn').classList.toggle('hidden', perigo);
+    const ok=$('#acOk'); ok.textContent=opts.okText || (perigo? t('excluir') : t('confirmar'));
+    ok.className='btn '+(perigo?'danger':'primary'); ok.id='acOk';
+    const cancel=$('#acCancel'); cancel.textContent=opts.cancelText || t('cancelar');
+    const close=(val)=>{ m.classList.add('hidden'); ok.onclick=null; cancel.onclick=null; m.onclick=null; resolve(val); };
+    ok.onclick=()=>close(true);
+    cancel.onclick=()=>close(false);
+    m.onclick=(e)=>{ if(e.target===m) close(false); };   // clicar no fundo = cancela
+    m.classList.remove('hidden');
+  });
+}
+// toast(msg, tipo) — tipo: 'ok' | 'err' | 'info' (default info). Some em ~2.6s.
+let _toastTimer=null;
+function toast(msg, tipo){
+  const wrap=$('#toastWrap'); if(!wrap){ return; }
+  tipo=tipo||'info';
+  const icon = tipo==='ok' ? '<path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>'
+             : tipo==='err' ? '<path d="M12 2 1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>'
+             : '<path d="M11 7h2v2h-2V7zm0 4h2v6h-2v-6zm1-9a10 10 0 100 20 10 10 0 000-20z"/>';
+  wrap.innerHTML=`<div class="toast ${tipo}"><svg class="ti" viewBox="0 0 24 24">${icon}</svg><span>${esc(msg)}</span></div>`;
+  const el=wrap.querySelector('.toast');
+  requestAnimationFrame(()=>el.classList.add('show'));
+  if(_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>{ if(el){ el.classList.remove('show'); setTimeout(()=>{ if(wrap.contains(el)) wrap.innerHTML=''; },250); } }, 2600);
+}
 const somaPago=i=>(i.pagamentos||[]).reduce((a,p)=>a+(+p.valor||0),0);
 const isIsento=i=>!!(i&&i.isento);
 function statusPag(i){ if(isIsento(i)) return 'isento'; const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
@@ -296,7 +350,7 @@ function computeCaixa(inscritos, despesas, movimentos){
   (movimentos||[]).forEach(m=>{ const v=+m.valor||0; if(bolso[m.de]!==undefined) bolso[m.de]-=v; if(bolso[m.para]!==undefined) bolso[m.para]+=v; });
   // despesas: saem do bolso escolhido
   let despTotal=0;
-  (despesas||[]).forEach(d=>{ const v=+d.valor||0; despTotal+=v; const b=d.bolso||'banco'; if(bolso[b]!==undefined) bolso[b]-=v; });
+  (despesas||[]).forEach(d=>{ if(d.status==='suspenso') return; const v=+d.valor||0; despTotal+=v; const b=d.bolso||'banco'; if(bolso[b]!==undefined) bolso[b]-=v; });
   const saldoProjeto = arrecadado - despTotal;
   return { bolso, arrecadado, despTotal, saldoProjeto, forma, cashPastor:cashPastor, cashTeso:cashTeso };
 }
@@ -313,7 +367,7 @@ function fmtNum(v){
   return (!isNaN(n) && n>=0 && n<10 && /^\d+$/.test(s)) ? ('0'+n) : s;
 }
 
-let state={ view:'lista', filter:'todos', q:'', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilter:'todos', confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{}, sizePhaseSel:'fazer' };
+let state={ view:'lista', filter:'todos', q:'', qAdv: localStorage.getItem('qAdv')==='1', editing:null, draftPays:[], viewMode: localStorage.getItem('viewMode')||'cards', confFilters:['0','1'], confQ:'', confHighlight:null, listHighlight:null, confDirty:{}, scrollPos:{}, sizePhaseSel:'fazer' };
 
 /* ---------- render lista ---------- */
 const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['isento','fIsento'],['revisar','fRevisar']];
@@ -335,7 +389,15 @@ async function getFiltered(){
       const matchNome=norm(i.nome).includes(qn);
       const matchNum=(i.numero||'').includes(q);
       const matchTel=qd.length>=3 && telDigits.includes(qd);
-      if(!matchNome && !matchNum && !matchTel) return false;
+      let matched = matchNome || matchNum || matchTel;
+      // busca avançada (aditiva): observação + notas dos pagamentos + tamanho
+      if(!matched && state.qAdv){
+        const matchObs=norm(i.observacoes).includes(qn);
+        const matchTam=norm(i.tamanho).includes(qn);
+        const matchNota=(i.pagamentos||[]).some(p=>norm(p.nota).includes(qn));
+        matched = matchObs || matchTam || matchNota;
+      }
+      if(!matched) return false;
     }
     const st=statusPag(i);
     switch(state.filter){
@@ -612,13 +674,29 @@ async function renderPainel(){
 /* ---------- confecção ---------- */
 // [filtro key, label i18n, classe do badge de cor]
 const CONF_FILTERS=[['todos','fTodos',''],['0','cAfazer','cb-grey'],['1','cEmConf','cb-amber'],['2','cPronta','cb-gold'],['3','cEntregue','cb-green'],['pend','pendPag','cb-red']];
+const CONF_ALL_STATES=['0','1','2','3','pend'];   // estados selecionáveis (exceto o 'todos')
 function renderConfFilters(counts){
   const cc=counts||{};
+  const active=state.confFilters||[];
+  const allOn = CONF_ALL_STATES.every(k=>active.indexOf(k)>=0);
   $('#confFilters').innerHTML=CONF_FILTERS.map(([k,l,cls])=>{
     const n=(cc[k]!=null)?cc[k]:0;
-    return `<div class="chip ${state.confFilter===k?'active':''}" data-f="${k}">${t(l)} <span class="cbadge ${cls}">${n}</span></div>`;
+    const on = (k==='todos') ? allOn : (active.indexOf(k)>=0);
+    return `<div class="chip ${on?'active':''}" data-f="${k}">${t(l)} <span class="cbadge ${cls}">${n}</span></div>`;
   }).join('');
-  $$('#confFilters .chip').forEach(c=>c.onclick=()=>{state.confFilter=c.dataset.f;renderConfeccao();});
+  $$('#confFilters .chip').forEach(c=>c.onclick=()=>{
+    const k=c.dataset.f;
+    if(k==='todos'){
+      // marca todos; se já estavam todos, mantém todos (não deixa vazio ao clicar Todos)
+      state.confFilters = CONF_ALL_STATES.slice();
+    } else {
+      const arr=state.confFilters.slice();
+      const i=arr.indexOf(k);
+      if(i>=0) arr.splice(i,1); else arr.push(k);
+      state.confFilters = arr;   // pode ficar vazio -> lista vazia (nenhum estado selecionado)
+    }
+    renderConfeccao();
+  });
 }
 async function renderConfeccao(){
   const all=await getAll();
@@ -641,21 +719,169 @@ async function renderConfeccao(){
   keys.forEach(s=>{const a=bySize[s];const tot=a[0]+a[1]+a[2]+a[3];html+=`<tr><td>${esc(s)}</td><td class="c">${a[0]||''}</td><td class="c">${a[1]||''}</td><td class="c">${a[2]||''}</td><td class="c">${a[3]||''}</td><td class="c"><b>${tot}</b></td></tr>`;});
   html+=`</tbody><tfoot><tr><td>${t('totalGeral')}</td><td class="c">${totCol[0]}</td><td class="c">${totCol[1]}</td><td class="c">${totCol[2]}</td><td class="c">${totCol[3]}</td><td class="c">${totGeral}</td></tr></tfoot></table></div>`;
   $('#confSize').innerHTML=html;
+  caixaState.estoque = await sGetAll(STORE_EST);
+  renderEstoque(all);
+  // resumos nos cabeçalhos das seções (contexto mesmo colapsado)
+  const emProducao = c[0]+c[1];   // A fazer + Em confecção (Pronta/Entregue não contam como "em produção")
+  const sl=$('#sumLista'); if(sl) sl.textContent = t('confEmProducao', {n:emProducao});
+  const sr=$('#sumResumo'); if(sr) sr.textContent = t('confEntreguesN', {e:totCol[3], t:totGeral});
+  const se=$('#sumEstoque'); if(se){
+    const rows=computeEstoque(all);
+    const urg=rows.filter(r=>r.estado==='falta'), pv=rows.filter(r=>r.estado==='comprar');
+    if(urg.length){ const nf=urg.reduce((a,r)=>a+r.falta,0); se.innerHTML=`<span class="csh-badge falta">${t('estFaltamN',{n:nf})}</span>`; }
+    else if(pv.length){ se.innerHTML=`<span class="csh-badge comprar">${t('estComprar')}</span>`; }
+    else se.innerHTML=`<span class="csh-badge ok">${t('estOk')}</span>`;
+  }
+  setupConfAccordion();
 }
+// ---- Estoque de camisas por tamanho ----
+// saldo de ajustes por tamanho (Σ delta dos movimentos)
+function estoqueSaldo(tam){ return (caixaState.estoque||[]).filter(a=>String(a.tamanho)===String(tam)).reduce((s,a)=>s+(+a.delta||0),0); }
+// calcula, por tamanho: disponivel, aFazer, projecao, estado
+function computeEstoque(inscritos){
+  const norms=(s)=>((s||'').trim()||'—');
+  const map={};   // tam -> {aFazer, consumido, pendentes}
+  (inscritos||[]).forEach(i=>{
+    const s=norms(i.tamanho); if(!map[s]) map[s]={aFazer:0,consumido:0,pendentes:0};
+    if(podeProduzir(i)){
+      if((i.camisaEstado||0)===EST.AFAZER) map[s].aFazer++;   // ainda vai consumir
+      else map[s].consumido++;                                 // já saiu de A fazer -> consumiu estoque
+    } else {
+      map[s].pendentes++;                                      // não paga/isento ainda -> projeção
+    }
+  });
+  // inclui tamanhos que têm ajustes de estoque mas sem inscritos
+  (caixaState.estoque||[]).forEach(a=>{ const s=norms(a.tamanho); if(!map[s]) map[s]={aFazer:0,consumido:0,pendentes:0}; });
+  const out=[];
+  Object.keys(map).forEach(s=>{
+    const m=map[s];
+    const saldo=estoqueSaldo(s);
+    const disponivel=Math.max(0, saldo - m.consumido);   // não fica negativo (consumo anterior ao registro do estoque não puxa abaixo de 0)
+    const projecao=m.aFazer + m.pendentes;
+    let estado;   // 'ok' | 'comprar' | 'falta'
+    if(disponivel < m.aFazer) estado='falta';
+    else if(disponivel < projecao) estado='comprar';
+    else estado='ok';
+    out.push({tam:s, disponivel, aFazer:m.aFazer, pendentes:m.pendentes, projecao, estado, falta: Math.max(0, m.aFazer - disponivel), folga: Math.max(0, disponivel - projecao)});
+  });
+  // só mostra tamanhos relevantes (com projeção, disponível!=0, ou algum ajuste)
+  const rel=out.filter(r=>r.projecao>0 || r.disponivel!==0 || estoqueSaldo(r.tam)!==0);
+  const order=['XS','S','S/M','M','L','XL','XXL','2XL','3XL','—'];
+  rel.sort((a,b)=>{const ia=order.indexOf(a.tam),ib=order.indexOf(b.tam);return (ia<0?99:ia)-(ib<0?99:ib);});
+  return rel;
+}
+function renderEstoque(inscritos){
+  const host=$('#estoque'); if(!host) return;
+  const rows=computeEstoque(inscritos);
+  // resumo consolidado 2 partes
+  const urg=rows.filter(r=>r.estado==='falta');
+  const prev=rows.filter(r=>r.estado==='comprar');
+  const pedIcon='<svg viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2zm0 5 7.5 13h-15L12 7zm-1 4v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg>';
+  const boxIcon='<svg viewBox="0 0 24 24"><path d="M20 6H4V4h16v2zm-1 2H5l1 12h12l1-12zM9 11h6v2H9v-2z"/></svg>';
+  const okIcon='<svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>';
+  let reco='';
+  if(urg.length) reco += `<div class="est-reco urg">${pedIcon}<div><b>${t('estFaltaAgora')}:</b> ${urg.map(r=>r.falta+' '+r.tam).join(' · ')} — ${t('estUrgente')}</div></div>`;
+  if(prev.length) reco += `<div class="est-reco prev">${boxIcon}<div><b>${t('estComprarPreventivo')}:</b> ${prev.map(r=>r.tam).join(' · ')}</div></div>`;
+  if(!urg.length && !prev.length) reco = `<div class="est-reco ok">${okIcon}<div><b>${t('estCompraOk')}</b></div></div>`;
+  const canEdit = (effectiveRole()==='admin'||effectiveRole()==='tesoureiro'||effectiveRole()==='user') && !isImpersonating();
+  const lapis='<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+  const estadoPill=(r)=> r.estado==='ok' ? `<span class="est-pill ok">${t('estOk')}${r.folga>0?' · +'+r.folga:''}</span>`
+                       : r.estado==='comprar' ? `<span class="est-pill comprar">${t('estComprar')}</span>`
+                       : `<span class="est-pill falta">${t('estFaltam',{n:r.falta})}</span>`;
+  const body = rows.map(r=>`<tr>
+      <td class="est-tam">${esc(r.tam)}</td>
+      <td class="c"><span class="est-cell"><b>${r.disponivel}</b>${canEdit?`<button class="est-adj" data-tam="${esc(r.tam)}" aria-label="${t('ajustar')}">${lapis}</button>`:''}</span></td>
+      <td class="c">${r.aFazer}</td>
+      <td class="c">${r.projecao}</td>
+      <td class="c">${estadoPill(r)}</td>
+    </tr>`).join('');
+  host.innerHTML = `
+    <h3 class="est-h">${t('estoqueTitulo')}</h3>
+    ${reco}
+    <div class="tablewrap"><table class="grid est-table"><thead><tr>
+      <th>${t('thTam')}</th><th class="c">${t('estColEstoque')}</th><th class="c">${t('cAfazer')}</th><th class="c">${t('estColProjecao')}</th><th class="c">${t('estColEstado')}</th>
+    </tr></thead><tbody>${body || `<tr><td colspan="5" class="c" style="color:var(--muted)">${t('estVazio')}</td></tr>`}</tbody></table></div>
+    <p class="est-leg">${t('estLegenda')}</p>`;
+  host.querySelectorAll('.est-adj').forEach(b=>b.onclick=()=>openEstoqueModal(b.dataset.tam));
+}
+// ---- modal de ajuste de estoque ----
+let estModalTam=null;
+function openEstoqueModal(tam){
+  if(writeBlocked()) return;
+  estModalTam=tam;
+  $('#estModalTitle').textContent = t('ajustarEstoque') + ' — ' + tam;
+  const saldo=estoqueSaldo(tam);
+  $('#estModalCur').innerHTML = t('disponivelAtual') + ': <b>' + saldo + '</b>';
+  $('#estQty').value='+1';
+  $('#estMotivo').value='';
+  renderEstHist(tam);
+  updateEstNovoTotal();
+  $('#estoqueModal').classList.remove('hidden');
+}
+function estQtyVal(){ const v=parseInt(String($('#estQty').value).replace(/[^0-9-]/g,''),10); return isNaN(v)?0:v; }
+function setEstQty(v){ $('#estQty').value = (v>0?'+':'') + v; updateEstNovoTotal(); }
+// atualiza o botão "Registrar" mostrando o NOVO TOTAL resultante (saldo + delta), em tempo real
+function updateEstNovoTotal(){
+  const btn=$('#estSave'); if(!btn || estModalTam==null) return;
+  const novo=estoqueSaldo(estModalTam)+estQtyVal();
+  btn.textContent = t('registrarAjuste') + ' (' + t('novoTotal') + ': ' + novo + ')';
+}
+function renderEstHist(tam){
+  const el=$('#estHist'); if(!el) return;
+  const arr=(caixaState.estoque||[]).filter(a=>String(a.tamanho)===String(tam)).sort((a,b)=>String(a.data||a.atualizadoEm||'').localeCompare(String(b.data||b.atualizadoEm||'')));
+  if(!arr.length){ el.innerHTML=`<div class="eh-t">${t('estHistorico')} — ${esc(tam)}</div><div class="eh-row"><span class="eh-d">${t('semAjustes')}</span></div>`; return; }
+  let saldo=0;
+  const rows=arr.map(a=>{ const d=(+a.delta||0); saldo+=d; const nome=(a.atualizadoPor||'').split('@')[0];
+    return `<div class="eh-row"><span>${esc(a.motivo||'—')}</span><span><span class="${d>=0?'eh-pos':'eh-neg'}">${d>=0?'+':''}${d}</span> <span class="eh-d">→ ${t('saldoCorrente')} ${saldo}${a.data?' · '+fmtShort(a.data):''}${nome?' · '+esc(nome):''}</span></span></div>`; }).join('');
+  el.innerHTML=`<div class="eh-t">${t('estHistorico')} — ${esc(tam)} (${t('estiloExtrato')})</div>${rows}`;
+}
+$('#estMinus') && ($('#estMinus').onclick=()=>setEstQty(estQtyVal()-1));
+$('#estPlus') && ($('#estPlus').onclick=()=>setEstQty(estQtyVal()+1));
+$('#estQty') && ($('#estQty').oninput=()=>updateEstNovoTotal());
+$('#estCancel') && ($('#estCancel').onclick=()=>$('#estoqueModal').classList.add('hidden'));
+$('#estoqueModal') && $('#estoqueModal').addEventListener('click',e=>{ if(e.target.id==='estoqueModal') $('#estoqueModal').classList.add('hidden'); });
+$('#estSave') && ($('#estSave').onclick=async()=>{
+  if(writeBlocked() || !estModalTam) return;
+  const delta=estQtyVal();
+  if(!delta){ toast(t('estInformeQtd'),'info'); return; }
+  const rec={ tamanho:estModalTam, delta:delta, motivo:($('#estMotivo').value||'').trim(), data:hoje(), atualizadoEm:new Date().toISOString() };
+  if(auth.email) rec.atualizadoPor=auth.email;
+  const newId=await sPut(STORE_EST, rec); markPendingKV('est', rec.id!=null?rec.id:newId);
+  $('#estoqueModal').classList.add('hidden');
+  caixaState.estoque = await sGetAll(STORE_EST);
+  await renderConfeccao();
+  if(ONLINE_ENABLED) syncNow();
+  toast(t('estAjusteOk'),'ok');
+});
+// botão "Estoque" no topo da Confecção -> rola até a seção
+// ---- accordion da Confecção (seções colapsáveis, estado persistido) ----
+function setConfSec(id, open){
+  const sec=$('#'+id); if(!sec) return;
+  sec.classList.toggle('open', open);
+  const head=sec.querySelector('.conf-sec-head'); if(head) head.setAttribute('aria-expanded', open?'true':'false');
+  try{ localStorage.setItem('confsec_'+id, open?'1':'0'); }catch(_){ }
+}
+function setupConfAccordion(){
+  ['secLista','secResumo','secEstoque'].forEach(id=>{
+    const sec=$('#'+id); if(!sec) return;
+    const head=sec.querySelector('.conf-sec-head'); if(!head) return;
+    let open=false; try{ open=localStorage.getItem('confsec_'+id)==='1'; }catch(_){ }  // default: colapsado
+    setConfSec(id, open);
+    head.onclick=()=>setConfSec(id, !sec.classList.contains('open'));
+  });
+}
+
 async function renderConfList(){
   const all=(await getAll()).sort((a,b)=>numOrder(a.numero)-numOrder(b.numero)||a.nome.localeCompare(b.nome));
-  const f=state.confFilter;
+  const active=state.confFilters||[];
   const qn=norm(state.confQ||'');
   const filtered=all.filter(i=>{
     if(qn && !norm(i.nome).includes(qn)) return false;   // busca por nome (sem acento)
-    if(f==='todos') return true;
-    // filtro "pendente de pagamento": Gideões sem pagamento completo
-    if(f==='pend') return !podeProduzir(i);
     // mantém visível qualquer card em edição, para não sumir ao trocar status antes de salvar
     if(i.id in state.confDirty) return true;
-    // gate de pagamento: sem pagamento completo não entra em nenhuma etapa (A fazer/Em conf/Pronta/Entregue)
-    if(!podeProduzir(i)) return false;
-    return (i.camisaEstado||0)===+f;
+    // estado do card: 'pend' se não paga/isento; senão o camisaEstado (0-3)
+    const estadoCard = !podeProduzir(i) ? 'pend' : String(i.camisaEstado||0);
+    return active.indexOf(estadoCard)>=0;   // acumulativo (OR): aparece se seu estado está selecionado
   });
   const el=$('#confList');
   if(!filtered.length){ el.innerHTML=`<div class="empty">${t('vazio')}</div>`; return; }
@@ -765,6 +991,8 @@ function toISODate(v){
   return s;
 }
 function fmtShort(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${(MESES[lang]||MESES.pt)[(+p[1])-1]||p[1]}`; }
+// timestamp compacto para o card: dd/mmm HH:mm (aceita ISO datetime)
+function fmtStampCurto(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return ''; const mon=(MESES[lang]||MESES.pt)[d.getMonth()]||''; const p=n=>String(n).padStart(2,'0'); return `${p(d.getDate())}/${mon} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 function fmtFull(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; return `${p[2]}/${p[1]}/${p[0].slice(2)}`; }
 // dd/mês-abrev/aa (ex.: 21/set/26)
 function fmtDMY(iso){ iso=toISODate(iso); if(!iso) return ''; const p=iso.split('-'); if(p.length<3) return iso; const mes=(MESES[lang]||MESES.pt)[(+p[1])-1]||p[1]; return `${p[2]}/${mes}/${p[0].slice(2)}`; }
@@ -836,7 +1064,7 @@ async function openModal(id){
   $('#f-numero').value=rec?(rec.numero||''):nextNum;
   $('#f-numero').placeholder=nextNum||'auto';
   updateNumFreeBtn();
-  fillSelect('#f-tamanho',TAMANHOS,rec?rec.tamanho:'');
+  fillTamanho('#f-tamanho', rec?rec.tamanho:'');
   fillSelect('#p-tipo',TIPOS,'Dinheiro');
   if($('#p-outros-wrap')){ $('#p-outros-wrap').classList.add('hidden'); $('#p-comentario').value=''; }
   if($('#p-receb-wrap')){ $('#p-receb-wrap').classList.remove('hidden'); const pr=$('#p-receb-wrap input[value="pastor"]'); if(pr) pr.checked=true; }
@@ -863,6 +1091,15 @@ async function openModal(id){
   updateIsentoVis();
   renderPays();
   applyModalRO('#modal', effectiveRole()==='viewer', ['#save','#del','#addPay']);
+  // timestamp criado/atualizado (só ao editar registro existente; criado em branco se não houver)
+  const tsEl=$('#modalTs');
+  if(tsEl){
+    const bits=[];
+    if(rec && rec.criadoEm) bits.push(t('tsCriado')+' '+fmtStampCurto(rec.criadoEm));
+    if(rec && rec.atualizadoEm && (!rec.criadoEm || fmtStampCurto(rec.atualizadoEm)!==fmtStampCurto(rec.criadoEm))) bits.push(t('tsAtual')+' '+fmtStampCurto(rec.atualizadoEm));
+    tsEl.textContent = bits.join(' · ');
+    tsEl.classList.toggle('hidden', bits.length===0);
+  }
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
   state.formSnapshot=formSnapshot();
@@ -878,6 +1115,15 @@ function formSnapshot(){
 function formDirty(){ return state.formSnapshot!==undefined && state.formSnapshot!==formSnapshot(); }
 function fillSelect(sel,opts,val){
   $(sel).innerHTML=opts.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o||'—'}</option>`).join('');
+}
+// dropdown de tamanho com placeholder "— Selecione —" (força escolha consciente; sem-tamanho antigo cai no placeholder)
+function fillTamanho(sel, val){
+  const ph=`<option value="" ${!val?'selected':''} disabled>${t('selecioneTam')}</option>`;
+  const has=TAMANHOS.indexOf(val)>=0;
+  // se o inscrito tem um tamanho fora da lista atual (ex.: S/M, 2XL antigo), mantém como opção para não perder o dado
+  const extra=(val && !has)?`<option value="${esc(val)}" selected>${esc(val)}</option>`:'';
+  const body=TAMANHOS.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o}</option>`).join('');
+  $(sel).innerHTML=ph+extra+body;
 }
 // edita a data (campo 'data' ou 'dataEntregaTesoureiro') de um pagamento via seletor nativo
 // item 7: Revisar aparece se há texto na Observação OU já está marcado
@@ -958,7 +1204,7 @@ function renderPays(){
   // comprovante por parcela: remover / abrir / adicionar
   $$('#paysList .pf-rm').forEach(b=>b.onclick=(ev)=>{ ev.stopPropagation(); const pi=+b.dataset.p, fi=+b.dataset.f; const p=state.draftPays[pi]; if(p&&Array.isArray(p.fotos)){ p.fotos.splice(fi,1); renderPays(); } });
   $$('#paysList .pf-open').forEach(im=>im.onclick=()=>{ const pi=+im.dataset.p, fi=+im.dataset.f; const p=state.draftPays[pi]; if(p&&p.fotos&&p.fotos[fi]) openFoto(normFoto(p.fotos[fi])); });
-  $$('#paysList .pf-add').forEach(b=>b.onclick=()=>{ const pi=+b.dataset.p; const p=state.draftPays[pi]; if(!Array.isArray(p.fotos)) p.fotos=[]; if(p.fotos.length>=3){ alert(t('maxFotos')); return; } payFotoTargetIdx=pi; $('#p-fotoInput').click(); });
+  $$('#paysList .pf-add').forEach(b=>b.onclick=()=>{ const pi=+b.dataset.p; const p=state.draftPays[pi]; if(!Array.isArray(p.fotos)) p.fotos=[]; if(p.fotos.length>=3){ toast(t('maxFotos'),'info'); return; } payFotoTargetIdx=pi; $('#p-fotoInput').click(); });
   $$('#paysList .pdeliver').forEach(cb=>cb.onchange=()=>{
     const i=+cb.dataset.i; const p=state.draftPays[i];
     if(cb.checked){ p.entregueTesoureiro=true; p.dataEntregaTesoureiro=hoje(); }
@@ -996,7 +1242,7 @@ $('#addPay').onclick=()=>{
   if(!v||v<=0) return;
   const tipo=$('#p-tipo').value;
   const nota=(tipo==='Outros')? ($('#p-comentario').value||'').trim() : '';
-  if(tipo==='Outros' && !nota){ alert(t('comentarioObrigatorio')); const c=$('#p-comentario'); if(c) c.focus(); return; }
+  if(tipo==='Outros' && !nota){ toast(t('comentarioObrigatorio'),'info'); const c=$('#p-comentario'); if(c) c.focus(); return; }
   const pay={valor:v,tipo,data:$('#p-data').value||hoje(),nota};
   if(tipo==='Dinheiro'){
     const rb=$('#p-receb-wrap input[name="p-recebido"]:checked');
@@ -1019,21 +1265,21 @@ $('#p-fotoInput') && ($('#p-fotoInput').onchange=async(e)=>{
   if(!file || pi==null) return;
   const p=state.draftPays[pi]; if(!p) return;
   if(!Array.isArray(p.fotos)) p.fotos=[];
-  if(p.fotos.length>=3){ alert(t('maxFotos')); return; }
+  if(p.fotos.length>=3){ toast(t('maxFotos'),'info'); return; }
   try{ const anexo=await processAnexo(file); if(anexo){ p.fotos.push(anexo); renderPays(); } }
-  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+  catch(err){ toast(err && err.message ? err.message : 'Erro ao processar o anexo','err'); }
 });
 $('#save').onclick=async()=>{
   if(writeBlocked()) return;
   const nome=$('#f-nome').value.trim();
-  if(!nome){ alert(t('nomeObrig')); return; }
+  if(!nome){ toast(t('nomeObrig'),'info'); return; }
   const isento = !!($('#f-isento') && $('#f-isento').checked);
   // reforço defensivo: valor de pagamento digitado mas NÃO adicionado
   // (ignora o "restante" auto-preenchido — só avisa se o usuário digitou algo diferente)
   const pv=parseFloat(($('#p-valor').value||'').replace(',','.'));
   const restanteAtual=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   if(!isento && pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
-    if(confirm(t('pagamentoNaoAdicionado'))){ $('#addPay').click(); }
+    if(await confirmDialog(t('pagamentoNaoAddT'), t('pagamentoNaoAdicionado'), {perigo:false, okText:t('adicionarESalvar'), cancelText:t('salvarSemAdd')})){ $('#addPay').click(); }
   }
   // sobe comprovantes pendentes de CADA parcela (Cartão/Outros) antes de gravar; aborta se falhar
   if(!isento){
@@ -1046,7 +1292,7 @@ $('#save').onclick=async()=>{
         // normaliza para objetos, sobe pendentes
         p.fotos = p.fotos.map(normFoto);
         const up=await uploadPendentes(p.fotos);
-        if(!up.ok){ btn.disabled=false; btnLabel(btn, orig); alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+        if(!up.ok){ btn.disabled=false; btnLabel(btn, orig); toast(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+' ('+up.error+')'),'err'); return; }
       }
       btn.disabled=false; btnLabel(btn, orig);
     }
@@ -1067,20 +1313,21 @@ $('#save').onclick=async()=>{
   rec.aRevisar=$('#f-revisar').checked;
   rec.observacoes=$('#f-obs').value.trim();
   if(!('motivoRevisar' in rec)) rec.motivoRevisar='';
+  if(!rec.criadoEm) rec.criadoEm=new Date().toISOString();   // só na 1ª vez (criação)
   rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
   const newId=await put(rec);
   markPending(rec.id!=null?rec.id:newId);
   closeModal(); refresh();
   if(ONLINE_ENABLED) syncNow();
 };
-$('#del').onclick=async()=>{ if(!state.editing) return; if(!confirm(t('confirmDel'))) return; await del(state.editing); closeModal(); refresh(); };
+$('#del').onclick=async()=>{ if(!state.editing) return; if(!(await confirmDialog(t('excluirGideaoT'), t('confirmDel'), {perigo:true}))) return; const id=state.editing; await del(id); markPendingDel(id); closeModal(); refresh(); if(ONLINE_ENABLED) syncNow(); };
 $('#cancel').onclick=()=>tryCloseModal();
 $('#modalBack').onclick=()=>tryCloseModal();
 $('#modal').addEventListener('click',(e)=>{ if(e.target.id==='modal') tryCloseModal(); });  // clicar no fundo
 $('#camisaStatusLine').onclick=()=>{
   const pid=$('#camisaStatusLine').dataset.pid;
   closeModal();
-  state.confFilter='todos';
+  state.confFilters=CONF_ALL_STATES.slice();   // mostra tudo p/ garantir que o card destacado apareça
   state.confHighlight=pid?+pid:null;
   setView('confeccao');
 };
@@ -1099,7 +1346,7 @@ function tryCloseModal(){
 }
 $('#fcSave').onclick=async()=>{
   const nome=$('#f-nome').value.trim();
-  if(!nome){ alert(t('nomeObrig')); return; }
+  if(!nome){ toast(t('nomeObrig'),'info'); return; }
   $('#formConfirm').classList.add('hidden');
   $('#save').click();
 };
@@ -1183,7 +1430,7 @@ async function buildPrint(){
 $('#btnImprimir').onclick=async()=>{ await buildPrint(); window.print(); };
 $('#fileRestore').onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
-  if(!confirm(t('confirmRestore'))){ e.target.value=''; return; }
+  if(!(await confirmDialog(t('restaurarBackupT'), t('confirmRestore'), {perigo:true, okText:t('restaurar')}))){ e.target.value=''; return; }
   const txt=await f.text();
   // 1) valida o JSON ANTES de tocar em qualquer dado (se invalido, nada e apagado)
   let arr, despIn, movIn;
@@ -1193,7 +1440,7 @@ $('#fileRestore').onchange=async e=>{
     if(!Array.isArray(arr)) throw new Error('formato');
     despIn = Array.isArray(data.despesas)? data.despesas : [];
     movIn  = Array.isArray(data.movimentos)? data.movimentos : [];
-  }catch(err){ alert(t('jsonInvalido')); e.target.value=''; return; }
+  }catch(err){ toast(t('jsonInvalido'),'err'); e.target.value=''; return; }
   try{
     setSync('syncing');
     // 2) normaliza e repovoa a base LOCAL (o backup restaurado e a nova verdade)
@@ -1227,8 +1474,8 @@ $('#fileRestore').onchange=async e=>{
       for(const m of movIn){ markPendingKV('mov', m.id); }
       setSync('pend');
     }
-    refresh(); alert(t('okRestaurado', {n:base.length}));
-  }catch(err){ setSync('err'); alert(t('erroRestaurar')+': '+err.message); }
+    refresh(); toast(t('okRestaurado', {n:base.length}),'ok');
+  }catch(err){ setSync('err'); toast(t('erroRestaurar')+': '+err.message,'err'); }
   e.target.value='';
 };
 
@@ -1236,12 +1483,13 @@ $('#fileRestore').onchange=async e=>{
 /* ---------- CAIXA (financeiro, só admin) ---------- */
 const CATEGORIAS=['Camisas','Material','Outros'];
 const BOLSO_LABEL={dinheiro:'Dinheiro',banco:'Banco',outros:'Outros'};
-let caixaState={ despesas:[], movimentos:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], draftFotosMov:[], sortDesc:true };
+let caixaState={ despesas:[], movimentos:[], estoque:[], tab:'despesas', editDesp:null, editMov:null, draftFotos:[], draftFotosMov:[], sortDesc:true };
 function eur(n){ return (Math.round((+n||0)*100)/100).toLocaleString('pt-PT')+' €'; }
 
 async function loadCaixa(){
   caixaState.despesas = await sGetAll(STORE_DESP);
   caixaState.movimentos = await sGetAll(STORE_MOV);
+  caixaState.estoque = await sGetAll(STORE_EST);
 }
 async function renderCaixa(){
   await loadCaixa();
@@ -1276,9 +1524,9 @@ function renderCaixaList(){
   if(caixaState.tab==='despesas'){
     const arr=caixaState.despesas.slice().sort(cmpDate);
     if(!arr.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; return; }
-    el.innerHTML=arr.map(d=>`<div class="cx-item" data-id="${d.id}" data-k="desp:${d.id}">
-      <div><div class="desc">${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
-      <div class="amt out">−${eur(d.valor)}</div></div>`).join('');
+    el.innerHTML=arr.map(d=>{ const susp=(d.status==='suspenso'); return `<div class="cx-item${susp?' susp':''}" data-id="${d.id}" data-k="desp:${d.id}">
+      <div><div class="desc">${susp?`<span class="selo-susp">${t('suspensa')}</span>`:''}${esc(d.descricao||'—')}</div><div class="meta">${fmtShort(d.data)} · ${esc(BOLSO_LABEL[d.bolso]||d.bolso||'')}${d.categoria?' · '+esc(d.categoria):''}${d.obs?' · '+esc(d.obs):''}${(d.fotos&&d.fotos.length)?' · 📷'+d.fotos.length:''}</div></div>
+      <div class="amt out">−${eur(d.valor)}</div></div>`; }).join('');
     el.querySelectorAll('.cx-item').forEach(it=>it.onclick=()=>{ cxHighlight=it.dataset.k; extHighlight=null; openDesp(+it.dataset.id); });
   } else {
     const arr=caixaState.movimentos.slice().sort(cmpDate);
@@ -1319,7 +1567,13 @@ function openDesp(id){
   renderDraftFotos();
   // user pode criar/editar despesa (nao deletar). Managers (admin/tesoureiro) podem tudo.
   const despRO = !auth.podeAddDespesa;                       // read-only só se nem adicionar pode (viewer nunca chega aqui)
-  $('#despDel').classList.toggle('hidden', !d || !auth.podeCaixaMgr);   // Excluir só admin/tesoureiro
+  const suspensa = !!(d && d.status==='suspenso');
+  // Suspender: despesa existente ativa, quem pode editar despesa (pastora+mgr)
+  $('#despSuspend').classList.toggle('hidden', !(d && !suspensa && auth.podeAddDespesa));
+  // Reativar: despesa existente suspensa, quem pode editar
+  $('#despReactivate').classList.toggle('hidden', !(d && suspensa && auth.podeAddDespesa));
+  // Excluir (hard delete): só admin/tesoureiro
+  $('#despDel').classList.toggle('hidden', !d || !auth.podeCaixaMgr);
   $('#despModal').classList.remove('hidden');
   applyModalRO('#despModal', despRO, ['#despSave','#d-addFoto']);
 }
@@ -1408,18 +1662,18 @@ function openFoto(f){
 function thumbFromUrl(url){ if(!url) return ''; const m=url.match(/\/d\/([^/]+)\//); return m? ('https://drive.google.com/thumbnail?id='+m[1]) : url; }
 $('#fotoLightClose') && ($('#fotoLightClose').onclick=()=>$('#fotoLightbox').classList.add('hidden'));
 $('#fotoLightbox') && ($('#fotoLightbox').addEventListener('click',e=>{ if(e.target.id==='fotoLightbox') $('#fotoLightbox').classList.add('hidden'); }));
-$('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ alert(t('maxFotos')); return; } $('#d-fotoInput').click(); });
+$('#d-addFoto') && ($('#d-addFoto').onclick=()=>{ if((caixaState.draftFotos||[]).length>=3){ toast(t('maxFotos'),'info'); return; } $('#d-fotoInput').click(); });
 $('#d-fotoInput') && ($('#d-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; if(!file) return;
   try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotos.push(anexo); renderDraftFotos(); } }
-  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+  catch(err){ toast(err && err.message ? err.message : 'Erro ao processar o anexo','err'); }
   e.target.value='';
 });
-$('#m-addFoto') && ($('#m-addFoto').onclick=()=>{ if((caixaState.draftFotosMov||[]).length>=3){ alert(t('maxFotos')); return; } $('#m-fotoInput').click(); });
+$('#m-addFoto') && ($('#m-addFoto').onclick=()=>{ if((caixaState.draftFotosMov||[]).length>=3){ toast(t('maxFotos'),'info'); return; } $('#m-fotoInput').click(); });
 $('#m-fotoInput') && ($('#m-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; if(!file) return;
   try{ const anexo=await processAnexo(file); if(anexo){ caixaState.draftFotosMov.push(anexo); renderDraftFotosMov(); } }
-  catch(err){ alert(err && err.message ? err.message : 'Erro ao processar o anexo'); }
+  catch(err){ toast(err && err.message ? err.message : 'Erro ao processar o anexo','err'); }
   e.target.value='';
 });
 // processa um arquivo (imagem OU pdf) -> {dataUrl, kind:'img'|'pdf', filename}
@@ -1439,7 +1693,7 @@ async function processAnexo(file){
 $('#despSave') && ($('#despSave').onclick=async()=>{
   if(writeBlocked()) return;
   const desc=$('#d-desc').value.trim(); const v=parseFloat(($('#d-valor').value||'').replace(',','.'));
-  if(!desc||!v||v<=0){ alert(t('nomeObrig')); return; }
+  if(!desc||!v||v<=0){ toast(t('nomeObrig'),'info'); return; }
   // sobe fotos novas (dataUrl) para o Drive -> obtém URLs
   const btn=$('#despSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
   // valida upload das fotos ANTES de salvar; se alguma falhar, aborta e avisa (não finge que subiu)
@@ -1447,7 +1701,7 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
     btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
     const up=await uploadPendentes(caixaState.draftFotos);
     btn.disabled=false; btnLabel(btn, orig);
-    if(!up.ok){ alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+    if(!up.ok){ toast(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+' ('+up.error+')'),'err'); return; }
   }
   const all=caixaState.despesas; let rec=caixaState.editDesp? all.find(x=>x.id===caixaState.editDesp):{};
   rec.descricao=desc; rec.valor=v; rec.data=$('#d-data').value||hoje(); rec.categoria=$('#d-categoria').value;
@@ -1460,7 +1714,28 @@ $('#despSave') && ($('#despSave').onclick=async()=>{
   const newId=await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id!=null?rec.id:newId);
   $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
-$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!confirm(t('confirmDelDesp'))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
+$('#despDel') && ($('#despDel').onclick=async()=>{ if(!caixaState.editDesp) return; if(!(await confirmDialog(t('excluirDespT'), t('confirmDelDesp'), {perigo:true}))) return; await sDel(STORE_DESP, caixaState.editDesp); markPendingKV('desp_del', caixaState.editDesp); $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
+// Suspender (soft delete): marca status='suspenso' — fica no histórico, sai do saldo
+$('#despSuspend') && ($('#despSuspend').onclick=async()=>{
+  if(writeBlocked() || !caixaState.editDesp) return;
+  if(!(await confirmDialog(t('suspenderDespT'), t('confirmSuspenderDesp'), {perigo:false, okText:t('suspender')}))) return;
+  const rec=caixaState.despesas.find(x=>x.id===caixaState.editDesp); if(!rec) return;
+  rec.status='suspenso'; rec.suspensoPor=auth.email||''; rec.suspensoEm=new Date().toISOString();
+  rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
+  await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id);
+  $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
+  toast(t('despSuspensa'),'info');
+});
+// Reativar: volta status para ativo
+$('#despReactivate') && ($('#despReactivate').onclick=async()=>{
+  if(writeBlocked() || !caixaState.editDesp) return;
+  const rec=caixaState.despesas.find(x=>x.id===caixaState.editDesp); if(!rec) return;
+  rec.status='ativo'; rec.suspensoPor=''; rec.suspensoEm='';
+  rec.atualizadoEm=new Date().toISOString(); if(auth.email) rec.atualizadoPor=auth.email;
+  await sPut(STORE_DESP, rec); markPendingKV('desp', rec.id);
+  $('#despModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
+  toast(t('despReativada'),'ok');
+});
 $('#despCancel') && ($('#despCancel').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despBack') && ($('#despBack').onclick=()=>{ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#despModal') && $('#despModal').addEventListener('click',e=>{ if(e.target.id==='despModal'){ $('#despModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
@@ -1494,15 +1769,15 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   if(writeBlocked()) return;
   const de=bolsoFromLabel($('#m-de').value), para=bolsoFromLabel($('#m-para').value);
   const v=parseFloat(($('#m-valor').value||'').replace(',','.'));
-  if(de===para){ alert('Origem e destino devem ser diferentes.'); return; }
-  if(!v||v<=0){ alert(t('nomeObrig')); return; }
+  if(de===para){ toast(t('origemDestinoIguais'),'info'); return; }
+  if(!v||v<=0){ toast(t('nomeObrig'),'info'); return; }
   // sobe anexos novos (dataUrl) para o Drive antes de gravar; aborta se falhar
   const btn=$('#movSave'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
   if((caixaState.draftFotosMov||[]).some(f=>!f.url && f.dataUrl)){
     btn.disabled=true; btnLabel(btn, t('enviandoFoto'));
     const up=await uploadPendentes(caixaState.draftFotosMov);
     btn.disabled=false; btnLabel(btn, orig);
-    if(!up.ok){ alert(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+'\n('+up.error+')')); return; }
+    if(!up.ok){ toast(up.error==='offline'? t('fotoSemConexao') : (t('fotoFalhou')+' ('+up.error+')'),'err'); return; }
   }
   const all=caixaState.movimentos; let rec=caixaState.editMov? all.find(x=>x.id===caixaState.editMov):{};
   rec.de=de; rec.para=para; rec.valor=v; rec.data=$('#m-data').value||hoje(); rec.comentario=$('#m-comentario').value.trim();
@@ -1514,7 +1789,7 @@ $('#movSave') && ($('#movSave').onclick=async()=>{
   const newId=await sPut(STORE_MOV, rec); markPendingKV('mov', rec.id!=null?rec.id:newId);
   $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow();
 });
-$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!confirm(t('confirmDelMov'))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
+$('#movDel') && ($('#movDel').onclick=async()=>{ if(!caixaState.editMov) return; if(!(await confirmDialog(t('excluirMovT'), t('confirmDelMov'), {perigo:true}))) return; await sDel(STORE_MOV, caixaState.editMov); markPendingKV('mov_del', caixaState.editMov); $('#movModal').classList.add('hidden'); await renderCaixa(); backToExtratoIfNeeded(); if(ONLINE_ENABLED) syncNow(); });
 $('#movCancel') && ($('#movCancel').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movBack') && ($('#movBack').onclick=()=>{ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); });
 $('#movModal') && $('#movModal').addEventListener('click',e=>{ if(e.target.id==='movModal'){ $('#movModal').classList.add('hidden'); backToExtratoIfNeeded(); renderCaixa(); } });
@@ -1563,7 +1838,7 @@ async function openExtrato(bolso){
       cust: isCash? payCustody(p) : null });
   }));
   // despesas pagas deste bolso
-  caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor:-(+d.valor||0), kind:'desp', refId:d.id, cust: isCash? (d.origemCusto==='pastor'?'pastor':'teso') : null }); });
+  caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; const susp=(d.status==='suspenso'); lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor: susp?0:-(+d.valor||0), valorReal:-(+d.valor||0), susp:susp, kind:'desp', refId:d.id, cust: isCash? (d.origemCusto==='pastor'?'pastor':'teso') : null }); });
   // movimentações que afetam este bolso
   caixaState.movimentos.forEach(m=>{
     if(m.para===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:(+m.valor||0), kind:'mov', refId:m.id });
@@ -1589,6 +1864,12 @@ async function openExtrato(bolso){
   const lkey=(l)=> l.kind==='pag' ? ('pag:'+l.gid+':'+l.pidx) : (l.kind+':'+l.refId);
   if(!shown.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
   else el.innerHTML=shown.map((l)=>{
+    if(l.susp){
+      return `<div class="ext-item clickable susp" data-idx="${lanc.indexOf(l)}" data-key="${lkey(l)}">
+        <div><div class="e-d"><span class="selo-susp">${t('suspensa')}</span>${esc(l.desc)}</div><div class="e-m">${fmtShort(l.data)}</div></div>
+        <div class="e-right"><div class="e-v neg susp-val">−${eur(Math.abs(l.valorReal||0))}</div></div>
+      </div>`;
+    }
     const pos=l.valor>=0;
     const tag = l.cust ? custodyPill(l.cust) : '';
     const balHtml = custActive ? '' : `<div class="e-bal">${eur(l.bal)}</div>`;  // saldo corrente só sem filtro
@@ -1677,6 +1958,8 @@ $('#btnSaveConf').onclick=saveConf;
 $$('nav button').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 $('#fab').onclick=()=>openModal(null);
 $('#q').oninput=e=>{ state.q=e.target.value; $('#qClear').classList.toggle('hidden', !e.target.value); renderList(); };
+function updateBuscaPlaceholder(){ const el=$('#q'); if(el) el.placeholder = state.qAdv ? t('buscarAvancado') : t('buscar'); }
+$('#qAdv') && (()=>{ $('#qAdv').checked=state.qAdv; updateBuscaPlaceholder(); $('#qAdv').onchange=e=>{ state.qAdv=e.target.checked; try{ localStorage.setItem('qAdv', state.qAdv?'1':'0'); }catch(_){ } updateBuscaPlaceholder(); renderList(); }; })();
 $('#confQ') && ($('#confQ').oninput=e=>{ state.confQ=e.target.value; $('#confQClear').classList.toggle('hidden', !e.target.value); renderConfList(); });
 $('#confQClear') && ($('#confQClear').onclick=()=>{ const q=$('#confQ'); q.value=''; state.confQ=''; $('#confQClear').classList.add('hidden'); renderConfList(); q.focus(); });
 $('#qClear') && ($('#qClear').onclick=()=>{ const q=$('#q'); q.value=''; state.q=''; $('#qClear').classList.add('hidden'); renderList(); q.focus(); });
@@ -1694,7 +1977,7 @@ function applyLang(){
   document.documentElement.lang=lang;
   $$('[data-i]').forEach(el=>el.textContent=t(el.dataset.i));
   $$('[data-i-ph]').forEach(el=>el.placeholder=t(el.dataset.iPh));
-  $('#q').placeholder=t('buscar');
+  updateBuscaPlaceholder();
   $$('.lang button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
   renderFilters();
   if(typeof refreshUpdateRow==='function') refreshUpdateRow();
@@ -1970,8 +2253,8 @@ function renderImpersonateUI(){
 }
 // bloqueia escrita enquanto "vendo como" (evita gravar como admin achando que é o papel simulado)
 function writeBlocked(){
-  if(effectiveRole()==='viewer'){ alert(t('viewerBloqueio')); return true; }   // Visualizador: read-only
-  if(isImpersonating()){ alert(t('verComoBloqueio')); return true; }
+  if(effectiveRole()==='viewer'){ toast(t('viewerBloqueio'),'info'); return true; }   // Visualizador: read-only
+  if(isImpersonating()){ toast(t('verComoBloqueio'),'info'); return true; }
   return false;
 }
 
@@ -2123,12 +2406,27 @@ $('#brandLogoLink') && ($('#brandLogoLink').onclick=async()=>{
   try{ await checkVersion(); }catch(_){}
   applyUpdate(null);   // limpa cache + SW.update + reload
 });
+// logo Casa Fuerte na TELA DE LOGIN = refresh forçado + verificar nova versão (igual ao do header)
+$('#loginLogoLink') && ($('#loginLogoLink').onclick=async()=>{
+  try{ await checkVersion(); }catch(_){}
+  applyUpdate(null);
+});
 function markPending(id){
   const p=JSON.parse(localStorage.getItem('gd_pending')||'{}'); p[id]=1;
   localStorage.setItem('gd_pending', JSON.stringify(p));
 }
 function pendingIds(){ return Object.keys(JSON.parse(localStorage.getItem('gd_pending')||'{}')); }
 function clearPending(){ localStorage.removeItem('gd_pending'); }
+// tombstones de inscritos apagados (para propagar a deleção ao servidor no próximo push)
+function markPendingDel(id){
+  const p=JSON.parse(localStorage.getItem('gd_pending_del')||'{}'); p[String(id)]=1;
+  localStorage.setItem('gd_pending_del', JSON.stringify(p));
+  // se estava pendente de upsert, remove (não faz sentido enviar edição de algo apagado)
+  const up=JSON.parse(localStorage.getItem('gd_pending')||'{}'); delete up[String(id)];
+  localStorage.setItem('gd_pending', JSON.stringify(up));
+}
+function pendingDelIds(){ return Object.keys(JSON.parse(localStorage.getItem('gd_pending_del')||'{}')); }
+function clearPendingDel(){ localStorage.removeItem('gd_pending_del'); }
 
 // fetch com timeout — evita ficar preso em "Sincronizando" se a rede/Apps Script travar
 async function fetchTimeout(url, opts, ms){
@@ -2151,23 +2449,27 @@ async function pull(){
   if(data.role){ auth.role=data.role; applyAdminUI(); }
   // reconcilia: servidor como verdade (só a pastora escreve); preserva pendentes locais não enviados
   const pend = pendingIds();
+  const delPend = pendingDelIds();   // apagados localmente ainda não confirmados no servidor
   const localAll = await getAll();
   const localById = {}; localAll.forEach(i=>localById[i.id]=i);
   await clearAll();
   let maxId=0;
   for(const s of data.inscritos){
+    if(delPend.indexOf(String(s.id))>=0) { if(s.id>maxId) maxId=s.id; continue; }  // apagado local pendente -> não regrava
     // se há alteração local pendente para esse id, mantém a local (será enviada no push)
     if(pend.indexOf(String(s.id))>=0 && localById[s.id]){ await put(localById[s.id]); }
     else { await put(s); }
     if(s.id>maxId) maxId=s.id;
   }
-  // registros locais novos (criados offline) que ainda não estão no servidor
-  for(const i of localAll){ if(!data.inscritos.find(s=>s.id===i.id)){ await put(i); } }
+  // registros locais criados offline (PENDENTES) que ainda não estão no servidor — só esses são preservados.
+  // (um registro local ausente do servidor E sem pendência = fantasma: foi apagado no servidor/planilha → NÃO reinjetar)
+  for(const i of localAll){ if(pend.indexOf(String(i.id))>=0 && !data.inscritos.find(s=>s.id===i.id)){ await put(i); } }
   // ---- coleções financeiras (despesas/movimentos) ----
   const pcx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
   const pendKeys=Object.keys(pcx);
   await reconcileColl(STORE_DESP, data.despesas||[], 'desp', pendKeys);
   await reconcileColl(STORE_MOV, data.movimentos||[], 'mov', pendKeys);
+  await reconcileColl(STORE_EST, data.estoque||[], 'est', pendKeys);
   return data;
 }
 async function reconcileColl(store, serverArr, kind, pendKeys){
@@ -2181,33 +2483,41 @@ async function reconcileColl(store, serverArr, kind, pendKeys){
     if(pendIds.indexOf(s.id)>=0 && localById[s.id]) await sPut(store, localById[s.id]); // edição local pendente
     else await sPut(store, s);
   }
-  // itens locais criados offline ainda não no servidor
-  for(const l of local){ if(!serverArr.find(s=>s.id===l.id) && delIds.indexOf(l.id)<0) await sPut(store, l); }
+  // itens locais criados offline (PENDENTES) ainda não no servidor — só esses; o resto ausente = fantasma (apagado no servidor)
+  for(const l of local){ if(pendIds.indexOf(l.id)>=0 && !serverArr.find(s=>s.id===l.id) && delIds.indexOf(l.id)<0) await sPut(store, l); }
 }
 async function pushPending(){
   if(!ONLINE_ENABLED || !auth.idToken) return;
   const ids=pendingIds();
+  const delIds=pendingDelIds();
   const pcx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
   const cxKeys=Object.keys(pcx);
-  if(!ids.length && !cxKeys.length) return;
+  if(!ids.length && !delIds.length && !cxKeys.length) return;
   const payload={token:CFG.SYNC_TOKEN, idToken:auth.idToken};
   // inscritos pendentes
   if(ids.length){ const all=await getAll(); payload.inscritos=all.filter(i=>ids.indexOf(String(i.id))>=0); }
+  // inscritos apagados (tombstones)
+  if(delIds.length){ payload.inscritosDel=delIds.map(x=>+x); }
   // despesas/movimentos pendentes + deleções
-  const despAll=await sGetAll(STORE_DESP), movAll=await sGetAll(STORE_MOV);
+  const despAll=await sGetAll(STORE_DESP), movAll=await sGetAll(STORE_MOV), estAll=await sGetAll(STORE_EST);
   const despIds=cxKeys.filter(k=>k.indexOf('desp:')===0).map(k=>+k.split(':')[1]);
   const despDel=cxKeys.filter(k=>k.indexOf('desp_del:')===0).map(k=>+k.split(':')[1]);
   const movIds=cxKeys.filter(k=>k.indexOf('mov:')===0).map(k=>+k.split(':')[1]);
   const movDel=cxKeys.filter(k=>k.indexOf('mov_del:')===0).map(k=>+k.split(':')[1]);
+  const estIds=cxKeys.filter(k=>k.indexOf('est:')===0).map(k=>+k.split(':')[1]);
+  const estDel=cxKeys.filter(k=>k.indexOf('est_del:')===0).map(k=>+k.split(':')[1]);
   if(despIds.length) payload.despesas=despAll.filter(d=>despIds.indexOf(d.id)>=0);
   if(despDel.length) payload.despesasDel=despDel;
   if(movIds.length) payload.movimentos=movAll.filter(m=>movIds.indexOf(m.id)>=0);
   if(movDel.length) payload.movimentosDel=movDel;
+  if(estIds.length) payload.estoque=estAll.filter(x=>estIds.indexOf(x.id)>=0);
+  if(estDel.length) payload.estoqueDel=estDel;
   const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(payload)});
   const data=await r.json();
   if(!data.ok) throw new Error(data.error||'push_failed');
   clearPending();
+  clearPendingDel();
   localStorage.removeItem('gd_pending_cx');
   return data;
 }
@@ -2326,11 +2636,11 @@ $('#btnLogout') && ($('#btnLogout').onclick=logout);
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
 $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }
-  try{ setSync('syncing'); const all=await getAll(); await pushAll(all); clearPending(); await pull(); setSync('ok'); refresh(); alert('OK'); }
-  catch(e){ setSync('err'); alert('Erro: '+e.message); }
+  try{ setSync('syncing'); const all=await getAll(); await pushAll(all); clearPending(); await pull(); setSync('ok'); refresh(); toast(t('okGenerico'),'ok'); }
+  catch(e){ setSync('err'); toast(t('erroGenerico')+': '+e.message,'err'); }
 });
 $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
-  if(!confirm(t('confirmRecarregar'))) return;
+  if(!(await confirmDialog(t('recarregarBaseT'), t('confirmRecarregar'), {perigo:true}))) return;
   try{
     setSync('syncing');
     // 1) carrega os 70 originais do seed.json
@@ -2348,8 +2658,8 @@ $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
       if(rest.length) await pushAll(rest);
       await pull();
     }
-    setSync('ok'); refresh(); alert('OK — base recarregada ('+base.length+')');
-  }catch(e){ setSync('err'); alert('Erro: '+e.message); }
+    setSync('ok'); refresh(); toast(t('okRecarregada', {n:base.length}),'ok');
+  }catch(e){ setSync('err'); toast(t('erroGenerico')+': '+e.message,'err'); }
 });
 // ---- backup/restore de USUARIOS (acessos) — exclusivo admin ----
 $('#btnBackupUsers') && ($('#btnBackupUsers').onclick=async()=>{
@@ -2362,31 +2672,31 @@ $('#btnBackupUsers') && ($('#btnBackupUsers').onclick=async()=>{
       JSON.stringify({projeto:'Projeto Gideão 300', tipo:'acessos', exportadoEm:new Date().toISOString(), usuarios:users}, null, 2),
       'application/json');
     setSync('ok');
-  }catch(e){ setSync('err'); alert(t('erroRestaurar')+': '+e.message); }
+  }catch(e){ setSync('err'); toast(t('erroRestaurar')+': '+e.message,'err'); }
 });
 $('#fileRestoreUsers') && ($('#fileRestoreUsers').onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
   if(effectiveRole()!=='admin' && !auth.realAdmin){ e.target.value=''; return; }
-  if(!confirm(t('confirmRestoreUsers'))){ e.target.value=''; return; }
+  if(!(await confirmDialog(t('restaurarUsersT'), t('confirmRestoreUsers'), {perigo:true, okText:t('restaurar')}))){ e.target.value=''; return; }
   const txt=await f.text();
   let users;
   try{
     const data=JSON.parse(txt);
     users=data.usuarios||data.users||data;
     if(!Array.isArray(users)) throw new Error('formato');
-  }catch(err){ alert(t('jsonInvalido')); e.target.value=''; return; }
+  }catch(err){ toast(t('jsonInvalido'),'err'); e.target.value=''; return; }
   try{
     setSync('syncing');
     const d=await usersApi('replaceUsers',{users:users});
     accessUsers=d.users||users; renderAccess();
     setSync('ok');
-    alert(t('okRestaurado', {n:(d.users||users).length}));
+    toast(t('okRestaurado', {n:(d.users||users).length}),'ok');
   }catch(err){
     setSync('err');
     const msg = err.message==='must_have_admin' ? t('erroPrecisaAdmin')
               : err.message==='no_valid_users' ? t('erroSemUsuarios')
               : t('erroRestaurar')+': '+err.message;
-    alert(msg);
+    toast(msg,'err');
   }
   e.target.value='';
 });

@@ -164,6 +164,46 @@
   .q-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;padding:6px;display:flex;align-items:center;color:var(--muted);cursor:pointer}
   .q-clear svg{width:18px;height:18px;fill:currentColor}
   .q-clear:hover{color:var(--accent)}
+  /* toggle switch de busca avançada (à direita da barra) */
+  .adv-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;flex:none;user-select:none}
+  .adv-toggle input{position:absolute;opacity:0;width:0;height:0}
+  .adv-toggle .adv-sw{position:relative;width:38px;height:22px;border-radius:22px;background:var(--line);transition:background .18s;flex:none}
+  .adv-toggle .adv-sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .18s}
+  .adv-toggle input:checked + .adv-sw{background:var(--accent)}
+  .adv-toggle input:checked + .adv-sw::after{transform:translateX(16px)}
+  /* Estoque de camisas */
+  .est-jump{flex:none;display:inline-flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:6px 9px;font-size:10px;font-weight:600;cursor:pointer}
+  .est-jump svg{width:20px;height:20px;fill:currentColor}
+  .est-h{font-family:var(--serif);font-size:19px;margin:0 0 10px}
+  .est-reco{border-radius:10px;padding:10px 13px;font-size:13px;margin-bottom:9px;display:flex;gap:9px;align-items:flex-start}
+  .est-reco svg{width:19px;height:19px;flex:none;margin-top:1px}
+  .est-reco.urg{background:var(--soft-red);border:1px solid #e6b3ad;color:#7a2820} .est-reco.urg svg{fill:var(--red)}
+  .est-reco.prev{background:var(--soft-amber);border:1px solid #e6cf97;color:#7a5c14} .est-reco.prev svg{fill:var(--amber)}
+  .est-reco.ok{background:var(--soft-green);border:1px solid #bcd8c4;color:#2f6043} .est-reco.ok svg{fill:var(--green)}
+  .est-table .est-tam{font-weight:700}
+  .est-cell{display:inline-flex;align-items:center;gap:7px;justify-content:center}
+  .est-adj{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+  .est-adj svg{width:14px;height:14px;fill:currentColor}
+  .est-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;white-space:nowrap}
+  .est-pill.ok{background:var(--soft-green);color:var(--green)}
+  .est-pill.comprar{background:var(--soft-amber);color:#8a6a20}
+  .est-pill.falta{background:var(--soft-red);color:var(--red)}
+  .est-leg{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.5}
+  /* modal de ajuste */
+  .est-modal{max-width:340px;text-align:center}
+  .est-modal h2{font-size:20px;margin-bottom:4px}
+  .est-cur{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .est-cur b{color:var(--ink);font-size:20px;font-family:var(--serif)}
+  .est-stepper{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0 12px}
+  .est-stepper button{width:46px;height:46px;border-radius:12px;border:0;font-size:26px;font-weight:700;cursor:pointer}
+  .est-stepper .est-minus{background:var(--soft-red);color:var(--red)} .est-stepper .est-plus{background:var(--soft-green);color:var(--green)}
+  .est-qty{width:70px;text-align:center;font-size:22px;font-family:var(--serif);font-weight:700;border:1px solid var(--line);border-radius:10px;padding:6px}
+  .est-motivo{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font-family:var(--sans);font-size:14px}
+  .est-hist{margin-top:14px;border-top:1px solid var(--line);padding-top:9px;text-align:left}
+  .est-hist .eh-t{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+  .est-hist .eh-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px solid #f0ede7}
+  .est-hist .eh-d{color:var(--muted)}
+  .est-hist .eh-pos{color:var(--green);font-weight:700} .est-hist .eh-neg{color:var(--red);font-weight:700}
   .viewtoggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
   .viewtoggle button{border:0;background:none;padding:10px 11px;color:var(--muted);display:flex;align-items:center}
   .viewtoggle button.active{background:var(--primary);color:#fff}
@@ -180,7 +220,25 @@
   .cb-red{background:var(--soft-red);color:var(--red)}
 
   /* list (cards) */
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;box-shadow:0 2px 8px rgba(20,20,20,.04);transition:box-shadow .15s}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;box-shadow:0 2px 8px rgba(20,20,20,.04);transition:box-shadow .15s;position:relative}
+  .modal-ts{font-size:11px;color:var(--muted);text-align:center;margin:-4px 0 8px;font-variant-numeric:tabular-nums}
+  /* seções colapsáveis da Confecção (accordion) */
+  .conf-quick{display:flex;justify-content:flex-end;margin-bottom:10px}
+  .conf-sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(20,20,20,.04)}
+  .conf-sec-head{width:100%;display:flex;align-items:center;gap:10px;padding:13px 14px;background:none;border:0;cursor:pointer;font-family:var(--sans);text-align:left}
+  .conf-sec-head .csh-ico{width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+  .conf-sec-head .csh-ico svg{width:16px;height:16px;fill:currentColor}
+  .conf-sec-head .csh-title{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink)}
+  .conf-sec-head .csh-sum{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .conf-sec-head .caret{color:var(--muted);font-size:13px;transition:transform .22s;flex:none;margin-left:8px}
+  .conf-sec.open .conf-sec-head .caret{transform:rotate(180deg)}
+  .conf-sec-body{max-height:0;overflow:hidden;transition:max-height .28s ease;padding:0 14px}
+  .conf-sec.open .conf-sec-body{max-height:20000px;padding:0 14px 14px}
+  /* badge de resumo no cabeçalho (ex.: estoque faltando) */
+  .csh-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+  .csh-badge.falta{background:var(--soft-red);color:var(--red)}
+  .csh-badge.comprar{background:var(--soft-amber);color:#8a6a20}
+  .csh-badge.ok{background:var(--soft-green);color:var(--green)}
   .card:active{box-shadow:0 2px 14px rgba(192,138,45,.18)}
   .card .num{min-width:34px;height:34px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:14px}
   .card .info{flex:1;min-width:0}
@@ -232,6 +290,9 @@
 
   /* modal / sheet */
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:flex-end}
+  .overlay.overlay-center{align-items:center;justify-content:center;padding:16px}
+  #appConfirm{z-index:150}   /* confirmação sempre acima de qualquer modal de edição (overlays usam z-index:100) */
+  .overlay.overlay-center .confirm-sheet{margin:0}
   .sheet{background:#fff;width:100%;max-height:92vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:16px;max-width:720px;margin:0 auto}
   .sheet h2{font-size:22px}
   .sheet-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
@@ -267,6 +328,10 @@
   .action-bar .act svg{width:22px;height:22px;fill:currentColor}
   .action-bar .act.save{background:var(--accent);border-color:var(--accent);color:#fff}
   .action-bar .act.del{color:var(--red)}
+  .action-bar .act.del.confirm{background:var(--red);border-color:var(--red);color:#fff;font-weight:800;box-shadow:0 0 0 3px rgba(178,59,59,.25)}
+  .action-bar .act.suspend{color:var(--amber)}
+  .action-bar .act.suspend.confirm{background:var(--amber);border-color:var(--amber);color:#fff;font-weight:800;box-shadow:0 0 0 3px var(--accent-soft)}
+  .action-bar .act.reactivate{color:var(--green)}
   .action-bar .act.cancel{color:var(--muted)}
   .action-bar .act.hidden{display:none}
   .toggle{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--soft-grey);border-radius:10px;margin-top:8px}
@@ -369,6 +434,13 @@
   .ext-item .e-bal{font-size:11px;color:var(--muted);margin-top:2px}
   .ext-item.clickable{cursor:pointer}
   .ext-tag{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-weight:600;margin-right:6px}
+  .ext-item.susp{opacity:.75;background:var(--soft-grey)}
+  .cx-item.susp{opacity:.75;background:var(--soft-grey)} .cx-item.susp .desc{text-decoration:line-through}
+  .ext-item.susp .e-d{text-decoration:line-through}
+  /* o selo "Suspensa" NÃO deve ser riscado — só o texto da despesa */
+  .cx-item.susp .desc .selo-susp, .ext-item.susp .e-d .selo-susp{text-decoration:none;display:inline-block}
+  .ext-item.susp .susp-val{text-decoration:line-through;color:var(--muted)}
+  .selo-susp{font-size:10px;padding:1px 7px;border-radius:8px;background:#e6e3dd;color:#6f6a63;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-right:6px}
   .fotos-grid{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
   .foto-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#f2f0ea}
   .foto-thumb img{width:100%;height:100%;object-fit:cover}
@@ -478,6 +550,17 @@
   .confirm-sheet{max-width:380px;border-radius:16px;margin:0 16px;text-align:center;padding:24px 20px 20px}
   .confirm-icon{width:64px;height:64px;border-radius:50%;background:var(--soft-amber);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
   .confirm-icon svg{width:34px;height:34px;fill:var(--accent)}
+  /* variantes do modal genérico #appConfirm */
+  #acIconWrap.danger{background:var(--soft-red)} #acIconWrap.danger svg{fill:var(--red)}
+  #acIconWrap.warn{background:var(--soft-amber)} #acIconWrap.warn svg{fill:var(--accent)}
+  #appConfirm .btn#acOk.danger{background:var(--red);color:#fff}
+  #appConfirm .btn#acOk.primary{background:var(--accent);color:#fff}
+  /* toast de feedback */
+  #toastWrap{position:fixed;left:0;right:0;bottom:86px;z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 16px}
+  #toastWrap .toast{display:inline-flex;align-items:center;gap:10px;background:#232019;color:#fff;padding:12px 16px;border-radius:12px;font-size:.9rem;box-shadow:0 6px 20px rgba(0,0,0,.3);max-width:360px;opacity:0;transform:translateY(10px);transition:opacity .22s,transform .22s}
+  #toastWrap .toast.show{opacity:1;transform:translateY(0)}
+  #toastWrap .toast .ti{width:20px;height:20px;flex:0 0 auto}
+  #toastWrap .toast.ok .ti{fill:#7fd8a0} #toastWrap .toast.err .ti{fill:#ff9a8f} #toastWrap .toast.info .ti{fill:#e9c877}
   .confirm-sheet h2{font-size:22px;margin-bottom:8px}
   .confirm-msg{color:var(--muted);font-size:14.5px;line-height:1.5;margin:0 0 8px}
   /* progress card money */
@@ -496,7 +579,7 @@
 </div>
 <div id="loginGate">
   <div class="login-topbar">
-    <img src="logo-cf-light.png" alt="Casa Fuerte Church" class="login-church">
+    <img src="logo-cf-light.png" alt="Casa Fuerte Church" class="login-church" id="loginLogoLink" title="Atualizar / verificar nova versão" style="cursor:pointer">
   </div>
   <div class="login-hero">
     <div class="login-emblem-wrap">
@@ -539,6 +622,9 @@
           <svg viewBox="0 0 24 24"><path d="M12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5z"/></svg>
         </button>
       </div>
+      <label class="adv-toggle" title="Busca avançada (observação, notas e tamanho)">
+        <input type="checkbox" id="qAdv"><span class="adv-sw"></span>
+      </label>
       <div class="viewtoggle" id="viewtoggle">
         <button data-mode="cards" class="active" title="Cards">
           <svg viewBox="0 0 24 24"><path d="M4 5h16v4H4zm0 6h16v4H4zm0 6h16v2H4z"/></svg>
@@ -562,18 +648,50 @@
 
   <!-- CONFECCAO -->
   <section id="view-confeccao" class="hidden">
-    <div class="search">
-      <div class="search-wrap">
-        <input id="confQ" type="text" data-i-ph="buscar" placeholder="Buscar por nome...">
-        <button id="confQClear" class="q-clear hidden" aria-label="Limpar busca">
-          <svg viewBox="0 0 24 24"><path d="M12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5z"/></svg>
-        </button>
+    <div class="conf-sec" id="secLista">
+      <button class="conf-sec-head" type="button" aria-expanded="false">
+        <span class="csh-ico"><svg viewBox="0 0 24 24"><path d="M4 5h16v3H4zm0 5h16v3H4zm0 5h10v3H4z"/></svg></span>
+        <span class="csh-title" data-i="secLista">Lista da confecção</span>
+        <span class="csh-sum" id="sumLista"></span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="conf-sec-body">
+        <div class="search">
+          <div class="search-wrap">
+            <input id="confQ" type="text" data-i-ph="buscar" placeholder="Buscar por nome...">
+            <button id="confQClear" class="q-clear hidden" aria-label="Limpar busca">
+              <svg viewBox="0 0 24 24"><path d="M12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="filters" id="confFilters"></div>
+        <div id="confList"></div>
       </div>
     </div>
-    <div class="filters" id="confFilters"></div>
-    <div id="confList"></div>
-    <h3 style="margin-top:16px" data-i="porTamanhoConf">Resumo por tamanho</h3>
-    <div id="confSize"></div>
+
+    <div class="conf-sec" id="secResumo">
+      <button class="conf-sec-head" type="button" aria-expanded="false">
+        <span class="csh-ico"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zm0 7h6v-5H4zm8 0h6V11h-6zm0-16v5h6V4z"/></svg></span>
+        <span class="csh-title" data-i="porTamanhoConf">Resumo por tamanho</span>
+        <span class="csh-sum" id="sumResumo"></span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="conf-sec-body">
+        <div id="confSize"></div>
+      </div>
+    </div>
+
+    <div class="conf-sec" id="secEstoque">
+      <button class="conf-sec-head" type="button" aria-expanded="false">
+        <span class="csh-ico"><svg viewBox="0 0 24 24"><path d="M16 2l4 3-2 3-2-1v15H8V7L6 8 4 5l4-3 2 2h4z"/></svg></span>
+        <span class="csh-title" data-i="estoqueLabel">Estoque</span>
+        <span class="csh-sum" id="sumEstoque"></span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="conf-sec-body">
+        <div id="estoque"></div>
+      </div>
+    </div>
   </section>
 
   <!-- CAIXA (admin/tesoureiro editam; user = somente leitura) -->
@@ -788,6 +906,7 @@
     </div>
 
     <div class="modal-divider"></div>
+    <div class="modal-ts hidden" id="modalTs"></div>
     <div class="action-bar">
       <button class="act save" id="save" type="button">
         <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>
@@ -833,6 +952,23 @@
   </div>
 </div>
 
+<!-- MODAL GENÉRICO: confirmação (destrutivo/aviso) — usado por confirmDialog() -->
+<div class="overlay overlay-center hidden" id="appConfirm">
+  <div class="sheet confirm-sheet">
+    <div class="confirm-icon" id="acIconWrap">
+      <svg id="acIconDanger" class="hidden" viewBox="0 0 24 24"><path d="M6 7h12v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7zm3 2v9h2V9H9zm4 0v9h2V9h-2zM9 4V3a1 1 0 011-1h4a1 1 0 011 1v1h4v2H5V4h4z"/></svg>
+      <svg id="acIconWarn" class="hidden" viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2zm0 5 7.5 13h-15L12 7zm-1 4v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg>
+    </div>
+    <h2 id="acTitle"></h2>
+    <p class="confirm-msg" id="acMsg"></p>
+    <button class="btn" id="acOk"></button>
+    <button class="btn ghost" id="acCancel"></button>
+  </div>
+</div>
+
+<!-- TOAST de feedback (some sozinho) -->
+<div id="toastWrap" aria-live="polite"></div>
+
 <!-- MODAL: nova/editar despesa -->
 <div class="overlay hidden" id="despModal">
   <div class="sheet">
@@ -866,6 +1002,14 @@
       <button class="act save" id="despSave" type="button">
         <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>
         <span data-i="salvar">Salvar</span>
+      </button>
+      <button class="act suspend hidden" id="despSuspend" type="button">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 016.32 12.9L7.1 5.68A7.96 7.96 0 0112 4zM5.68 7.1L16.9 18.32A8 8 0 015.68 7.1z"/></svg>
+        <span data-i="suspender">Suspender</span>
+      </button>
+      <button class="act reactivate hidden" id="despReactivate" type="button">
+        <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 11-6 6H4a8 8 0 108-8z"/></svg>
+        <span data-i="reativar">Reativar</span>
       </button>
       <button class="act del hidden" id="despDel" type="button">
         <svg viewBox="0 0 24 24"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
@@ -981,6 +1125,24 @@
       </div>
     </div>
     <div id="extList"></div>
+  </div>
+</div>
+
+<!-- MODAL: ajuste de estoque (por tamanho) -->
+<div class="overlay overlay-center hidden" id="estoqueModal">
+  <div class="sheet confirm-sheet est-modal">
+    <h2 id="estModalTitle">Ajustar estoque</h2>
+    <div class="est-cur" id="estModalCur"></div>
+    <div class="est-stepper">
+      <button type="button" class="est-minus" id="estMinus">−</button>
+      <input class="est-qty" id="estQty" type="text" inputmode="numeric" value="+1">
+      <button type="button" class="est-plus" id="estPlus">+</button>
+    </div>
+    <label data-i="estMotivo" style="display:block;font-size:12px;color:var(--muted);text-align:left;margin:4px 0">Motivo (opcional)</label>
+    <input class="est-motivo" id="estMotivo" placeholder="ex.: Compra na loja; 2 danificadas">
+    <button class="btn accent" id="estSave" type="button">Registrar ajuste</button>
+    <button class="btn ghost" id="estCancel" type="button" data-i="cancelar">Cancelar</button>
+    <div class="est-hist" id="estHist"></div>
   </div>
 </div>
 
