@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta16';
+const APP_VERSION = 'v4.1.2-beta17';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -50,7 +50,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado para desmarcar.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.',
+    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
     suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
@@ -148,7 +148,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado para desmarcar.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.',
+    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
     suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
@@ -390,6 +390,11 @@ function waKey(id,tipo){ return 'gd_wa_'+id+'_'+tipo; }
 function waGetSent(id,tipo){ try{ return JSON.parse(localStorage.getItem(waKey(id,tipo))||'null'); }catch(e){ return null; } }
 function waMarkSent(id,tipo){ const quem=(auth&&(auth.role||auth.email))||'?'; localStorage.setItem(waKey(id,tipo), JSON.stringify({data:new Date().toISOString(), quem:quem})); }
 function waUnmark(id,tipo){ localStorage.removeItem(waKey(id,tipo)); }
+// "desconsiderar" (dispensar): não envia e sai de pendente (marca local separada)
+function waDisKey(id,tipo){ return 'gd_wadis_'+id+'_'+tipo; }
+function waGetDismissed(id,tipo){ return localStorage.getItem(waDisKey(id,tipo))==='1'; }
+function waDismiss(id,tipo){ localStorage.setItem(waDisKey(id,tipo),'1'); }
+function waUndismiss(id,tipo){ localStorage.removeItem(waDisKey(id,tipo)); }
 // long-press: dispara fn() após ~550ms mantendo pressionado (mouse/touch); cancela se soltar/mover antes
 function onLongPress(el, fn){
   let timer=null, fired=false;
@@ -415,18 +420,20 @@ function computeAvisos(i){
   const tel=normPhone(i.telefone);
   return aplic.map(tipo=>{
     const sent=waGetSent(i.id,tipo);
-    return { tipo, label:waLabel(tipo,i), estado: sent?'enviado':'pendente',
+    const dismissed=waGetDismissed(i.id,tipo);
+    const estado = sent ? 'enviado' : (dismissed ? 'desconsiderado' : 'pendente');
+    return { tipo, label:waLabel(tipo,i), estado,
              data: sent?sent.data:null, quem: sent?sent.quem:null,
              url: tel? ('https://wa.me/'+tel+'?text='+encodeURIComponent(waTexto(tipo,i))) : null };
   });
 }
-// resumo para o card: 'pendente' (há algum pendente) | 'enviado' (só enviados) | null (nada / sem tel)
+// resumo para o card: mostra ícone SÓ se há algum aviso PENDENTE; senão (enviado/desconsiderado/nada) -> null
 function waCardState(i){
   if(!featureOn('whatsapp')) return null;      // feature desligada -> sem ícone
   const a=computeAvisos(i); if(!a.length) return null;
   const hasPend=a.some(x=>x.estado==='pendente');
-  if(!normPhone(i.telefone)) return hasPend ? 'semtel' : null; // sem tel: só marca se há pendente
-  return hasPend ? 'pendente' : 'enviado';
+  if(!hasPend) return null;                     // sem pendente -> omite o ícone (evita poluição)
+  return normPhone(i.telefone) ? 'pendente' : 'semtel';
 }
 const WA_SVG='<svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.044zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>';
 // long-press no card: desmarca. 1 enviado -> confirma e desmarca direto; vários -> abre o modal (desmarcar por linha lá)
@@ -470,27 +477,47 @@ function openWaModal(i){
     if(!a.length){ box.innerHTML=`<div class="wa-empty">${t('waNada')}</div>`; return; }
     const noTel=!normPhone(i.telefone);
     box.innerHTML=a.map((x,idx)=>{
-      const cls=x.estado==='pendente'?'wa-ic-a2':'wa-ic-a4';
-      const meta = x.estado==='pendente'
-        ? `<span class="wmeta pend">${t('waPendente')}</span>`
-        : `<span class="wmeta">✅ ${fmtWaDate(x.data)} · ${esc(x.quem||'')}</span>`;
-      const labelTxt = x.estado==='enviado' ? `${esc(x.label)} - <span class="wreenviar">${t('waReenviar')}</span>` : esc(x.label);
-      const dis = (noTel||!x.url)?' disabled':'';
-      return `<div class="wa-row${dis}" data-idx="${idx}">
+      const cls = x.estado==='pendente' ? 'wa-ic-a2' : (x.estado==='enviado' ? 'wa-ic-a4' : 'wa-ic-off');
+      let meta, labelTxt=esc(x.label), extra='';
+      if(x.estado==='pendente'){
+        meta = noTel ? `<span class="wmeta">${t('waSemTel')}</span>` : `<span class="wmeta pend">${t('waPendente')}</span>`;
+        // X para desconsiderar (só faz sentido no pendente)
+        extra = `<button class="wa-x" data-x="${idx}" title="${t('waDesconsiderar')}" aria-label="${t('waDesconsiderar')}">&times;</button>`;
+      } else if(x.estado==='enviado'){
+        meta = `<span class="wmeta">✅ ${fmtWaDate(x.data)} · ${esc(x.quem||'')}</span>`;
+        labelTxt = `${esc(x.label)} - <span class="wreenviar">${t('waReenviar')}</span>`;
+      } else { // desconsiderado
+        meta = `<span class="wmeta">${t('waDesconsiderado')}</span>`;
+      }
+      const rowCls = x.estado==='desconsiderado' ? 'wa-row dimmed' : (x.estado==='pendente' && (noTel||!x.url) ? 'wa-row disabled' : 'wa-row');
+      return `<div class="${rowCls}" data-idx="${idx}">
         <button class="wa-ic-btn ${cls}">${WA_SVG}</button>
-        <div class="wtx"><b>${labelTxt}</b>${noTel?`<span class="wmeta">${t('waSemTel')}</span>`:meta}</div>
+        <div class="wtx"><b>${labelTxt}</b>${meta}</div>
+        ${extra}
       </div>`;
     }).join('');
+    // X: desconsiderar (não envia, sai de pendente)
+    $$('#waList .wa-x').forEach(btn=>{
+      btn.onclick=(e)=>{ e.stopPropagation(); const x=computeAvisos(i)[+btn.dataset.x]; if(x){ waDismiss(i.id,x.tipo); toast(t('waDesconsideradoOk'),'ok'); render(); if(state.view==='lista') renderList(); } };
+    });
     $$('#waList .wa-row').forEach(row=>{
-      if(row.classList.contains('disabled')) return;
       const x0=computeAvisos(i)[+row.dataset.idx];
+      // long-press: reverte ENVIADO ou DESCONSIDERADO de volta a pendente
       const wasLong = onLongPress(row, async()=>{
         const x=computeAvisos(i)[+row.dataset.idx];
-        if(x && x.estado==='enviado'){ await waUnmarkOne(i,x); render(); if(typeof renderList==='function' && state.view==='lista') renderList(); }
+        if(!x) return;
+        if(x.estado==='enviado'){ await waUnmarkOne(i,x); render(); if(state.view==='lista') renderList(); }
+        else if(x.estado==='desconsiderado'){ waUndismiss(i.id,x.tipo); toast(t('waReativado'),'ok'); render(); if(state.view==='lista') renderList(); }
       });
-      row.onclick=()=>{ if(wasLong()) return; const x=computeAvisos(i)[+row.dataset.idx]; waSend(i,x); render(); if(typeof renderList==='function' && state.view==='lista') renderList(); };
+      row.onclick=()=>{
+        if(wasLong()) return;
+        const x=computeAvisos(i)[+row.dataset.idx];
+        if(!x || x.estado!=='pendente') return;         // só envia se pendente (enviado/desconsiderado: só long-press)
+        if(!x.url){ toast(t('waSemTel'),'err'); return; }
+        waSend(i,x); render(); if(state.view==='lista') renderList();
+      };
     });
-    const hint=$('#waHint'); if(hint){ const temEnviado=a.some(x=>x.estado==='enviado'); hint.textContent=t('waHintDesmarcar'); hint.classList.toggle('hidden', !temEnviado); }
+    const hint=$('#waHint'); if(hint){ const temRev=a.some(x=>x.estado==='enviado'||x.estado==='desconsiderado'); hint.textContent=t('waHintDesmarcar'); hint.classList.toggle('hidden', !temRev); }
   };
   render();
   const close=()=>{ m.classList.add('hidden'); $('#waClose').onclick=null; m.onclick=null; };
