@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta14';
+const APP_VERSION = 'v4.1.2-beta15';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -358,14 +358,17 @@ function waTexto(tipo, i){
   const num=fmtNum(i.numero)||'—';
   const soma=somaPago(i), falta=Math.max(0,(i.cota||COTA)-soma);
   const ult=(i.pagamentos||[]).slice(-1)[0]; const valor=ult?(+ult.valor||0):soma;
+  const pnome=primeiroNome(i.nome)||nome;
   const T={
     pt:{
+      cadastro:`Olá *${pnome}*! Obrigado por se cadastrar para contribuir com o Projeto Gideão 300.\nAguardamos a sua contribuição de *300 euros* para que se torne oficialmente um dos Gideões de Casa Fuerte!\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\nSe alguma informação estiver incorreta, por favor responde a esta mensagem.\nDeus te abençoe!\n— Projeto Gideões - Casa Fuerte Church`,
       pagtoParcial:`Olá *${nome}*! Confirmamos o recebimento de *${valor}€* da tua cota do Projeto Gideão 300 (camisa *tamanho ${tam}*). Faltam ${falta}€ para completar os 300€. Se alguma informação estiver incorreta, por favor responde a esta mensagem. Deus te abençoe! — Projeto Gideões - Casa Fuerte Church`,
       cotaCompleta:`Olá *${nome}*! A tua cota do Projeto Gideão 300 está completa (*300€*) — camisa *tamanho ${tam}*. Muito obrigado! Avisaremos quando a tua camisa estiver pronta. Se alguma informação estiver incorreta, por favor responde a esta mensagem. Deus te abençoe! — Projeto Gideões - Casa Fuerte Church`,
       camisaPronta:`Olá *${nome}*! A tua camisa do Projeto Gideão 300 (*tamanho ${tam}*, nº ${num}) já está pronta. Em breve combinamos a entrega. Deus te abençoe! — Projeto Gideões - Casa Fuerte Church`,
       camisaEntregue:`Olá *${nome}*! Confirmamos a entrega da tua camisa do Projeto Gideão 300. Vista com fé! Deus te abençoe! — Projeto Gideões - Casa Fuerte Church`
     },
     es:{
+      cadastro:`¡Hola *${pnome}*! Gracias por registrarte para contribuir con el Proyecto Gedeón 300.\nEsperamos tu contribución de *300 euros* para que te conviertas oficialmente en uno de los Gedeones de Casa Fuerte!\nComprueba que tus datos son correctos:\n- Nombre: *${nome}*\n- Talla de la camiseta: *${tam}*\nSi algún dato es incorrecto, por favor responde a este mensaje.\n¡Que Dios te bendiga!\n— Proyecto Gedeones - Casa Fuerte Church`,
       pagtoParcial:`¡Hola *${nome}*! Confirmamos la recepción de *${valor}€* de tu cuota del Proyecto Gedeón 300 (camiseta *talla ${tam}*). Faltan ${falta}€ para completar los 300€. Si algún dato es incorrecto, por favor responde a este mensaje. ¡Que Dios te bendiga! — Proyecto Gedeones - Casa Fuerte Church`,
       cotaCompleta:`¡Hola *${nome}*! Tu cuota del Proyecto Gedeón 300 está completa (*300€*) — camiseta *talla ${tam}*. ¡Muchas gracias! Te avisaremos cuando tu camiseta esté lista. Si algún dato es incorrecto, por favor responde a este mensaje. ¡Que Dios te bendiga! — Proyecto Gedeones - Casa Fuerte Church`,
       camisaPronta:`¡Hola *${nome}*! Tu camiseta del Proyecto Gedeón 300 (*talla ${tam}*, nº ${num}) ya está lista. Pronto coordinamos la entrega. ¡Que Dios te bendiga! — Proyecto Gedeones - Casa Fuerte Church`,
@@ -378,8 +381,8 @@ function waTexto(tipo, i){
 function esc0(s){ return String(s==null?'':s); }
 // rótulos curtos dos tipos (para o modal/linha)
 function waLabel(tipo, i){
-  const L={ pt:{pagtoParcial:'Confirmar pagamento (parcial)', cotaCompleta:'Cota completa (300€)', camisaPronta:'Camisa pronta', camisaEntregue:'Camisa entregue'},
-            es:{pagtoParcial:'Confirmar pago (parcial)', cotaCompleta:'Cuota completa (300€)', camisaPronta:'Camiseta lista', camisaEntregue:'Camiseta entregada'} };
+  const L={ pt:{cadastro:'Cadastro (aguardando pagamento)', pagtoParcial:'Confirmar pagamento (parcial)', cotaCompleta:'Cota completa (300€)', camisaPronta:'Camisa pronta', camisaEntregue:'Camisa entregue'},
+            es:{cadastro:'Registro (esperando pago)', pagtoParcial:'Confirmar pago (parcial)', cotaCompleta:'Cuota completa (300€)', camisaPronta:'Camiseta lista', camisaEntregue:'Camiseta entregada'} };
   return (L[lang]||L.pt)[tipo]||tipo;
 }
 // marca local (por dispositivo) — sincronização virá com o backend depois
@@ -404,6 +407,7 @@ function onLongPress(el, fn){
 function computeAvisos(i){
   const st=statusPag(i);
   const aplic=[];
+  if(st==='pend') aplic.push('cadastro');      // cadastrado, sem pagamento ainda
   if(st==='parcial') aplic.push('pagtoParcial');
   if(st==='pago') aplic.push('cotaCompleta');
   if(i.camisaEstado===EST.PRONTA) aplic.push('camisaPronta');
