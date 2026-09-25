@@ -3,7 +3,24 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta12';
+const APP_VERSION = 'v4.1.2-beta13';
+
+// ============ Feature flags (runtime) ============
+// MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
+// receber flags do backend via applyRemoteFlags() sem mudar quem chama featureOn().
+const FEATURES_DEFAULT = { whatsapp:false };   // default OFF (igual será em produção)
+let _featRemote = null;                         // preenchido no futuro pelo backend (null = não há)
+function featureOn(key){
+  // precedência: remoto (backend) > local (localStorage) > default
+  if(_featRemote && Object.prototype.hasOwnProperty.call(_featRemote,key)) return !!_featRemote[key];
+  const loc=localStorage.getItem('gd_feat_'+key);
+  if(loc!==null) return loc==='1';
+  return !!FEATURES_DEFAULT[key];
+}
+function setFeature(key,on){ localStorage.setItem('gd_feat_'+key, on?'1':'0'); }
+function applyRemoteFlags(obj){ _featRemote = obj || null; }   // hook p/ backend (item 6 do backlog)
+// =================================================
+
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -33,7 +50,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado para desmarcar.',
+    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado para desmarcar.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
     suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
@@ -131,7 +148,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado para desmarcar.',
+    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado para desmarcar.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
     suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
@@ -401,6 +418,7 @@ function computeAvisos(i){
 }
 // resumo para o card: 'pendente' (há algum pendente) | 'enviado' (só enviados) | null (nada / sem tel)
 function waCardState(i){
+  if(!featureOn('whatsapp')) return null;      // feature desligada -> sem ícone
   const a=computeAvisos(i); if(!a.length) return null;
   const hasPend=a.some(x=>x.estado==='pendente');
   if(!normPhone(i.telefone)) return hasPend ? 'semtel' : null; // sem tel: só marca se há pendente
@@ -425,6 +443,7 @@ async function waUnmarkOne(i, aviso){
 function waTrigger(i){
   const a=computeAvisos(i);
   if(!a.length) return;
+  if(!featureOn('whatsapp')) return;   // feature desligada
   openWaModal(i);   // sempre abre o modal (envio só é confirmado tocando a linha lá dentro)
 }
 // abre a URL do wa.me e marca como enviado (local)
@@ -1289,7 +1308,7 @@ async function openModal(id){
   // linha "Avisos WhatsApp" (só p/ registro já salvo; marca local)
   const waLine=$('#waLine');
   if(waLine){
-    const show = !!rec;
+    const show = !!rec && featureOn('whatsapp');   // só com a feature ligada e registro salvo
     waLine.classList.toggle('hidden', !show);
     if(show){
       const avisos=computeAvisos(rec);
@@ -2395,6 +2414,7 @@ function applyAdminUI(){
   auth.podeCaixaMgr = isCaixaEdit;                        // movimentacoes + deletar despesa: admin/tesoureiro
   auth.podeAddDespesa = isAdmin || (eff==='tesoureiro') || (eff==='user');  // criar/editar despesa: todos menos viewer
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
+  const featEl=$('#featuresSection'); if(featEl){ featEl.classList.toggle('hidden', !isAdmin); if(isAdmin){ const c=$('#featWhatsappChk'); if(c) c.checked=featureOn('whatsapp'); } }
   const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', isViewer);   // Caixa: todos exceto viewer
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
   const navConf=$('#navConfeccao'); if(navConf) navConf.classList.toggle('hidden', isViewer);  // Confecção: escondida p/ viewer
@@ -2833,6 +2853,11 @@ async function startAppAfterLogin(){
   } else { setSync('off'); }
 }
 $('#btnLogout') && ($('#btnLogout').onclick=logout);
+$('#featWhatsappChk') && ($('#featWhatsappChk').onchange=function(){
+  setFeature('whatsapp', this.checked);
+  toast(this.checked? t('featOn') : t('featOff'), 'ok');
+  if(state.view==='lista') renderList();   // reflete o ícone no card na hora
+});
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
 $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }
