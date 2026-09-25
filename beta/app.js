@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta15';
+const APP_VERSION = 'v4.1.2-beta16';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -361,18 +361,18 @@ function waTexto(tipo, i){
   const pnome=primeiroNome(i.nome)||nome;
   const T={
     pt:{
-      cadastro:`Olá *${pnome}*! Obrigado por se cadastrar para contribuir com o Projeto Gideão 300.\nAguardamos a sua contribuição de *300 euros* para que se torne oficialmente um dos Gideões de Casa Fuerte!\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\nSe alguma informação estiver incorreta, por favor responde a esta mensagem.\nDeus te abençoe!\n— Projeto Gideões - Casa Fuerte Church`,
-      pagtoParcial:`Olá *${nome}*! Confirmamos o recebimento de *${valor}€* da tua cota do Projeto Gideão 300 (camisa *tamanho ${tam}*). Faltam ${falta}€ para completar os 300€. Se alguma informação estiver incorreta, por favor responde a esta mensagem. Deus te abençoe! — Projeto Gideões - Casa Fuerte Church`,
-      cotaCompleta:`Olá *${nome}*! A tua cota do Projeto Gideão 300 está completa (*300€*) — camisa *tamanho ${tam}*. Muito obrigado! Avisaremos quando a tua camisa estiver pronta. Se alguma informação estiver incorreta, por favor responde a esta mensagem. Deus te abençoe! — Projeto Gideões - Casa Fuerte Church`,
-      camisaPronta:`Olá *${nome}*! A tua camisa do Projeto Gideão 300 (*tamanho ${tam}*, nº ${num}) já está pronta. Em breve combinamos a entrega. Deus te abençoe! — Projeto Gideões - Casa Fuerte Church`,
-      camisaEntregue:`Olá *${nome}*! Confirmamos a entrega da tua camisa do Projeto Gideão 300. Vista com fé! Deus te abençoe! — Projeto Gideões - Casa Fuerte Church`
+      cadastro:`Olá *${pnome}*! Obrigado por se cadastrar para contribuir com o Projeto Gideão 300.\nAguardamos a sua contribuição de *300€* para que você se torne oficialmente um dos Gideões de Casa Fuerte!\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\nSe alguma informação estiver incorreta, por favor responda a esta mensagem.\nDeus te abençoe!\n— Projeto Gideões - Casa Fuerte Church`,
+      pagtoParcial:`Olá *${pnome}*! Confirmamos o recebimento de *${valor}€* da sua cota do Projeto Gideão 300.\nFaltam *${falta}€* para completar os *300€* e você se tornar oficialmente um dos Gideões de Casa Fuerte!\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\nSe alguma informação estiver incorreta, por favor responda a esta mensagem.\nDeus te abençoe!\n— Projeto Gideões - Casa Fuerte Church`,
+      cotaCompleta:`Olá *${pnome}*! A sua cota do Projeto Gideão 300 está completa (*300€*). Muito obrigado — agora você é oficialmente um dos Gideões de Casa Fuerte!\nAvisaremos quando a sua camisa estiver pronta.\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\n- Número: *${num}*\nSe alguma informação estiver incorreta, por favor responda a esta mensagem.\nDeus te abençoe!\n— Projeto Gideões - Casa Fuerte Church`,
+      camisaPronta:`Olá *${pnome}*! A sua camisa do Projeto Gideão 300 (tamanho *${tam}*, nº *${num}*) já está pronta.\nVocê pode retirar sua camisa a partir do próximo domingo, depois do culto.\nDeus te abençoe!\n— Projeto Gideões - Casa Fuerte Church`,
+      camisaEntregue:`Olá *${pnome}*! Confirmamos a entrega da sua camisa do Projeto Gideão 300 (tamanho *${tam}*, nº *${num}*). Vista com fé!\nDeus te abençoe!\n— Projeto Gideões - Casa Fuerte Church`
     },
     es:{
-      cadastro:`¡Hola *${pnome}*! Gracias por registrarte para contribuir con el Proyecto Gedeón 300.\nEsperamos tu contribución de *300 euros* para que te conviertas oficialmente en uno de los Gedeones de Casa Fuerte!\nComprueba que tus datos son correctos:\n- Nombre: *${nome}*\n- Talla de la camiseta: *${tam}*\nSi algún dato es incorrecto, por favor responde a este mensaje.\n¡Que Dios te bendiga!\n— Proyecto Gedeones - Casa Fuerte Church`,
-      pagtoParcial:`¡Hola *${nome}*! Confirmamos la recepción de *${valor}€* de tu cuota del Proyecto Gedeón 300 (camiseta *talla ${tam}*). Faltan ${falta}€ para completar los 300€. Si algún dato es incorrecto, por favor responde a este mensaje. ¡Que Dios te bendiga! — Proyecto Gedeones - Casa Fuerte Church`,
-      cotaCompleta:`¡Hola *${nome}*! Tu cuota del Proyecto Gedeón 300 está completa (*300€*) — camiseta *talla ${tam}*. ¡Muchas gracias! Te avisaremos cuando tu camiseta esté lista. Si algún dato es incorrecto, por favor responde a este mensaje. ¡Que Dios te bendiga! — Proyecto Gedeones - Casa Fuerte Church`,
-      camisaPronta:`¡Hola *${nome}*! Tu camiseta del Proyecto Gedeón 300 (*talla ${tam}*, nº ${num}) ya está lista. Pronto coordinamos la entrega. ¡Que Dios te bendiga! — Proyecto Gedeones - Casa Fuerte Church`,
-      camisaEntregue:`¡Hola *${nome}*! Confirmamos la entrega de tu camiseta del Proyecto Gedeón 300. ¡Vístela con fe! ¡Que Dios te bendiga! — Proyecto Gedeones - Casa Fuerte Church`
+      cadastro:`¡Hola *${pnome}*! Gracias por registrarte para contribuir con el Proyecto Gedeón 300.\nEsperamos tu contribución de *300€* para que te conviertas oficialmente en uno de los Gedeones de Casa Fuerte!\nComprueba que tus datos son correctos:\n- Nombre: *${nome}*\n- Talla de la camiseta: *${tam}*\nSi algún dato es incorrecto, por favor responde a este mensaje.\n¡Que Dios te bendiga!\n— Proyecto Gedeones - Casa Fuerte Church`,
+      pagtoParcial:`¡Hola *${pnome}*! Confirmamos la recepción de *${valor}€* de tu cuota del Proyecto Gedeón 300.\nFaltan *${falta}€* para completar los *300€* y convertirte oficialmente en uno de los Gedeones de Casa Fuerte!\nComprueba que tus datos son correctos:\n- Nombre: *${nome}*\n- Talla de la camiseta: *${tam}*\nSi algún dato es incorrecto, por favor responde a este mensaje.\n¡Que Dios te bendiga!\n— Proyecto Gedeones - Casa Fuerte Church`,
+      cotaCompleta:`¡Hola *${pnome}*! Tu cuota del Proyecto Gedeón 300 está completa (*300€*). ¡Muchas gracias — ahora eres oficialmente uno de los Gedeones de Casa Fuerte!\nTe avisaremos cuando tu camiseta esté lista.\nComprueba que tus datos son correctos:\n- Nombre: *${nome}*\n- Talla de la camiseta: *${tam}*\n- Número: *${num}*\nSi algún dato es incorrecto, por favor responde a este mensaje.\n¡Que Dios te bendiga!\n— Proyecto Gedeones - Casa Fuerte Church`,
+      camisaPronta:`¡Hola *${pnome}*! Tu camiseta del Proyecto Gedeón 300 (talla *${tam}*, nº *${num}*) ya está lista.\nPuedes retirar tu camiseta a partir del próximo domingo, después del culto.\n¡Que Dios te bendiga!\n— Proyecto Gedeones - Casa Fuerte Church`,
+      camisaEntregue:`¡Hola *${pnome}*! Confirmamos la entrega de tu camiseta del Proyecto Gedeón 300 (talla *${tam}*, nº *${num}*). ¡Vístela con fe!\n¡Que Dios te bendiga!\n— Proyecto Gedeones - Casa Fuerte Church`
     }
   };
   return (T[lang]||T.pt)[tipo]||'';
