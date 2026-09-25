@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta13';
+const APP_VERSION = 'v4.1.2-beta14';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -2144,6 +2144,7 @@ function doSetView(v){
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   $('#fab').classList.toggle('hidden', v!=='lista' || effectiveRole()==='viewer');
   const fc=$('#fabCaixa'); if(fc) updateFabCaixa();
+  if(v==='lista') renderList();
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
