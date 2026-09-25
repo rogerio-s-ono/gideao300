@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.2-beta17';
+const APP_VERSION = 'v4.1.2-beta18';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -408,8 +408,10 @@ function onLongPress(el, fn){
   el.addEventListener('mouseleave', cancel);
   return ()=>fired;   // consultar se o último gesto foi long-press (p/ suprimir o click)
 }
-// quais avisos se aplicam a este Gideão, e o estado (pendente/enviado) de cada
-function computeAvisos(i){
+// quais avisos se aplicam a este Gideão, e o estado de cada.
+// scope: 'all' (default) | 'camisa' (só camisaPronta/camisaEntregue)
+const WA_SCOPES={ camisa:['camisaPronta','camisaEntregue'] };
+function computeAvisos(i, scope){
   const st=statusPag(i);
   const aplic=[];
   if(st==='pend') aplic.push('cadastro');      // cadastrado, sem pagamento ainda
@@ -417,8 +419,10 @@ function computeAvisos(i){
   if(st==='pago') aplic.push('cotaCompleta');
   if(i.camisaEstado===EST.PRONTA) aplic.push('camisaPronta');
   if(i.camisaEstado===EST.ENTREGUE) aplic.push('camisaEntregue');
+  const allow = (scope && WA_SCOPES[scope]) ? WA_SCOPES[scope] : null;
+  const lista = allow ? aplic.filter(tp=>allow.indexOf(tp)>=0) : aplic;
   const tel=normPhone(i.telefone);
-  return aplic.map(tipo=>{
+  return lista.map(tipo=>{
     const sent=waGetSent(i.id,tipo);
     const dismissed=waGetDismissed(i.id,tipo);
     const estado = sent ? 'enviado' : (dismissed ? 'desconsiderado' : 'pendente');
@@ -427,10 +431,10 @@ function computeAvisos(i){
              url: tel? ('https://wa.me/'+tel+'?text='+encodeURIComponent(waTexto(tipo,i))) : null };
   });
 }
-// resumo para o card: mostra ícone SÓ se há algum aviso PENDENTE; senão (enviado/desconsiderado/nada) -> null
-function waCardState(i){
+// resumo para o card: mostra ícone SÓ se há algum aviso PENDENTE no escopo; senão -> null
+function waCardState(i, scope){
   if(!featureOn('whatsapp')) return null;      // feature desligada -> sem ícone
-  const a=computeAvisos(i); if(!a.length) return null;
+  const a=computeAvisos(i, scope); if(!a.length) return null;
   const hasPend=a.some(x=>x.estado==='pendente');
   if(!hasPend) return null;                     // sem pendente -> omite o ícone (evita poluição)
   return normPhone(i.telefone) ? 'pendente' : 'semtel';
@@ -467,12 +471,13 @@ function waSend(i, aviso){
   // sem deixar uma aba vazia do browser in-app (que era o "Search or enter website name").
   window.location.href = aviso.url;
 }
-// modal de notificações (reutilizado pelo card e pela seção do modal de edição)
-function openWaModal(i){
+// modal de notificações (reutilizado pelo card de Gideões e pela Confecção). scope: 'all'|'camisa'
+function openWaModal(i, scope){
   const m=$('#waModal'); if(!m) return;
   $('#waTitle').textContent=t('waTitulo')+' '+primeiroNome(i.nome);
+  const reRenderView=()=>{ if(state.view==='lista') renderList(); else if(state.view==='confeccao' && typeof renderConfList==='function') renderConfList(); };
   const render=()=>{
-    const a=computeAvisos(i);
+    const a=computeAvisos(i, scope);
     const box=$('#waList');
     if(!a.length){ box.innerHTML=`<div class="wa-empty">${t('waNada')}</div>`; return; }
     const noTel=!normPhone(i.telefone);
@@ -498,23 +503,23 @@ function openWaModal(i){
     }).join('');
     // X: desconsiderar (não envia, sai de pendente)
     $$('#waList .wa-x').forEach(btn=>{
-      btn.onclick=(e)=>{ e.stopPropagation(); const x=computeAvisos(i)[+btn.dataset.x]; if(x){ waDismiss(i.id,x.tipo); toast(t('waDesconsideradoOk'),'ok'); render(); if(state.view==='lista') renderList(); } };
+      btn.onclick=(e)=>{ e.stopPropagation(); const x=computeAvisos(i, scope)[+btn.dataset.x]; if(x){ waDismiss(i.id,x.tipo); toast(t('waDesconsideradoOk'),'ok'); render(); reRenderView(); } };
     });
     $$('#waList .wa-row').forEach(row=>{
-      const x0=computeAvisos(i)[+row.dataset.idx];
+      const x0=computeAvisos(i, scope)[+row.dataset.idx];
       // long-press: reverte ENVIADO ou DESCONSIDERADO de volta a pendente
       const wasLong = onLongPress(row, async()=>{
-        const x=computeAvisos(i)[+row.dataset.idx];
+        const x=computeAvisos(i, scope)[+row.dataset.idx];
         if(!x) return;
-        if(x.estado==='enviado'){ await waUnmarkOne(i,x); render(); if(state.view==='lista') renderList(); }
-        else if(x.estado==='desconsiderado'){ waUndismiss(i.id,x.tipo); toast(t('waReativado'),'ok'); render(); if(state.view==='lista') renderList(); }
+        if(x.estado==='enviado'){ await waUnmarkOne(i,x); render(); reRenderView(); }
+        else if(x.estado==='desconsiderado'){ waUndismiss(i.id,x.tipo); toast(t('waReativado'),'ok'); render(); reRenderView(); }
       });
       row.onclick=()=>{
         if(wasLong()) return;
-        const x=computeAvisos(i)[+row.dataset.idx];
+        const x=computeAvisos(i, scope)[+row.dataset.idx];
         if(!x || x.estado!=='pendente') return;         // só envia se pendente (enviado/desconsiderado: só long-press)
         if(!x.url){ toast(t('waSemTel'),'err'); return; }
-        waSend(i,x); render(); if(state.view==='lista') renderList();
+        waSend(i,x); render(); reRenderView();
       };
     });
     const hint=$('#waHint'); if(hint){ const temRev=a.some(x=>x.estado==='enviado'||x.estado==='desconsiderado'); hint.textContent=t('waHintDesmarcar'); hint.classList.toggle('hidden', !temRev); }
@@ -1147,6 +1152,7 @@ async function renderConfList(){
           <div class="nome"><span class="conf-name-link" data-id="${i.id}">${esc(i.nome)}</span> ${i.tamanho?`<span class="tam" style="font-size:12px">${esc(i.tamanho)}</span>`:''} ${dirty?'<span class="dirtydot"></span>':''}</div>
           <div class="sub"><span class="paytag ${pago?'ok':'no'}">${pago?t('pago'):t('pendPag')}</span></div>
         </div>
+        ${(()=>{ const ws=waCardState(i,'camisa'); return ws?`<div class="wa-slot" data-wa="${i.id}" data-wast="${ws}"><button class="wa-ic-btn ${ws==='pendente'?'wa-ic-a2':'wa-ic-off'}" aria-label="${t('waTitulo')}" title="${ws==='semtel'?t('waSemTel'):t('waTitulo')}">${WA_SVG}</button></div>`:''; })()}
       </div>
       ${pago?`<div class="pills">${pillCols}</div>`:''}
     </div>`;
@@ -1173,6 +1179,13 @@ async function renderConfList(){
     const rec=all.find(x=>x.id===id);
     setDirtyData(rec, st, inp.value);
     updateSaveBtn(); renderConfList();
+  });
+  // ícone WhatsApp (escopo camisa) — clique isolado, abre o modal filtrado só p/ avisos de camisa
+  $$('#confList .wa-slot').forEach(slot=>{
+    slot.onclick=(e)=>{ e.stopPropagation();
+      if(slot.dataset.wast==='semtel'){ toast(t('waSemTel'),'err'); return; }
+      const rec=all.find(x=>String(x.id)===String(slot.dataset.wa)); if(rec) openWaModal(rec,'camisa');
+    };
   });
   // rola até o card destacado (vindo do modal), centralizado — mantém o highlight
   if(state.confHighlight!=null){
