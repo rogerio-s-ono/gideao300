@@ -3,7 +3,24 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.1';
+const APP_VERSION = 'v4.1.2';
+
+// ============ Feature flags (runtime) ============
+// MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
+// receber flags do backend via applyRemoteFlags() sem mudar quem chama featureOn().
+const FEATURES_DEFAULT = { whatsapp:true };   // produção: feature LIGADA por padrão
+let _featRemote = null;                         // preenchido no futuro pelo backend (null = não há)
+function featureOn(key){
+  // precedência: remoto (backend) > local (localStorage) > default
+  if(_featRemote && Object.prototype.hasOwnProperty.call(_featRemote,key)) return !!_featRemote[key];
+  const loc=localStorage.getItem('gd_feat_'+key);
+  if(loc!==null) return loc==='1';
+  return !!FEATURES_DEFAULT[key];
+}
+function setFeature(key,on){ localStorage.setItem('gd_feat_'+key, on?'1':'0'); }
+function applyRemoteFlags(obj){ _featRemote = obj || null; }   // hook p/ backend (item 6 do backlog)
+// =================================================
+
 const TAMANHOS = ['XS','S','M','L','XL','XXL','3XL'];
 const TIPOS = ['Cartão','Dinheiro','Outros'];
 // mapeia forma de pagamento -> bolso (Dinheiro/Banco/Outros). Preserva leitura de formas antigas.
@@ -33,6 +50,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
+    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
     suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
@@ -130,6 +148,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
+    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
     suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
@@ -314,6 +333,210 @@ const isIsento=i=>!!(i&&i.isento);
 function statusPag(i){ if(isIsento(i)) return 'isento'; const s=somaPago(i); if(s>=i.cota) return 'pago'; if(s>0) return 'parcial'; return 'pend'; }
 // pode entrar na confecção/produção: quem pagou a cota OU é isento (pastor/convidado)
 const podeProduzir=i=>statusPag(i)==='pago' || isIsento(i);
+
+// ============ Notificações WhatsApp (wa.me) — MVP Modelo A, marca local ============
+// Normaliza o telefone para o formato wa.me (só dígitos, DDI). Padrão: Espanha (+34).
+function normPhone(tel){
+  if(!tel) return '';
+  let d=String(tel).replace(/[^\d+]/g,'');       // mantém dígitos e +
+  if(d.indexOf('+')>0) d=d.replace(/\+/g,'');     // + só vale no início
+  if(d[0]==='+') d=d.slice(1);
+  else if(d.slice(0,2)==='00') d=d.slice(2);      // 00 internacional -> tira
+  else d=d.replace(/^0+/,'');                      // zeros à esquerda (nacional)
+  if(!d) return '';
+  // se já começa por um DDI conhecido, respeita; senão prefixa 34 (Espanha)
+  const DDI=['34','351','55','1','44','39','33','49','54','52','598','595'];
+  const hasDDI = DDI.some(c=>d.slice(0,c.length)===c && d.length>=c.length+6);
+  if(!hasDDI) d='34'+d;
+  return d;
+}
+const primeiroNome=n=>String(n||'').trim().split(/\s+/)[0]||'';
+// Link do grupo exclusivo dos 300 (WhatsApp)
+const WA_GRUPO='https://chat.whatsapp.com/J95dULLxz0LFgVA4E7q0rw?mode=gi_t';
+// Textos dos avisos, PT/ES. vars: {nome}(completo) {tam} {num} {valor} {falta}
+function waTexto(tipo, i){
+  const nome=esc0(i.nome)||'';
+  const tam=i.tamanho||'—';
+  const num=fmtNum(i.numero)||'—';
+  const soma=somaPago(i), falta=Math.max(0,(i.cota||COTA)-soma);
+  const ult=(i.pagamentos||[]).slice(-1)[0]; const valor=ult?(+ult.valor||0):soma;
+  const pnome=primeiroNome(i.nome)||nome;
+  const T={
+    pt:{
+      cadastro:`Olá, *${pnome}*! Que alegria contar com você no Projeto Gideão 300! 🙏\n\nPara confirmar sua participação como um dos Gideões de Casa Fuerte, ficamos à espera da sua contribuição de *300 €*.\n\n📖 «Com estes trezentos homens eu livrarei Israel e entregarei os midianitas em suas mãos.»\n— Juízes 7:7 (NVT)\n\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\n\nSe precisar alterar algum dado, responda a esta mensagem.\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
+      pagtoParcial:`Olá, *${pnome}*! Recebemos com alegria sua contribuição de *${valor} €* para o Projeto Gideão 300. 🙏\n\nFaltam *${falta} €* para completar os *300 €* e confirmar sua participação como um dos Gideões de Casa Fuerte.\n\n📖 «Cada um deve decidir em seu coração quanto dar. Não contribuam com relutância ou por obrigação, pois Deus ama quem dá com alegria.»\n— 2 Coríntios 9:7 (NVT)\n\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\n\nSe precisar alterar algum dado, responda a esta mensagem.\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
+      cotaCompleta:`Olá, *${pnome}*! Sua contribuição está completa (*300 €*) — agora você é oficialmente um dos Gideões de Casa Fuerte! 🎉\n\nMuito obrigado pelo seu coração generoso. Avisaremos quando sua camisa estiver pronta.\n\n📖 «Então ouvi o Senhor perguntar: "Quem enviarei como mensageiro a este povo? Quem irá por nós?". E eu respondi: "Aqui estou; envia-me".»\n— Isaías 6:8 (NVT)\n\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\n- Número: *${num}*\n\nSe precisar alterar algum dado, responda a esta mensagem.\n\n🎖️ *Você conquistou seu lugar entre os 300!* Entre agora no grupo exclusivo dos Gideões e faça parte deste exército escolhido:\n${WA_GRUPO}\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
+      camisaPronta:`Olá, *${pnome}*! Sua camisa do Projeto Gideão 300 já está pronta! 👕\n\nCamisa *tamanho ${tam}*, nº *${num}*.\nVocê pode retirar sua camisa a partir do próximo domingo, depois do culto.\n\n📖 «Vistam toda a armadura de Deus, para que possam permanecer firmes contra as estratégias do diabo.»\n— Efésios 6:11 (NVT)\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
+      camisaEntregue:`Olá, *${pnome}*! Confirmamos a entrega da sua camisa do Projeto Gideão 300 (tamanho *${tam}*, nº *${num}*). ✅\n\nVista com fé e faça parte desta corrente de propósito!\n\n📖 «Vá com a força que você tem e liberte Israel dos midianitas. Sou eu quem o envia!»\n— Juízes 6:14 (NVT)\n\n👥 Ainda não está no grupo exclusivo dos 300? Entre e caminhe com a gente:\n${WA_GRUPO}\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`
+    },
+    es:{
+      cadastro:`¡Hola, *${pnome}*! ¡Qué alegría contar contigo en el Proyecto Gedeón 300! 🙏\n\nPara confirmar tu participación como uno de los Gedeones de Casa Fuerte, quedamos a la espera de tu aportación de *300 €*.\n\n📖 «Con estos trescientos hombres, rescataré a Israel y te daré la victoria sobre los madianitas.»\n— Jueces 7:7 (NTV)\n\nConfirma que tus datos sean correctos:\n- Nombre: *${nome}*\n- Talla de camiseta: *${tam}*\n\nSi necesitas cambiar algún dato, responde a este mensaje.\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
+      pagtoParcial:`¡Hola, *${pnome}*! Recibimos con alegría tu aportación de *${valor} €* para el Proyecto Gedeón 300. 🙏\n\nFaltan *${falta} €* para completar los *300 €* y confirmar tu participación como uno de los Gedeones de Casa Fuerte.\n\n📖 «Cada uno debe decidir en su corazón cuánto dar; y no den de mala gana ni bajo presión, porque Dios ama a la persona que da con alegría.»\n— 2 Corintios 9:7 (NTV)\n\nConfirma que tus datos sean correctos:\n- Nombre: *${nome}*\n- Talla de camiseta: *${tam}*\n\nSi necesitas cambiar algún dato, responde a este mensaje.\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
+      cotaCompleta:`¡Hola, *${pnome}*! Tu aportación está completa (*300 €*) — ¡ahora eres oficialmente uno de los Gedeones de Casa Fuerte! 🎉\n\nMuchas gracias por tu corazón generoso. Te avisaremos cuando tu camiseta esté lista.\n\n📖 «Entonces oí que el Señor preguntaba: "¿A quién enviaré como mensajero a este pueblo? ¿Quién irá por nosotros?". Y respondí: "Aquí estoy. Envíame a mí".»\n— Isaías 6:8 (NTV)\n\nConfirma que tus datos sean correctos:\n- Nombre: *${nome}*\n- Talla de camiseta: *${tam}*\n- Número: *${num}*\n\nSi necesitas cambiar algún dato, responde a este mensaje.\n\n🎖️ *¡Conquistaste tu lugar entre los 300!* Entra ahora en el grupo exclusivo de los Gedeones y sé parte de este ejército escogido:\n${WA_GRUPO}\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
+      camisaPronta:`¡Hola, *${pnome}*! ¡Tu camiseta del Proyecto Gedeón 300 ya está lista! 👕\n\nCamiseta *talla ${tam}*, nº *${num}*.\nPuedes retirar tu camiseta a partir del próximo domingo, después del culto.\n\n📖 «Pónganse toda la armadura de Dios para poder mantenerse firmes contra todas las estrategias del diablo.»\n— Efesios 6:11 (NTV)\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
+      camisaEntregue:`¡Hola, *${pnome}*! Confirmamos la entrega de tu camiseta del Proyecto Gedeón 300 (talla *${tam}*, nº *${num}*). ✅\n\n¡Vístela con fe y sé parte de esta corriente de propósito!\n\n📖 «Ve con la fuerza que tienes y rescata a Israel de los madianitas. ¡Yo soy quien te envía!»\n— Jueces 6:14 (NTV)\n\n👥 ¿Aún no estás en el grupo exclusivo de los 300? Entra y camina con nosotros:\n${WA_GRUPO}\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`
+    }
+  };
+  return (T[lang]||T.pt)[tipo]||'';
+}
+// texto sem escape HTML (a mensagem vai para URL, não para o DOM)
+function esc0(s){ return String(s==null?'':s); }
+// rótulos curtos dos tipos (para o modal/linha)
+function waLabel(tipo, i){
+  const L={ pt:{cadastro:'Cadastro (aguardando pagamento)', pagtoParcial:'Confirmar pagamento (parcial)', cotaCompleta:'Cota completa (300€)', camisaPronta:'Camisa pronta', camisaEntregue:'Camisa entregue'},
+            es:{cadastro:'Registro (esperando pago)', pagtoParcial:'Confirmar pago (parcial)', cotaCompleta:'Cuota completa (300€)', camisaPronta:'Camiseta lista', camisaEntregue:'Camiseta entregada'} };
+  return (L[lang]||L.pt)[tipo]||tipo;
+}
+// marca local (por dispositivo) — sincronização virá com o backend depois
+function waKey(id,tipo){ return 'gd_wa_'+id+'_'+tipo; }
+function waGetSent(id,tipo){ try{ return JSON.parse(localStorage.getItem(waKey(id,tipo))||'null'); }catch(e){ return null; } }
+function waMarkSent(id,tipo){ const quem=(auth&&(auth.role||auth.email))||'?'; localStorage.setItem(waKey(id,tipo), JSON.stringify({data:new Date().toISOString(), quem:quem})); }
+function waUnmark(id,tipo){ localStorage.removeItem(waKey(id,tipo)); }
+// "desconsiderar" (dispensar): não envia e sai de pendente (marca local separada)
+function waDisKey(id,tipo){ return 'gd_wadis_'+id+'_'+tipo; }
+function waGetDismissed(id,tipo){ return localStorage.getItem(waDisKey(id,tipo))==='1'; }
+function waDismiss(id,tipo){ localStorage.setItem(waDisKey(id,tipo),'1'); }
+function waUndismiss(id,tipo){ localStorage.removeItem(waDisKey(id,tipo)); }
+// long-press: dispara fn() após ~550ms mantendo pressionado (mouse/touch); cancela se soltar/mover antes
+function onLongPress(el, fn){
+  let timer=null, fired=false;
+  const start=(e)=>{ fired=false; timer=setTimeout(()=>{ fired=true; fn(e); }, 550); };
+  const cancel=()=>{ if(timer){ clearTimeout(timer); timer=null; } };
+  el.addEventListener('touchstart', start, {passive:true});
+  el.addEventListener('touchend', cancel);
+  el.addEventListener('touchmove', cancel);
+  el.addEventListener('mousedown', start);
+  el.addEventListener('mouseup', cancel);
+  el.addEventListener('mouseleave', cancel);
+  return ()=>fired;   // consultar se o último gesto foi long-press (p/ suprimir o click)
+}
+// quais avisos se aplicam a este Gideão, e o estado de cada.
+// scope: 'all' (default) | 'camisa' (só camisaPronta/camisaEntregue)
+const WA_SCOPES={ camisa:['camisaPronta','camisaEntregue'] };
+function computeAvisos(i, scope){
+  const st=statusPag(i);
+  const aplic=[];
+  if(st==='pend') aplic.push('cadastro');      // cadastrado, sem pagamento ainda
+  if(st==='parcial') aplic.push('pagtoParcial');
+  if(st==='pago') aplic.push('cotaCompleta');
+  if(i.camisaEstado===EST.PRONTA) aplic.push('camisaPronta');
+  if(i.camisaEstado===EST.ENTREGUE) aplic.push('camisaEntregue');
+  const allow = (scope && WA_SCOPES[scope]) ? WA_SCOPES[scope] : null;
+  const lista = allow ? aplic.filter(tp=>allow.indexOf(tp)>=0) : aplic;
+  const tel=normPhone(i.telefone);
+  return lista.map(tipo=>{
+    const sent=waGetSent(i.id,tipo);
+    const dismissed=waGetDismissed(i.id,tipo);
+    const estado = sent ? 'enviado' : (dismissed ? 'desconsiderado' : 'pendente');
+    return { tipo, label:waLabel(tipo,i), estado,
+             data: sent?sent.data:null, quem: sent?sent.quem:null,
+             url: tel? ('https://wa.me/'+tel+'?text='+encodeURIComponent(waTexto(tipo,i))) : null };
+  });
+}
+// resumo para o card: mostra ícone SÓ se há algum aviso PENDENTE no escopo; senão -> null
+function waCardState(i, scope){
+  if(!featureOn('whatsapp')) return null;      // feature desligada -> sem ícone
+  const a=computeAvisos(i, scope); if(!a.length) return null;
+  const hasPend=a.some(x=>x.estado==='pendente');
+  if(!hasPend) return null;                     // sem pendente -> omite o ícone (evita poluição)
+  return normPhone(i.telefone) ? 'pendente' : 'semtel';
+}
+const WA_SVG='<svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.044zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>';
+// long-press no card: desmarca. 1 enviado -> confirma e desmarca direto; vários -> abre o modal (desmarcar por linha lá)
+async function waUnmarkFlow(i){
+  const enviados=computeAvisos(i).filter(x=>x.estado==='enviado');
+  if(!enviados.length){ return; }
+  if(enviados.length===1){ return waUnmarkOne(i, enviados[0]); }
+  openWaModal(i);   // vários enviados: usuário escolhe qual desmarcar (long-press na linha)
+}
+async function waUnmarkOne(i, aviso){
+  const ok=await confirmDialog(t('waDesmarcarT'), t('waDesmarcarMsg',{tipo:aviso.label}), {perigo:false, okText:t('waDesmarcarOk')});
+  if(!ok) return;
+  waUnmark(i.id, aviso.tipo);
+  toast(t('waDesmarcado'),'ok');
+}
+
+// dispara o envio a partir do card: 1 pendente = wa direto; vários pendentes OU reenvio = modal
+function waTrigger(i){
+  const a=computeAvisos(i);
+  if(!a.length) return;
+  if(!featureOn('whatsapp')) return;   // feature desligada
+  openWaModal(i);   // sempre abre o modal (envio só é confirmado tocando a linha lá dentro)
+}
+// abre a URL do wa.me e marca como enviado (local)
+function waSend(i, aviso){
+  if(!aviso.url){ toast(t('waSemTel'),'err'); return; }
+  // marca ANTES de navegar (a navegação pode congelar o JS ao sair do app)
+  waMarkSent(i.id, aviso.tipo);
+  toast(t('waEnviado'),'ok');
+  // navega a própria janela: no iOS PWA o SO intercepta o wa.me e abre o WhatsApp
+  // sem deixar uma aba vazia do browser in-app (que era o "Search or enter website name").
+  window.location.href = aviso.url;
+}
+// modal de notificações (reutilizado pelo card de Gideões e pela Confecção). scope: 'all'|'camisa'
+function openWaModal(i, scope){
+  const m=$('#waModal'); if(!m) return;
+  $('#waTitle').textContent=t('waTitulo')+' '+primeiroNome(i.nome);
+  const reRenderView=()=>{ if(state.view==='lista') renderList(); else if(state.view==='confeccao' && typeof renderConfList==='function') renderConfList(); };
+  const render=()=>{
+    const a=computeAvisos(i, scope);
+    const box=$('#waList');
+    if(!a.length){ box.innerHTML=`<div class="wa-empty">${t('waNada')}</div>`; return; }
+    const noTel=!normPhone(i.telefone);
+    box.innerHTML=a.map((x,idx)=>{
+      const cls = x.estado==='pendente' ? 'wa-ic-a2' : (x.estado==='enviado' ? 'wa-ic-a4' : 'wa-ic-off');
+      let meta, labelTxt=esc(x.label), extra='';
+      if(x.estado==='pendente'){
+        meta = noTel ? `<span class="wmeta">${t('waSemTel')}</span>` : `<span class="wmeta pend">${t('waPendente')}</span>`;
+        // X para desconsiderar (só faz sentido no pendente)
+        extra = `<button class="wa-x" data-x="${idx}" title="${t('waDesconsiderar')}" aria-label="${t('waDesconsiderar')}">&times;</button>`;
+      } else if(x.estado==='enviado'){
+        meta = `<span class="wmeta">✅ ${fmtWaDate(x.data)} · ${esc(x.quem||'')}</span>`;
+        labelTxt = `${esc(x.label)} - <span class="wreenviar">${t('waReenviar')}</span>`;
+      } else { // desconsiderado
+        meta = `<span class="wmeta">${t('waDesconsiderado')}</span>`;
+      }
+      const rowCls = x.estado==='desconsiderado' ? 'wa-row dimmed' : (x.estado==='pendente' && (noTel||!x.url) ? 'wa-row disabled' : 'wa-row');
+      return `<div class="${rowCls}" data-idx="${idx}">
+        <button class="wa-ic-btn ${cls}">${WA_SVG}</button>
+        <div class="wtx"><b>${labelTxt}</b>${meta}</div>
+        ${extra}
+      </div>`;
+    }).join('');
+    // X: desconsiderar (não envia, sai de pendente)
+    $$('#waList .wa-x').forEach(btn=>{
+      btn.onclick=(e)=>{ e.stopPropagation(); const x=computeAvisos(i, scope)[+btn.dataset.x]; if(x){ waDismiss(i.id,x.tipo); toast(t('waDesconsideradoOk'),'ok'); render(); reRenderView(); } };
+    });
+    $$('#waList .wa-row').forEach(row=>{
+      const x0=computeAvisos(i, scope)[+row.dataset.idx];
+      // long-press: reverte ENVIADO ou DESCONSIDERADO de volta a pendente
+      const wasLong = onLongPress(row, async()=>{
+        const x=computeAvisos(i, scope)[+row.dataset.idx];
+        if(!x) return;
+        if(x.estado==='enviado'){ await waUnmarkOne(i,x); render(); reRenderView(); }
+        else if(x.estado==='desconsiderado'){ waUndismiss(i.id,x.tipo); toast(t('waReativado'),'ok'); render(); reRenderView(); }
+      });
+      row.onclick=()=>{
+        if(wasLong()) return;
+        const x=computeAvisos(i, scope)[+row.dataset.idx];
+        if(!x || x.estado!=='pendente') return;         // só envia se pendente (enviado/desconsiderado: só long-press)
+        if(!x.url){ toast(t('waSemTel'),'err'); return; }
+        waSend(i,x); render(); reRenderView();
+      };
+    });
+    const hint=$('#waHint'); if(hint){ const temRev=a.some(x=>x.estado==='enviado'||x.estado==='desconsiderado'); hint.textContent=t('waHintDesmarcar'); hint.classList.toggle('hidden', !temRev); }
+  };
+  render();
+  const close=()=>{ m.classList.add('hidden'); $('#waClose').onclick=null; m.onclick=null; };
+  $('#waClose').textContent=t('fechar');
+  $('#waClose').onclick=close;
+  m.onclick=(e)=>{ if(e.target===m) close(); };
+  m.classList.remove('hidden');
+}
+function fmtWaDate(iso){ try{ const d=new Date(iso); return d.toLocaleDateString(lang==='es'?'es':'pt-BR',{day:'2-digit',month:'short'}); }catch(e){ return ''; } }
+
+// ===================================================================================
+
 // calcula os 3 bolsos (dinheiro/banco/outros), saldo do projeto e formas
 function computeCaixa(inscritos, despesas, movimentos){
   const bolso={dinheiro:0,banco:0,outros:0};
@@ -437,7 +660,13 @@ async function renderList(){
     const metaParts=[];
     if(i.tamanho) metaParts.push(esc(i.tamanho));
     if(i.telefone) metaParts.push(esc(i.telefone));
-    metaParts.push(`${soma}€ / ${i.cota}€`);
+    metaParts.push(`${soma}€`);
+    // ícone WhatsApp (à direita dos tags): A2 pendente / A4 reenviar / nada
+    const waSt=waCardState(i);
+    const waCls = waSt==='pendente'?'wa-ic-a2' : waSt==='enviado'?'wa-ic-a4' : 'wa-ic-off';
+    const waSlot = waSt ? `<div class="wa-slot" data-wa="${i.id}" data-wast="${waSt}">
+        <button class="wa-ic-btn ${waCls}" aria-label="${t('waTitulo')}" title="${waSt==='semtel'?t('waSemTel'):t('waTitulo')}">${WA_SVG}</button>
+      </div>` : '';
     return `<div class="card" data-id="${i.id}">
       <div class="num">${fmtNum(i.numero)}</div>
       <div class="info">
@@ -445,9 +674,23 @@ async function renderList(){
         <div class="meta">${metaParts.join(' · ')}</div>
       </div>
       <div class="badges">${right.join('')}</div>
+      ${waSlot}
     </div>`;
   }).join('');
   $$('#list .card').forEach(c=>c.onclick=()=>openModal(+c.dataset.id));
+  // ícone WhatsApp: clique isolado (não abre o modal de edição)
+  $$('#list .wa-slot').forEach(slot=>{
+    const wasLong = onLongPress(slot, async()=>{
+      if(slot.dataset.wast!=='enviado') return;   // só faz sentido desmarcar o que está enviado
+      const all=await getAll(); const i=all.find(x=>String(x.id)===String(slot.dataset.wa));
+      if(i){ await waUnmarkFlow(i); if(state.view==='lista') renderList(); }
+    });
+    slot.onclick=async(e)=>{ e.stopPropagation();
+      if(wasLong()) return;                                                    // foi long-press: não dispara envio
+      if(slot.dataset.wast==='semtel'){ toast(t('waSemTel'),'err'); return; }  // sem telefone: só avisa
+      const all=await getAll(); const i=all.find(x=>String(x.id)===String(slot.dataset.wa)); if(i) waTrigger(i);
+    };
+  });
   // highlight + scroll no card de onde viemos (ao fechar o modal)
   if(state.listHighlight!=null){
     const card=cardsEl.querySelector(`.card[data-id="${state.listHighlight}"]`);
@@ -911,6 +1154,7 @@ async function renderConfList(){
           <div class="nome"><span class="conf-name-link" data-id="${i.id}">${esc(i.nome)}</span> ${i.tamanho?`<span class="tam" style="font-size:12px">${esc(i.tamanho)}</span>`:''} ${dirty?'<span class="dirtydot"></span>':''}</div>
           <div class="sub"><span class="paytag ${pago?'ok':'no'}">${pago?t('pago'):t('pendPag')}</span></div>
         </div>
+        ${(()=>{ const ws=waCardState(i,'camisa'); return ws?`<div class="wa-slot" data-wa="${i.id}" data-wast="${ws}"><button class="wa-ic-btn ${ws==='pendente'?'wa-ic-a2':'wa-ic-off'}" aria-label="${t('waTitulo')}" title="${ws==='semtel'?t('waSemTel'):t('waTitulo')}">${WA_SVG}</button></div>`:''; })()}
       </div>
       ${pago?`<div class="pills">${pillCols}</div>`:''}
     </div>`;
@@ -937,6 +1181,13 @@ async function renderConfList(){
     const rec=all.find(x=>x.id===id);
     setDirtyData(rec, st, inp.value);
     updateSaveBtn(); renderConfList();
+  });
+  // ícone WhatsApp (escopo camisa) — clique isolado, abre o modal filtrado só p/ avisos de camisa
+  $$('#confList .wa-slot').forEach(slot=>{
+    slot.onclick=(e)=>{ e.stopPropagation();
+      if(slot.dataset.wast==='semtel'){ toast(t('waSemTel'),'err'); return; }
+      const rec=all.find(x=>String(x.id)===String(slot.dataset.wa)); if(rec) openWaModal(rec,'camisa');
+    };
   });
   // rola até o card destacado (vindo do modal), centralizado — mantém o highlight
   if(state.confHighlight!=null){
@@ -1099,6 +1350,20 @@ async function openModal(id){
     if(rec && rec.atualizadoEm && (!rec.criadoEm || fmtStampCurto(rec.atualizadoEm)!==fmtStampCurto(rec.criadoEm))) bits.push(t('tsAtual')+' '+fmtStampCurto(rec.atualizadoEm));
     tsEl.textContent = bits.join(' · ');
     tsEl.classList.toggle('hidden', bits.length===0);
+  }
+  // linha "Avisos WhatsApp" (só p/ registro já salvo; marca local)
+  const waLine=$('#waLine');
+  if(waLine){
+    const show = !!rec && featureOn('whatsapp');   // só com a feature ligada e registro salvo
+    waLine.classList.toggle('hidden', !show);
+    if(show){
+      const avisos=computeAvisos(rec);
+      const nPend=avisos.filter(x=>x.estado==='pendente').length;
+      const pill=$('#waLinePill');
+      pill.textContent = !avisos.length ? t('waNada')
+        : (nPend>0 ? (nPend+' '+t('waPendente')) : t('waReenviar'));
+      waLine.onclick=()=>{ const cur=(state.editing!=null)?rec:rec; openWaModal(rec); };
+    }
   }
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
@@ -1925,6 +2190,7 @@ function doSetView(v){
   $$('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   $('#fab').classList.toggle('hidden', v!=='lista' || effectiveRole()==='viewer');
   const fc=$('#fabCaixa'); if(fc) updateFabCaixa();
+  if(v==='lista') renderList();
   if(v==='painel') renderPainel();
   if(v==='confeccao') renderConfeccao();
   if(v==='caixa') renderCaixa();
@@ -2195,6 +2461,7 @@ function applyAdminUI(){
   auth.podeCaixaMgr = isCaixaEdit;                        // movimentacoes + deletar despesa: admin/tesoureiro
   auth.podeAddDespesa = isAdmin || (eff==='tesoureiro') || (eff==='user');  // criar/editar despesa: todos menos viewer
   const adminEl=$('#adminSection'); if(adminEl) adminEl.classList.toggle('hidden', !isAdmin);
+  const featEl=$('#featuresSection'); if(featEl){ featEl.classList.toggle('hidden', !isAdmin); if(isAdmin){ const c=$('#featWhatsappChk'); if(c) c.checked=featureOn('whatsapp'); } }
   const navC=$('#navCaixa'); if(navC) navC.classList.toggle('hidden', isViewer);   // Caixa: todos exceto viewer
   const navA=$('#navAcessos'); if(navA) navA.classList.toggle('hidden', !isAdmin);
   const navConf=$('#navConfeccao'); if(navConf) navConf.classList.toggle('hidden', isViewer);  // Confecção: escondida p/ viewer
@@ -2633,6 +2900,11 @@ async function startAppAfterLogin(){
   } else { setSync('off'); }
 }
 $('#btnLogout') && ($('#btnLogout').onclick=logout);
+$('#featWhatsappChk') && ($('#featWhatsappChk').onchange=function(){
+  setFeature('whatsapp', this.checked);
+  toast(this.checked? t('featOn') : t('featOff'), 'ok');
+  if(state.view==='lista') renderList();   // reflete o ícone no card na hora
+});
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
 $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }
