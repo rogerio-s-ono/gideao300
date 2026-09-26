@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.3-beta1';
+const APP_VERSION = 'v4.1.3-beta2';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -1567,7 +1567,7 @@ $('#save').onclick=async()=>{
   const all=await getAll();
   let rec=state.editing?all.find(x=>x.id===state.editing):{cota:COTA,textoOriginal:''};
   rec.numero=$('#f-numero').value.trim();
-  if(!rec.numero){ const n=await maxPlusOneNumber(); rec.numero=String(n).padStart(2,'0'); }
+  // número é OPCIONAL: se vazio, fica sem número (exibido como "s/n"). Use a lupa p/ sugerir um livre.
   rec.nome=nome;
   rec.telefone=$('#f-telefone').value.trim();
   rec.tamanho=$('#f-tamanho').value;
