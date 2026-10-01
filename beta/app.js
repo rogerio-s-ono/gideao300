@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.3-beta4';
+const APP_VERSION = 'v4.1.3-beta5';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -1727,7 +1727,7 @@ $('#fileRestore').onchange=async e=>{
       const first=base.slice(0,40), rest=base.slice(40);
       // o 1o POST com reset:true zera inscritos+despesas+movimentos e ja sobe as colecoes financeiras
       const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, reset:true, inscritos:first, despesas:despIn, movimentos:movIn})}, 30000);
+        body:JSON.stringify({idToken:auth.idToken, reset:true, inscritos:first, despesas:despIn, movimentos:movIn})}, 30000);
       const data=await r.json(); if(!data.ok) throw new Error(data.error||'reset_failed');
       if(rest.length) await pushAll(rest);
       await pull();                 // reconcilia: agora servidor == base restaurada
@@ -1901,7 +1901,7 @@ async function uploadPendentes(arr){
     let d=null, err=null;
     try{
       const resp=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:(f.filename || ('comprovante_'+Date.now()+(f.kind==='pdf'?'.pdf':'.jpg')))})}, 45000);
+        body:JSON.stringify({idToken:auth.idToken, action:'upload', dataUrl:f.dataUrl, filename:(f.filename || ('comprovante_'+Date.now()+(f.kind==='pdf'?'.pdf':'.jpg')))})}, 45000);
       try{ d=await resp.json(); }catch(_){ err='resposta inválida do servidor'; }
     }catch(e){ err=e && e.message ? e.message : 'falha de rede'; }
     if(!d || !d.ok || !d.url){ return {ok:false, error:(err || (d&&d.error) || 'upload')}; }
@@ -2417,7 +2417,7 @@ async function verifyAccessThenStart(){
   const le=$('#loginError'); if(le){ le.classList.add('hidden'); le.textContent=''; }
   setLoginChecking(true);
   try{
-    const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) + '&idToken=' + encodeURIComponent(auth.idToken);
+    const url = CFG.SHEET_WEBAPP_URL + '?action=pull&idToken=' + encodeURIComponent(auth.idToken);
     const r = await fetchTimeout(url, {method:'GET'}, 15000);
     const data = await r.json();
     if(data && data.ok){
@@ -2531,7 +2531,7 @@ let accEditing=null;         // email em edicao (null = novo)
 let accConfirmingDel=false;  // 2 estagios para remover
 
 async function usersApi(action, extra){
-  const body=Object.assign({token:CFG.SYNC_TOKEN, idToken:auth.idToken, action:action}, extra||{});
+  const body=Object.assign({idToken:auth.idToken, action:action}, extra||{});
   const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
   const data=await r.json();
   if(!data.ok) throw new Error(data.error||'admin_failed');
@@ -2708,7 +2708,7 @@ async function fetchTimeout(url, opts, ms){
 
 async function pull(){
   if(!ONLINE_ENABLED || !auth.idToken) return;
-  const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) +
+  const url = CFG.SHEET_WEBAPP_URL + '?action=pull' +
               '&idToken=' + encodeURIComponent(auth.idToken);
   const r = await fetchTimeout(url, {method:'GET'});
   const data = await r.json();
@@ -2760,7 +2760,7 @@ async function pushPending(){
   const pcx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
   const cxKeys=Object.keys(pcx);
   if(!ids.length && !delIds.length && !cxKeys.length) return;
-  const payload={token:CFG.SYNC_TOKEN, idToken:auth.idToken};
+  const payload={idToken:auth.idToken};
   // inscritos pendentes
   if(ids.length){ const all=await getAll(); payload.inscritos=all.filter(i=>ids.indexOf(String(i.id))>=0); }
   // inscritos apagados (tombstones)
@@ -2789,7 +2789,7 @@ async function pushPending(){
   return data;
 }
 async function serverCount(){
-  const url = CFG.SHEET_WEBAPP_URL + '?action=pull&token=' + encodeURIComponent(CFG.SYNC_TOKEN) +
+  const url = CFG.SHEET_WEBAPP_URL + '?action=pull' +
               '&idToken=' + encodeURIComponent(auth.idToken);
   const r = await fetchTimeout(url, {method:'GET'});
   const data = await r.json();
@@ -2802,7 +2802,7 @@ async function pushAll(records){
   for(let k=0;k<records.length;k+=40){
     const chunk=records.slice(k,k+40);
     const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, inscritos:chunk})});
+      body:JSON.stringify({idToken:auth.idToken, inscritos:chunk})});
     const data=await r.json();
     if(!data.ok) throw new Error(data.error||'push_failed');
   }
@@ -2925,7 +2925,7 @@ $('#btnReloadBase') && ($('#btnReloadBase').onclick=async()=>{
     if(ONLINE_ENABLED && auth.idToken){
       const first=base.slice(0,40), rest=base.slice(40);
       let r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({token:CFG.SYNC_TOKEN, idToken:auth.idToken, reset:true, inscritos:first})}, 30000);
+        body:JSON.stringify({idToken:auth.idToken, reset:true, inscritos:first})}, 30000);
       let data=await r.json(); if(!data.ok) throw new Error(data.error||'reset_failed');
       if(rest.length) await pushAll(rest);
       await pull();
