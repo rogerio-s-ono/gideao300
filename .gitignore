@@ -1,1 +1,8 @@
 backend/Code.gs.real
+
+# clasp / deploy automatizado do backend
+backend/node_modules/
+backend/.clasprc.json
+.clasprc.json
+# .clasp.json (scriptId) e .deploy.json (deploymentId) NÃO têm segredo (IDs já públicos na URL /exec)
+# — ficam versionados p/ o deploy funcionar direto. Secrets reais vivem nas Script Properties.
