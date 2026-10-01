@@ -47,7 +47,7 @@ const SHEET_NAME = 'Gideoes';
 const ADMIN_SHEET = 'Admin';
 const HEADERS = ['id','numero','nome','telefone','tamanho','cota','pagamentos_json',
                  'camisaEstado','datas_json','observacoes','aRevisar','textoOriginal',
-                 'atualizadoEm','atualizadoPor','isento','criadoEm'];
+                 'atualizadoEm','atualizadoPor','isento','criadoEm','avisos_json'];
 // coleções financeiras (fase Caixa)
 const DESP_SHEET='Despesas';
 const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','fotos_json','atualizadoEm','atualizadoPor','status','suspensoPor','suspensoEm'];
@@ -206,7 +206,8 @@ function _rowToObj(row){
     atualizadoEm: o.atualizadoEm || '',
     atualizadoPor: o.atualizadoPor || '',
     isento: o.isento === true || o.isento === 'true' || o.isento === 1,
-    criadoEm: o.criadoEm || ''
+    criadoEm: o.criadoEm || '',
+    avisos: _parse(o.avisos_json, {})
   };
 }
 function _parse(s, def){ try{ return s ? JSON.parse(s) : def; }catch(e){ return def; } }
@@ -215,7 +216,7 @@ function _objToRow(o){
     o.id, o.numero||'', o.nome||'', o.telefone||'', o.tamanho||'', o.cota||300,
     JSON.stringify(o.pagamentos||[]), o.camisaEstado||0, JSON.stringify(o.datas||{}),
     o.observacoes||'', !!o.aRevisar, o.textoOriginal||'',
-    o.atualizadoEm||'', o.atualizadoPor||'', !!o.isento, o.criadoEm||''
+    o.atualizadoEm||'', o.atualizadoPor||'', !!o.isento, o.criadoEm||'', JSON.stringify(o.avisos||{})
   ];
 }
 

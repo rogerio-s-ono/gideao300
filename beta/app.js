@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.4-beta1';
+const APP_VERSION = 'v4.1.4-beta2';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -388,15 +388,26 @@ function waLabel(tipo, i){
   return (L[lang]||L.pt)[tipo]||tipo;
 }
 // marca local (por dispositivo) — sincronização virá com o backend depois
-function waKey(id,tipo){ return 'gd_wa_'+id+'_'+tipo; }
-function waGetSent(id,tipo){ try{ return JSON.parse(localStorage.getItem(waKey(id,tipo))||'null'); }catch(e){ return null; } }
-function waMarkSent(id,tipo){ const quem=(auth&&(auth.role||auth.email))||'?'; localStorage.setItem(waKey(id,tipo), JSON.stringify({data:new Date().toISOString(), quem:quem})); }
-function waUnmark(id,tipo){ localStorage.removeItem(waKey(id,tipo)); }
-// "desconsiderar" (dispensar): não envia e sai de pendente (marca local separada)
-function waDisKey(id,tipo){ return 'gd_wadis_'+id+'_'+tipo; }
-function waGetDismissed(id,tipo){ return localStorage.getItem(waDisKey(id,tipo))==='1'; }
-function waDismiss(id,tipo){ localStorage.setItem(waDisKey(id,tipo),'1'); }
-function waUndismiss(id,tipo){ localStorage.removeItem(waDisKey(id,tipo)); }
+// Marca de avisos WhatsApp — agora PERSISTIDA no campo rec.avisos (sincroniza via planilha).
+// rec.avisos[tipo] = { estado:'enviado'|'desconsiderado', data:ISO, quem:role|email }.  Ausente = pendente.
+function waGetSent(rec,tipo){ const a=rec&&rec.avisos&&rec.avisos[tipo]; return (a&&a.estado==='enviado')? a : null; }
+function waGetDismissed(rec,tipo){ const a=rec&&rec.avisos&&rec.avisos[tipo]; return !!(a&&a.estado==='desconsiderado'); }
+// grava a marca no inscrito + persiste + enfileira p/ sync (como um pagamento). Viewer não marca.
+async function waSetMark(rec, tipo, estado){
+  if(effectiveRole()==='viewer') return false;
+  if(!rec.avisos || typeof rec.avisos!=='object') rec.avisos={};
+  if(estado===null){ delete rec.avisos[tipo]; }
+  else { rec.avisos[tipo] = { estado:estado, data:new Date().toISOString(), quem:(auth&&(auth.role||auth.email))||'?' }; }
+  rec.atualizadoEm=new Date().toISOString();
+  await put(rec);
+  markPending(rec.id);
+  if(ONLINE_ENABLED) syncNow();
+  return true;
+}
+function waMarkSent(rec,tipo){ return waSetMark(rec,tipo,'enviado'); }
+function waUnmark(rec,tipo){ return waSetMark(rec,tipo,null); }
+function waDismiss(rec,tipo){ return waSetMark(rec,tipo,'desconsiderado'); }
+function waUndismiss(rec,tipo){ return waSetMark(rec,tipo,null); }
 // long-press: dispara fn() após ~550ms mantendo pressionado (mouse/touch); cancela se soltar/mover antes
 function onLongPress(el, fn){
   let timer=null, fired=false;
@@ -425,8 +436,8 @@ function computeAvisos(i, scope){
   const lista = allow ? aplic.filter(tp=>allow.indexOf(tp)>=0) : aplic;
   const tel=normPhone(i.telefone);
   return lista.map(tipo=>{
-    const sent=waGetSent(i.id,tipo);
-    const dismissed=waGetDismissed(i.id,tipo);
+    const sent=waGetSent(i,tipo);
+    const dismissed=waGetDismissed(i,tipo);
     const estado = sent ? 'enviado' : (dismissed ? 'desconsiderado' : 'pendente');
     return { tipo, label:waLabel(tipo,i), estado,
              data: sent?sent.data:null, quem: sent?sent.quem:null,
@@ -452,7 +463,7 @@ async function waUnmarkFlow(i){
 async function waUnmarkOne(i, aviso){
   const ok=await confirmDialog(t('waDesmarcarT'), t('waDesmarcarMsg',{tipo:aviso.label}), {perigo:false, okText:t('waDesmarcarOk')});
   if(!ok) return;
-  waUnmark(i.id, aviso.tipo);
+  await waUnmark(i, aviso.tipo);
   toast(t('waDesmarcado'),'ok');
 }
 
@@ -463,11 +474,11 @@ function waTrigger(i){
   if(!featureOn('whatsapp')) return;   // feature desligada
   openWaModal(i);   // sempre abre o modal (envio só é confirmado tocando a linha lá dentro)
 }
-// abre a URL do wa.me e marca como enviado (local)
-function waSend(i, aviso){
+// abre a URL do wa.me e marca como enviado (persiste no rec.avisos + sincroniza)
+async function waSend(i, aviso){
   if(!aviso.url){ toast(t('waSemTel'),'err'); return; }
-  // marca ANTES de navegar (a navegação pode congelar o JS ao sair do app)
-  waMarkSent(i.id, aviso.tipo);
+  // marca ANTES de navegar (aguarda a gravação; a navegação pode congelar o JS ao sair do app)
+  await waMarkSent(i, aviso.tipo);
   toast(t('waEnviado'),'ok');
   // navega a própria janela: no iOS PWA o SO intercepta o wa.me e abre o WhatsApp
   // sem deixar uma aba vazia do browser in-app (que era o "Search or enter website name").
@@ -505,7 +516,7 @@ function openWaModal(i, scope){
     }).join('');
     // X: desconsiderar (não envia, sai de pendente)
     $$('#waList .wa-x').forEach(btn=>{
-      btn.onclick=(e)=>{ e.stopPropagation(); const x=computeAvisos(i, scope)[+btn.dataset.x]; if(x){ waDismiss(i.id,x.tipo); toast(t('waDesconsideradoOk'),'ok'); render(); reRenderView(); } };
+      btn.onclick=async(e)=>{ e.stopPropagation(); const x=computeAvisos(i, scope)[+btn.dataset.x]; if(x){ await waDismiss(i,x.tipo); toast(t('waDesconsideradoOk'),'ok'); render(); reRenderView(); } };
     });
     $$('#waList .wa-row').forEach(row=>{
       const x0=computeAvisos(i, scope)[+row.dataset.idx];
@@ -514,14 +525,14 @@ function openWaModal(i, scope){
         const x=computeAvisos(i, scope)[+row.dataset.idx];
         if(!x) return;
         if(x.estado==='enviado'){ await waUnmarkOne(i,x); render(); reRenderView(); }
-        else if(x.estado==='desconsiderado'){ waUndismiss(i.id,x.tipo); toast(t('waReativado'),'ok'); render(); reRenderView(); }
+        else if(x.estado==='desconsiderado'){ await waUndismiss(i,x.tipo); toast(t('waReativado'),'ok'); render(); reRenderView(); }
       });
-      row.onclick=()=>{
+      row.onclick=async()=>{
         if(wasLong()) return;
         const x=computeAvisos(i, scope)[+row.dataset.idx];
         if(!x || x.estado!=='pendente') return;         // só envia se pendente (enviado/desconsiderado: só long-press)
         if(!x.url){ toast(t('waSemTel'),'err'); return; }
-        waSend(i,x); render(); reRenderView();
+        await waSend(i,x);
       };
     });
     const hint=$('#waHint'); if(hint){ const temRev=a.some(x=>x.estado==='enviado'||x.estado==='desconsiderado'); hint.textContent=t('waHintDesmarcar'); hint.classList.toggle('hidden', !temRev); }
