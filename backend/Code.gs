@@ -318,7 +318,8 @@ function _adminUsersAction(body){
 // PULL: GET ?action=pull&token=...&idToken=...
 function doGet(e){
   var p = (e && e.parameter) || {};
-  if(p.token !== SYNC_TOKEN()) return _json({ok:false, error:'bad_token'});
+  // Segurança: NÃO depende mais do SYNC_TOKEN (que ficava exposto no frontend público).
+  // A barreira real é o login Google (idToken) + allowlist na aba Admin, via _verify().
   var u = _verify(p.idToken);
   if(!u) return _json({ok:false, error:'unauthorized'});
   var sh = _sheet();
@@ -339,7 +340,7 @@ function doGet(e){
 function doPost(e){
   var body = {};
   try{ body = JSON.parse(e.postData.contents); }catch(err){ return _json({ok:false, error:'bad_json'}); }
-  if(body.token !== SYNC_TOKEN()) return _json({ok:false, error:'bad_token'});
+  // Segurança: NÃO depende mais do SYNC_TOKEN. Barreira = login Google (idToken) + allowlist (_verify).
   var u = _verify(body.idToken);
   if(!u) return _json({ok:false, error:'unauthorized'});
   var email = u.email;
