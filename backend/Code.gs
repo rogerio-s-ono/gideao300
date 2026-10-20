@@ -110,11 +110,29 @@ function _diffPagtos(aJson, bJson){
   function soma(arr){ return arr.reduce(function(s,p){return s+(+p.valor||0);},0); }
   // contagem de parcelas marcadas "entregue ao tesoureiro" (flag de custódia)
   function entTeso(arr){ return arr.filter(function(p){ return p && (p.entregueTesoureiro===true || p.recebidoPor==='tesoureiro'); }).length; }
+  // contagem de parcelas em dinheiro com custódia do PASTOR (origemCusto)
+  function custPastor(arr){ return arr.filter(function(p){ return p && p.origemCusto==='pastor'; }).length; }
   var parts=[];
   var sa=soma(a), sb=soma(b), qa=a.length, qb=b.length;
   if(sa!==sb || qa!==qb){ parts.push('pagamento: '+sa+'→'+sb+' € ('+qa+'→'+qb+' itens)'); }
   var ta=entTeso(a), tb=entTeso(b);
   if(ta!==tb){ parts.push('entregue ao tesoureiro: '+ta+'→'+tb); }
+  var pa=custPastor(a), pb=custPastor(b);
+  if(pa!==pb){ parts.push('custódia pastor: '+pa+'→'+pb); }
+  return parts.join(' | ');
+}
+// diff específico de datas_json (etapas da camisa): emite só as etapas cujo valor mudou
+function _diffDatas(aJson, bJson){
+  var a={}, b={};
+  try{ a=JSON.parse(aJson||'{}')||{}; }catch(_){ a={}; }
+  try{ b=JSON.parse(bJson||'{}')||{}; }catch(_){ b={}; }
+  var ET={'1':'em confecção','2':'pronta','3':'entregue'};
+  var keys={}; Object.keys(a).forEach(function(k){keys[k]=1;}); Object.keys(b).forEach(function(k){keys[k]=1;});
+  var parts=[];
+  Object.keys(keys).forEach(function(k){
+    var va=a[k]||'∅', vb=b[k]||'∅';
+    if(String(va)!==String(vb)) parts.push('data '+(ET[k]||k)+': '+va+'→'+vb);
+  });
   return parts.join(' | ');
 }
 // diff antes->depois: retorna "campo: a→b | campo2: c→d" só dos campos que mudaram
@@ -126,6 +144,7 @@ function _diffResumo(antes, depois, headers){
     // campos JSON com diff dedicado (mais informativo que contagem)
     if(h==='avisos_json'){ var da=_diffAvisos(a,b); if(da) parts.push(da); return; }
     if(h==='pagamentos_json'){ var dp=_diffPagtos(a,b); if(dp) parts.push(dp); return; }
+    if(h==='datas_json'){ var dd=_diffDatas(a,b); if(dd) parts.push(dd); return; }
     var sa=_audVal(h,a), sb=_audVal(h,b);
     if(sa!==sb) parts.push(h+': '+(sa||'∅')+'→'+(sb||'∅'));
   });
