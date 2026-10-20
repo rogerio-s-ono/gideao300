@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.5-beta2';
+const APP_VERSION = 'v4.1.5-beta3';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -514,11 +514,16 @@ function waTrigger(i){
   openWaModal(i);   // sempre abre o modal (envio só é confirmado tocando a linha lá dentro)
 }
 // abre a URL do wa.me e marca como enviado (persiste no rec.avisos + sincroniza)
-async function waSend(i, aviso){
+async function waSend(i, aviso, afterMark){
   if(!aviso.url){ toast(t('waSemTel'),'err'); return; }
   // marca ANTES de navegar (aguarda a gravação; a navegação pode congelar o JS ao sair do app)
   await waMarkSent(i, aviso.tipo);
+  // re-renderiza o modal/lista ANTES de sair: ao voltar do WhatsApp o estado já aparece "enviado"
+  // (sem isso, o modal ficava mostrando "pendente" até fechar/reabrir — bug de refresh).
+  if(typeof afterMark==='function'){ try{ afterMark(); }catch(_){} }
   toast(t('waEnviado'),'ok');
+  // pequeno atraso garante o paint do re-render antes de a navegação congelar o JS
+  await new Promise(function(res){ setTimeout(res, 60); });
   // navega a própria janela: no iOS PWA o SO intercepta o wa.me e abre o WhatsApp
   // sem deixar uma aba vazia do browser in-app (que era o "Search or enter website name").
   window.location.href = aviso.url;
@@ -571,18 +576,25 @@ function openWaModal(i, scope){
         const x=computeAvisos(i, scope)[+row.dataset.idx];
         if(!x || x.estado!=='pendente') return;         // só envia se pendente (enviado/desconsiderado: só long-press)
         if(!x.url){ toast(t('waSemTel'),'err'); return; }
-        await waSend(i,x);
+        await waSend(i,x,()=>{ render(); reRenderView(); });
       };
     });
     const hint=$('#waHint'); if(hint){ const temRev=a.some(x=>x.estado==='enviado'||x.estado==='desconsiderado'); hint.textContent=t('waHintDesmarcar'); hint.classList.toggle('hidden', !temRev); }
   };
   render();
-  const close=()=>{ m.classList.add('hidden'); $('#waClose').onclick=null; m.onclick=null; };
+  // expõe o render atual p/ re-executar quando o app voltar a ficar visível (retorno do WhatsApp)
+  _waModalRender = render;
+  const close=()=>{ m.classList.add('hidden'); _waModalRender=null; $('#waClose').onclick=null; m.onclick=null; };
   $('#waClose').textContent=t('fechar');
   $('#waClose').onclick=close;
   m.onclick=(e)=>{ if(e.target===m) close(); };
   m.classList.remove('hidden');
 }
+// re-render do modal de avisos ao voltar ao app (fix: status "enviado" não aparecia ao retornar do WhatsApp)
+var _waModalRender=null;
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden && _waModalRender){ const m=$('#waModal'); if(m && !m.classList.contains('hidden')){ try{ _waModalRender(); }catch(_){} } }
+});
 function fmtWaDate(iso){ try{ const d=new Date(iso); return d.toLocaleDateString(lang==='es'?'es':'pt-BR',{day:'2-digit',month:'short'}); }catch(e){ return ''; } }
 
 // ============ Histórico / Audit log (item 5) ============
