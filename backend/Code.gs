@@ -90,12 +90,36 @@ function _audVal(h, v){
   if(h==='fotos_json'){ try{ return (JSON.parse(v||'[]').length)+' anexos'; }catch(_){ return '?'; } }
   var s=String(v); return s.length>40? s.slice(0,40)+'…' : s;
 }
+// diff específico de avisos_json: emite "aviso <tipo>: <estadoAntes>→<estadoDepois>" por tipo que mudou
+function _diffAvisos(aJson, bJson){
+  var a={}, b={};
+  try{ a=JSON.parse(aJson||'{}')||{}; }catch(_){ a={}; }
+  try{ b=JSON.parse(bJson||'{}')||{}; }catch(_){ b={}; }
+  var tipos={}; Object.keys(a).forEach(function(k){tipos[k]=1;}); Object.keys(b).forEach(function(k){tipos[k]=1;});
+  var parts=[];
+  Object.keys(tipos).forEach(function(tp){
+    var ea=(a[tp]&&a[tp].estado)||'pendente', eb=(b[tp]&&b[tp].estado)||'pendente';
+    if(ea!==eb) parts.push('aviso '+tp+': '+ea+'→'+eb);
+  });
+  return parts.join(' | ');
+}
+// diff específico de pagamentos_json: emite "pagamento: Σantes→Σdepois € (N→M itens)"
+function _diffPagtos(aJson, bJson){
+  function soma(j){ try{ return (JSON.parse(j||'[]')||[]).reduce(function(s,p){return s+(+p.valor||0);},0); }catch(_){ return 0; } }
+  function qtd(j){ try{ return (JSON.parse(j||'[]')||[]).length; }catch(_){ return 0; } }
+  var sa=soma(aJson), sb=soma(bJson), qa=qtd(aJson), qb=qtd(bJson);
+  if(sa===sb && qa===qb) return '';
+  return 'pagamento: '+sa+'→'+sb+' € ('+qa+'→'+qb+' itens)';
+}
 // diff antes->depois: retorna "campo: a→b | campo2: c→d" só dos campos que mudaram
 function _diffResumo(antes, depois, headers){
   var parts=[];
   (headers||Object.keys(depois||{})).forEach(function(h){
     if(_AUD_IGNORE[h]) return;
     var a=antes?antes[h]:undefined, b=depois?depois[h]:undefined;
+    // campos JSON com diff dedicado (mais informativo que contagem)
+    if(h==='avisos_json'){ var da=_diffAvisos(a,b); if(da) parts.push(da); return; }
+    if(h==='pagamentos_json'){ var dp=_diffPagtos(a,b); if(dp) parts.push(dp); return; }
     var sa=_audVal(h,a), sb=_audVal(h,b);
     if(sa!==sb) parts.push(h+': '+(sa||'∅')+'→'+(sb||'∅'));
   });
