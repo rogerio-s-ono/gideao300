@@ -125,6 +125,13 @@ function _diffResumo(antes, depois, headers){
   });
   return parts.join(' | ');
 }
+// diff a partir de DUAS LINHAS (arrays alinhados a headers) — usado p/ inscritos,
+// onde a linha já carrega os *_json serializados (evita o mismatch avisos vs avisos_json).
+function _diffRows(antesRow, depoisRow, headers){
+  var a={}, b={};
+  headers.forEach(function(h,i){ a[h]=antesRow?antesRow[i]:undefined; b[h]=depoisRow?depoisRow[i]:undefined; });
+  return _diffResumo(a, b, headers);
+}
 
 // consulta ao audit log. body.action='audit'.
 //  - por-Gideão: body.id (+ body.entidade padrão 'inscrito') -> qualquer usuário logado vê (read-only)
@@ -224,19 +231,18 @@ function _collUpsert(name, headers, arr, email, now, dels, entidade, papel, bulk
     var row=headers.map(function(h){ return o[h]!==undefined?o[h]:''; });
     var existing=idCol[String(o.id)];
     if(existing){
-      if(!bulk){ var antes=_rowObjH(values[existing-1], headers);
-        var acao='editar';
+      if(!bulk){ var antesRow=values[existing-1]; var acao='editar';
         // suspender/reativar despesa = transição do campo status
-        if(entidade==='despesa' && String(antes.status||'')!==String(o.status||'')){
-          if(String(o.status)==='suspensa') acao='suspender';
-          else if(String(antes.status)==='suspensa') acao='reativar';
+        if(entidade==='despesa'){
+          var si=headers.indexOf('status'); var stAntes=si>=0?String(antesRow[si]||''):''; var stDepois=String(o.status||'');
+          if(stAntes!==stDepois){ if(stDepois==='suspensa') acao='suspender'; else if(stAntes==='suspensa') acao='reativar'; }
         }
-        var resumo=_diffResumo(antes, o, headers);
+        var resumo=_diffRows(antesRow, row, headers);
         if(resumo || acao!=='editar') _audit({ts:now,usuario:email,papel:papel,acao:acao,entidade:entidade,id:o.id,rotulo:_audRotulo(entidade,o),resumo:resumo});
       }
       sh.getRange(existing,1,1,headers.length).setValues([row]);
     } else {
-      if(!bulk){ _audit({ts:now,usuario:email,papel:papel,acao:'criar',entidade:entidade,id:o.id,rotulo:_audRotulo(entidade,o),resumo:_diffResumo(null,o,headers)}); }
+      if(!bulk){ _audit({ts:now,usuario:email,papel:papel,acao:'criar',entidade:entidade,id:o.id,rotulo:_audRotulo(entidade,o),resumo:_diffRows(null,row,headers)}); }
       sh.appendRow(row);
     }
     saved++;
@@ -558,12 +564,11 @@ function doPost(e){
       var row = _objToRow(o);
       var existing = idCol[String(o.id)];
       if(existing){
-        if(!_bulk){ var antesIns=_rowToObj(values[existing-1]);
-          var resumoIns=_diffResumo(antesIns, o, HEADERS);
+        if(!_bulk){ var resumoIns=_diffRows(values[existing-1], row, HEADERS);
           if(resumoIns) _audit({ts:now,usuario:email,papel:u.role,acao:'editar',entidade:'inscrito',id:o.id,rotulo:_audRotulo('inscrito',o),resumo:resumoIns}); }
         sh.getRange(existing, 1, 1, HEADERS.length).setValues([row]);
       } else {
-        if(!_bulk){ _audit({ts:now,usuario:email,papel:u.role,acao:'criar',entidade:'inscrito',id:o.id,rotulo:_audRotulo('inscrito',o),resumo:_diffResumo(null,o,HEADERS)}); }
+        if(!_bulk){ _audit({ts:now,usuario:email,papel:u.role,acao:'criar',entidade:'inscrito',id:o.id,rotulo:_audRotulo('inscrito',o),resumo:_diffRows(null,row,HEADERS)}); }
         sh.appendRow(row);
       }
       saved++;
