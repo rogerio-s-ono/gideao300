@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.5-beta1';
+const APP_VERSION = 'v4.1.5-beta2';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -50,7 +50,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.', zerarPend:'Marcar avisos pendentes como desconsiderados', zerarPendNota:'Marca TODOS os avisos hoje pendentes como desconsiderados, de uma vez. Use para começar do zero: a partir daqui, só mudanças novas (novo cadastro, pagamento, camisa pronta/entregue) geram avisos pendentes. Sincroniza entre todos.', zerarConfT:'Zerar avisos pendentes', zerarConfMsg:'Encontrei {n} aviso(s) pendente(s) em {g} Gideão(ões). Marcar todos como desconsiderados? Eles saem da lista de pendentes (podem ser revertidos depois com toque longo).', zerarConfOk:'Marcar todos', zerarNada:'Nenhum aviso pendente para marcar.', zerarOk:'Pronto: {n} aviso(s) em {g} Gideão(ões) marcados como desconsiderados.', zerarErro:'Falha ao marcar avisos',
+    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.', zerarPend:'Marcar avisos pendentes como desconsiderados', zerarPendNota:'Marca TODOS os avisos hoje pendentes como desconsiderados, de uma vez. Use para começar do zero: a partir daqui, só mudanças novas (novo cadastro, pagamento, camisa pronta/entregue) geram avisos pendentes. Sincroniza entre todos.', zerarConfT:'Zerar avisos pendentes', zerarConfMsg:'Encontrei {n} aviso(s) pendente(s) em {g} Gideão(ões). Marcar todos como desconsiderados? Eles saem da lista de pendentes (podem ser revertidos depois com toque longo).', zerarConfOk:'Marcar todos', zerarNada:'Nenhum aviso pendente para marcar.', zerarOk:'Pronto: {n} aviso(s) em {g} Gideão(ões) marcados como desconsiderados.', zerarErro:'Falha ao marcar avisos', histTitulo:'Histórico', histVazio:'Sem alterações registradas ainda.', histCarregando:'Carregando…', histVerMais:'Ver mais 10', histErro:'Não foi possível carregar o histórico', histCriar:'criou', histEditar:'editou', histExcluir:'excluiu', histSuspender:'suspendeu', histReativar:'reativou', auditoriaBtn:'Auditoria (histórico geral)', auditoriaNota:'Registro de todas as alterações (Gideões, despesas, movimentos, estoque, usuários). Só administradores.', auditoriaTitulo:'Auditoria', audTodas:'Todas as entidades', audDespesa:'Despesa', audMovimento:'Movimento', audEstoque:'Estoque', audUsuario:'Usuário', audSistema:'Sistema', audBuscar:'Buscar', audUserPh:'usuário (email)', audReset:'reset', entInscrito:'Gideão', entDespesa:'despesa', entMovimento:'movimento', entEstoque:'estoque', entUsuario:'usuário', entSistema:'sistema',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
     suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
@@ -148,7 +148,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.', zerarPend:'Marcar avisos pendientes como descartados', zerarPendNota:'Marca TODOS los avisos pendientes de hoy como descartados, de una vez. Úsalo para empezar de cero: a partir de aquí, solo los cambios nuevos (nuevo registro, pago, camiseta lista/entregada) generan avisos pendientes. Se sincroniza entre todos.', zerarConfT:'Poner a cero avisos pendientes', zerarConfMsg:'Encontré {n} aviso(s) pendiente(s) en {g} Gedeón(es). ¿Marcar todos como descartados? Salen de la lista de pendientes (se pueden revertir luego con pulsación larga).', zerarConfOk:'Marcar todos', zerarNada:'No hay avisos pendientes para marcar.', zerarOk:'Listo: {n} aviso(s) en {g} Gedeón(es) marcados como descartados.', zerarErro:'Error al marcar avisos',
+    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.', zerarPend:'Marcar avisos pendientes como descartados', zerarPendNota:'Marca TODOS los avisos pendientes de hoy como descartados, de una vez. Úsalo para empezar de cero: a partir de aquí, solo los cambios nuevos (nuevo registro, pago, camiseta lista/entregada) generan avisos pendientes. Se sincroniza entre todos.', zerarConfT:'Poner a cero avisos pendientes', zerarConfMsg:'Encontré {n} aviso(s) pendiente(s) en {g} Gedeón(es). ¿Marcar todos como descartados? Salen de la lista de pendientes (se pueden revertir luego con pulsación larga).', zerarConfOk:'Marcar todos', zerarNada:'No hay avisos pendientes para marcar.', zerarOk:'Listo: {n} aviso(s) en {g} Gedeón(es) marcados como descartados.', zerarErro:'Error al marcar avisos', histTitulo:'Historial', histVazio:'Sin cambios registrados aún.', histCarregando:'Cargando…', histVerMais:'Ver 10 más', histErro:'No se pudo cargar el historial', histCriar:'creó', histEditar:'editó', histExcluir:'eliminó', histSuspender:'suspendió', histReativar:'reactivó', auditoriaBtn:'Auditoría (historial general)', auditoriaNota:'Registro de todos los cambios (Gedeones, gastos, movimientos, stock, usuarios). Solo administradores.', auditoriaTitulo:'Auditoría', audTodas:'Todas las entidades', audDespesa:'Gasto', audMovimento:'Movimiento', audEstoque:'Stock', audUsuario:'Usuario', audSistema:'Sistema', audBuscar:'Buscar', audUserPh:'usuario (email)', audReset:'reset', entInscrito:'Gedeón', entDespesa:'gasto', entMovimento:'movimiento', entEstoque:'stock', entUsuario:'usuario', entSistema:'sistema',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
     suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
@@ -584,6 +584,122 @@ function openWaModal(i, scope){
   m.classList.remove('hidden');
 }
 function fmtWaDate(iso){ try{ const d=new Date(iso); return d.toLocaleDateString(lang==='es'?'es':'pt-BR',{day:'2-digit',month:'short'}); }catch(e){ return ''; } }
+
+// ============ Histórico / Audit log (item 5) ============
+// chama o endpoint action:'audit' do backend (sob demanda). Por id = histórico do Gideão.
+async function auditApi(extra){
+  const body=Object.assign({idToken:auth.idToken, action:'audit'}, extra||{});
+  const r=await fetchTimeout(CFG.SHEET_WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+  const data=await r.json();
+  if(!data.ok) throw new Error(data.error||'audit_failed');
+  return data;
+}
+// tempo relativo PT/ES ("há 3 h", "ontem", "há 2 dias"); data exata fica no title (hover/toque)
+function fmtRelativo(iso){
+  try{
+    const d=new Date(iso), now=new Date(), diff=(now-d)/1000;
+    const es=(lang==='es');
+    if(diff<60) return es?'ahora mismo':'agora há pouco';
+    if(diff<3600){ const m=Math.floor(diff/60); return (es?'hace ':'há ')+m+' min'; }
+    if(diff<86400){ const h=Math.floor(diff/3600); return (es?'hace ':'há ')+h+' h'; }
+    const dias=Math.floor(diff/86400);
+    if(dias===1) return es?'ayer':'ontem';
+    if(dias<30) return (es?'hace ':'há ')+dias+(es?' días':' dias');
+    return fmtStampCurto(iso);
+  }catch(e){ return ''; }
+}
+// data/hora absoluta p/ o title
+function fmtAbs(iso){ try{ const d=new Date(iso); return d.toLocaleString(lang==='es'?'es':'pt-BR'); }catch(e){ return String(iso||''); } }
+// rótulo da ação traduzido
+function histAcaoLabel(acao){
+  const m={criar:'histCriar',editar:'histEditar',excluir:'histExcluir',suspender:'histSuspender',reativar:'histReativar'};
+  return m[acao]? t(m[acao]) : (acao||'');
+}
+// classe do ponto na timeline por ação
+function histAcaoClass(acao){ if(acao==='criar') return 'a-criar'; if(acao==='excluir') return 'a-excluir'; return ''; }
+// escapa HTML p/ interpolação segura no histórico
+function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// monta a linha de um evento (resumo pode vir "campo: a→b | ...")
+function histLinhaHtml(it){
+  const acao=escHtml(histAcaoLabel(it.acao));
+  const resumo = it.resumo? escHtml(it.resumo).replace(/→/g,' <span class="chg">→</span> ') : '';
+  return `<div class="hist-ev ${histAcaoClass(it.acao)}">`
+    + `<div class="l"><b>${acao}</b>${resumo? ' '+resumo:''}</div>`
+    + `<div class="m"><span>${escHtml(it.usuario||'?')}</span><span class="when" title="${escHtml(fmtAbs(it.ts))}">${escHtml(fmtRelativo(it.ts))}</span></div>`
+    + `</div>`;
+}
+// estado da paginação do histórico aberto
+let _histState={ items:[], shown:0, id:null };
+function histRender(){
+  const box=$('#histScroll'); if(!box) return;
+  const its=_histState.items;
+  if(!its.length){ box.innerHTML='<div class="hist-empty">'+t('histVazio')+'</div>'; return; }
+  const slice=its.slice(0, _histState.shown);
+  let html='<div class="hist-tl">'+slice.map(histLinhaHtml).join('')+'</div>';
+  if(_histState.shown < its.length){ html+='<button class="hist-more" id="histMore">'+t('histVerMais')+' ↓ ('+(its.length-_histState.shown)+')</button>'; }
+  box.innerHTML=html;
+  const mb=$('#histMore'); if(mb) mb.onclick=()=>{ _histState.shown=Math.min(_histState.shown+10, its.length); histRender(); };
+}
+async function openHistSheet(id, rotulo){
+  const ov=$('#histSheet'); if(!ov) return;
+  $('#histSub') && ($('#histSub').textContent = rotulo? (' · '+rotulo) : '');
+  $('#histScroll') && ($('#histScroll').innerHTML='<div class="hist-loading">'+t('histCarregando')+'</div>');
+  ov.classList.remove('hidden');
+  _histState={ items:[], shown:0, id:id };
+  try{
+    const data=await auditApi({ id:String(id), entidade:'inscrito', limit:500 });
+    _histState.items = data.items||[];
+    _histState.shown = Math.min(5, _histState.items.length);   // 5 por padrão
+    histRender();
+  }catch(e){
+    $('#histScroll') && ($('#histScroll').innerHTML='<div class="hist-empty">'+t('histErro')+'</div>');
+  }
+}
+function closeHistSheet(){ const ov=$('#histSheet'); if(ov) ov.classList.add('hidden'); }
+
+// ---- Auditoria global (só-admin): mesmo endpoint, sem id, com filtros + paginação ----
+function entLabel(ent){ const m={inscrito:'entInscrito',despesa:'entDespesa',movimento:'entMovimento',estoque:'entEstoque',usuario:'entUsuario',sistema:'entSistema'}; return m[ent]? t(m[ent]):(ent||''); }
+function audLinhaHtml(it){
+  const acao=escHtml(histAcaoLabel(it.acao)||it.acao||'');
+  const resumo = it.resumo? escHtml(it.resumo).replace(/→/g,' <span class="chg">→</span> ') : '';
+  const rot = it.rotulo? (' · '+escHtml(it.rotulo)) : '';
+  return `<div class="hist-ev ${histAcaoClass(it.acao)}">`
+    + `<div class="l"><span class="ent">${escHtml(entLabel(it.entidade))}</span><b>${acao}</b>${rot}${resumo? ' — '+resumo:''}</div>`
+    + `<div class="m"><span>${escHtml(it.usuario||'?')}</span><span class="when" title="${escHtml(fmtAbs(it.ts))}">${escHtml(fmtRelativo(it.ts))}</span></div>`
+    + `</div>`;
+}
+let _audState={ items:[], shown:0 };
+function audRender(){
+  const box=$('#audScroll'); if(!box) return;
+  const its=_audState.items;
+  if(!its.length){ box.innerHTML='<div class="hist-empty">'+t('histVazio')+'</div>'; return; }
+  const slice=its.slice(0,_audState.shown);
+  let html='<div class="hist-tl">'+slice.map(audLinhaHtml).join('')+'</div>';
+  if(_audState.shown<its.length){ html+='<button class="hist-more" id="audMore">'+t('histVerMais')+' ↓ ('+(its.length-_audState.shown)+')</button>'; }
+  box.innerHTML=html;
+  const mb=$('#audMore'); if(mb) mb.onclick=()=>{ _audState.shown=Math.min(_audState.shown+10,its.length); audRender(); };
+}
+async function audBuscar(){
+  const box=$('#audScroll'); if(!box) return;
+  box.innerHTML='<div class="hist-loading">'+t('histCarregando')+'</div>';
+  const ent=($('#audEnt')&&$('#audEnt').value)||'';
+  const user=($('#audUser')&&$('#audUser').value||'').trim();
+  const data=($('#audData')&&$('#audData').value)||'';
+  const extra={ limit:300 };
+  if(ent) extra.entidade=ent;
+  if(user) extra.usuario=user;
+  if(data){ extra.dataIni=data; extra.dataFim=data; }   // dia específico
+  try{
+    const res=await auditApi(extra);
+    _audState={ items:res.items||[], shown:Math.min(10, (res.items||[]).length) };
+    audRender();
+  }catch(e){
+    box.innerHTML='<div class="hist-empty">'+t('histErro')+(e&&e.message?(' ('+escHtml(e.message)+')'):'')+'</div>';
+  }
+}
+function openAudSheet(){ const ov=$('#audSheet'); if(!ov) return; ov.classList.remove('hidden'); audBuscar(); }
+function closeAudSheet(){ const ov=$('#audSheet'); if(ov) ov.classList.add('hidden'); }
+
 
 // ===================================================================================
 
@@ -1399,7 +1515,13 @@ async function openModal(id){
     if(rec && rec.criadoEm) bits.push(t('tsCriado')+' '+fmtStampCurto(rec.criadoEm));
     if(rec && rec.atualizadoEm && (!rec.criadoEm || fmtStampCurto(rec.atualizadoEm)!==fmtStampCurto(rec.criadoEm))) bits.push(t('tsAtual')+' '+fmtStampCurto(rec.atualizadoEm));
     tsEl.textContent = bits.join(' · ');
-    tsEl.classList.toggle('hidden', bits.length===0);
+    const row=$('#modalTsRow');
+    // mostra a linha se há timestamps OU se o registro já existe (p/ exibir o (i) de histórico)
+    const hasRec = !!(rec && rec.id);
+    if(row){ row.classList.toggle('hidden', bits.length===0 && !hasRec); }
+    // botão (i): só p/ registro já salvo (histórico só existe p/ quem já foi gravado)
+    const bHist=$('#btnHist');
+    if(bHist){ bHist.classList.toggle('hidden', !hasRec); if(hasRec) bHist.dataset.id=rec.id; }
   }
   // linha "Avisos WhatsApp" (só p/ registro já salvo; marca local)
   const waLine=$('#waLine');
@@ -2956,6 +3078,23 @@ $('#featWhatsappChk') && ($('#featWhatsappChk').onchange=function(){
   if(state.view==='lista') renderList();   // reflete o ícone no card na hora
 });
 $('#btnZerarAvisos') && ($('#btnZerarAvisos').onclick=zerarAvisosPendentes);
+// (i) histórico do Gideão -> abre o bottom sheet
+$('#btnHist') && ($('#btnHist').onclick=function(){
+  const id=this.dataset.id; if(!id) return;
+  if(!ONLINE_ENABLED || !auth.idToken){ toast(t('histErro'),'err'); return; }
+  const nomeEl=$('#f-nome'); const rot = nomeEl? (nomeEl.value||'').trim() : '';
+  openHistSheet(id, rot);
+});
+$('#histClose') && ($('#histClose').onclick=closeHistSheet);
+$('#histSheet') && ($('#histSheet').addEventListener('click', function(e){ if(e.target===this) closeHistSheet(); }));
+// Auditoria global (só-admin; a seção #featuresSection já é admin-only)
+$('#btnAuditoria') && ($('#btnAuditoria').onclick=function(){
+  if(!ONLINE_ENABLED || !auth.idToken){ toast(t('histErro'),'err'); return; }
+  openAudSheet();
+});
+$('#audClose') && ($('#audClose').onclick=closeAudSheet);
+$('#audSheet') && ($('#audSheet').addEventListener('click', function(e){ if(e.target===this) closeAudSheet(); }));
+$('#audBuscar') && ($('#audBuscar').onclick=audBuscar);
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
 $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }

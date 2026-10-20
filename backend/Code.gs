@@ -56,6 +56,90 @@ const MOV_HEADERS=['id','de','para','valor','data','comentario','atualizadoEm','
 const EST_SHEET='Estoque';
 const EST_HEADERS=['id','tamanho','delta','motivo','data','atualizadoEm','atualizadoPor'];
 
+// ===== Audit log (item 5) =====
+const AUD_SHEET='Auditoria';
+const AUD_HEADERS=['ts','usuario','papel','acao','entidade','id','rotulo','resumo'];
+// mapa de estado da camisa (código -> rótulo) para o diff legível
+const _EST_LABEL={'0':'a fazer','1':'em confecção','2':'pronta','3':'entregue'};
+// campos ignorados no diff (ruído: o servidor sempre mexe)
+const _AUD_IGNORE={atualizadoEm:1, atualizadoPor:1};
+
+// helper best-effort: NUNCA pode derrubar a gravação do dado de negócio.
+function _audit(entry){
+  try{
+    var ss=SpreadsheetApp.getActiveSpreadsheet();
+    var sh=ss.getSheetByName(AUD_SHEET);
+    if(!sh){ sh=ss.insertSheet(AUD_SHEET); sh.appendRow(AUD_HEADERS); }
+    else if(sh.getLastRow()===0){ sh.appendRow(AUD_HEADERS); }
+    sh.appendRow([
+      entry.ts||new Date().toISOString(),
+      entry.usuario||'?', entry.papel||'', entry.acao||'', entry.entidade||'',
+      (entry.id!==undefined&&entry.id!==null)?String(entry.id):'',
+      entry.rotulo||'', entry.resumo||''
+    ]);
+  }catch(e){ /* best-effort: ignora falha de log */ }
+}
+
+// formata um valor para o diff (trata JSON grande, código de camisa, datas)
+function _audVal(h, v){
+  if(v===undefined||v===null) return '';
+  if(h==='camisaEstado') return _EST_LABEL[String(v)]||String(v);
+  if(h==='isento') return (v===true||v==='true'||v==='sim')?'sim':'não';
+  if(h==='pagamentos_json'){ try{ return (JSON.parse(v||'[]').length)+' itens'; }catch(_){ return '?'; } }
+  if(h==='avisos_json'){ try{ var o=JSON.parse(v||'{}'); return Object.keys(o).length+' avisos'; }catch(_){ return '?'; } }
+  if(h==='fotos_json'){ try{ return (JSON.parse(v||'[]').length)+' anexos'; }catch(_){ return '?'; } }
+  var s=String(v); return s.length>40? s.slice(0,40)+'…' : s;
+}
+// diff antes->depois: retorna "campo: a→b | campo2: c→d" só dos campos que mudaram
+function _diffResumo(antes, depois, headers){
+  var parts=[];
+  (headers||Object.keys(depois||{})).forEach(function(h){
+    if(_AUD_IGNORE[h]) return;
+    var a=antes?antes[h]:undefined, b=depois?depois[h]:undefined;
+    var sa=_audVal(h,a), sb=_audVal(h,b);
+    if(sa!==sb) parts.push(h+': '+(sa||'∅')+'→'+(sb||'∅'));
+  });
+  return parts.join(' | ');
+}
+
+// consulta ao audit log. body.action='audit'.
+//  - por-Gideão: body.id (+ body.entidade padrão 'inscrito') -> qualquer usuário logado vê (read-only)
+//  - global: sem id -> SÓ ADMIN; filtros opcionais: entidade, usuario, dataIni/dataFim (ISO), q (busca)
+//  paginação: body.offset (default 0), body.limit (default 50). Retorna mais recentes primeiro.
+function _auditQuery(body, u){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sh=ss.getSheetByName(AUD_SHEET);
+  if(!sh || sh.getLastRow()<2){ return _json({ok:true, items:[], total:0}); }
+  var values=sh.getDataRange().getValues();           // [0]=header
+  var byId = (body.id!==undefined && body.id!==null && String(body.id)!=='');
+  if(!byId && u.role!=='admin'){ return _json({ok:false, error:'forbidden'}); }  // global = só admin
+  var fEnt=body.entidade?String(body.entidade):'';
+  var fUser=body.usuario?String(body.usuario).toLowerCase():'';
+  var fIni=body.dataIni?String(body.dataIni):'';
+  var fFim=body.dataFim?String(body.dataFim):'';
+  var fq=body.q?String(body.q).toLowerCase():'';
+  var all=[];
+  for(var r=1;r<values.length;r++){
+    var row=values[r];
+    var it={ ts:row[0], usuario:row[1], papel:row[2], acao:row[3], entidade:row[4], id:row[5], rotulo:row[6], resumo:row[7] };
+    if(byId){ if(String(it.id)!==String(body.id)) continue;
+              if(String(it.entidade)!==String(body.entidade||'inscrito')) continue; }
+    else {
+      if(fEnt && String(it.entidade)!==fEnt) continue;
+      if(fUser && String(it.usuario).toLowerCase().indexOf(fUser)<0) continue;
+      if(fIni && String(it.ts)<fIni) continue;
+      if(fFim && String(it.ts)>fFim+'\uffff') continue;
+      if(fq){ var hay=(it.rotulo+' '+it.resumo+' '+it.acao+' '+it.entidade).toLowerCase(); if(hay.indexOf(fq)<0) continue; }
+    }
+    all.push(it);
+  }
+  all.sort(function(a,b){ return String(b.ts).localeCompare(String(a.ts)); });  // mais recente primeiro
+  var total=all.length;
+  var off=Number(body.offset||0), lim=Number(body.limit||50);
+  var page=all.slice(off, off+lim);
+  return _json({ok:true, items:page, total:total, offset:off, limit:lim});
+}
+
 function _collSheet(name, headers){
   const ss=SpreadsheetApp.getActiveSpreadsheet();
   let sh=ss.getSheetByName(name);
@@ -82,14 +166,29 @@ function _collGetAll(name, headers){
   }
   return out;
 }
-function _collUpsert(name, headers, arr, email, now, dels){
+// converte uma linha (array) em objeto conforme headers
+function _rowObjH(row, headers){ var o={}; headers.forEach(function(h,i){ o[h]=row[i]; }); return o; }
+// rótulo legível por entidade (nome/descrição) para o log
+function _audRotulo(entidade, o){
+  if(!o) return '';
+  if(entidade==='inscrito') return o.nome||('nº '+(o.numero||'s/n'));
+  if(entidade==='despesa')  return o.descricao||('despesa '+o.id);
+  if(entidade==='movimento')return (o.de||'?')+'→'+(o.para||'?');
+  if(entidade==='estoque')  return 'tam '+(o.tamanho||'?');
+  return String(o.id||'');
+}
+function _collUpsert(name, headers, arr, email, now, dels, entidade, papel, bulk){
   const sh=_collSheet(name, headers);
   var values=sh.getDataRange().getValues();
   const idCol={}; for(var r=1;r<values.length;r++){ idCol[String(values[r][0])]=r+1; }
   // deleções primeiro (de baixo pra cima para não bagunçar índices)
   if(dels && dels.length){
     var rowsToDelete=dels.map(function(id){return idCol[String(id)];}).filter(Boolean).sort(function(a,b){return b-a;});
-    rowsToDelete.forEach(function(rowIdx){ sh.deleteRows(rowIdx,1); });
+    rowsToDelete.forEach(function(rowIdx){
+      if(!bulk){ var antes=_rowObjH(values[rowIdx-1], headers);
+        _audit({ts:now,usuario:email,papel:papel,acao:'excluir',entidade:entidade,id:antes.id,rotulo:_audRotulo(entidade,antes),resumo:'(removido)'}); }
+      sh.deleteRows(rowIdx,1);
+    });
     // recomputa índices
     values=sh.getDataRange().getValues(); for(var k in idCol) delete idCol[k];
     for(var r2=1;r2<values.length;r2++){ idCol[String(values[r2][0])]=r2+1; }
@@ -100,8 +199,22 @@ function _collUpsert(name, headers, arr, email, now, dels){
     if(o.fotos!==undefined && o.fotos_json===undefined){ o.fotos_json=JSON.stringify(o.fotos||[]); }
     var row=headers.map(function(h){ return o[h]!==undefined?o[h]:''; });
     var existing=idCol[String(o.id)];
-    if(existing){ sh.getRange(existing,1,1,headers.length).setValues([row]); }
-    else { sh.appendRow(row); }
+    if(existing){
+      if(!bulk){ var antes=_rowObjH(values[existing-1], headers);
+        var acao='editar';
+        // suspender/reativar despesa = transição do campo status
+        if(entidade==='despesa' && String(antes.status||'')!==String(o.status||'')){
+          if(String(o.status)==='suspensa') acao='suspender';
+          else if(String(antes.status)==='suspensa') acao='reativar';
+        }
+        var resumo=_diffResumo(antes, o, headers);
+        if(resumo || acao!=='editar') _audit({ts:now,usuario:email,papel:papel,acao:acao,entidade:entidade,id:o.id,rotulo:_audRotulo(entidade,o),resumo:resumo});
+      }
+      sh.getRange(existing,1,1,headers.length).setValues([row]);
+    } else {
+      if(!bulk){ _audit({ts:now,usuario:email,papel:papel,acao:'criar',entidade:entidade,id:o.id,rotulo:_audRotulo(entidade,o),resumo:_diffResumo(null,o,headers)}); }
+      sh.appendRow(row);
+    }
     saved++;
   });
   return saved;
@@ -241,6 +354,7 @@ function _usersList(sh){
 }
 // executa listUsers/addUser/setRole/removeUser sobre a aba Admin (ja validado role=admin no doPost)
 function _adminUsersAction(body){
+  var _actor=body._actor||'?', _arole=body._actorRole||'admin', _now=new Date().toISOString();
   var lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try{
@@ -273,6 +387,7 @@ function _adminUsersAction(body){
       var lastR = sh.getLastRow();
       if(lastR > 1){ sh.getRange(2,1,lastR-1, Math.max(3, sh.getLastColumn())).clearContent(); }
       sh.getRange(2,1,rows.length,3).setValues(rows);
+      _audit({ts:_now,usuario:_actor,papel:_arole,acao:'user_replace',entidade:'usuario',id:'',rotulo:rows.length+' usuários',resumo:'substituiu lista de usuários'});
       return _json({ok:true, users:_usersList(sh)});
     }
 
@@ -292,14 +407,17 @@ function _adminUsersAction(body){
     if(act === 'addUser'){
       if(rowIdx) return _json({ok:false, error:'already_exists'});
       sh.appendRow([target, role, nome]);   // email | papel | nome
+      _audit({ts:_now,usuario:_actor,papel:_arole,acao:'user_add',entidade:'usuario',id:target,rotulo:target,resumo:'papel='+role});
     } else if(act === 'setRole'){
       if(!rowIdx) return _json({ok:false, error:'not_found'});
       // nao deixa rebaixar o ULTIMO admin (para qualquer papel nao-admin)
       if(map[target]==='admin' && role!=='admin' && _countAdmins(map)<=1){
         return _json({ok:false, error:'last_admin'});
       }
+      var _oldRole=map[target]||'?';
       sh.getRange(rowIdx, 2, 1, 1).setValue(role);         // col B = papel
       if(body.nome !== undefined){ sh.getRange(rowIdx, 3, 1, 1).setValue(nome); }  // col C = nome (se enviado)
+      _audit({ts:_now,usuario:_actor,papel:_arole,acao:'user_role',entidade:'usuario',id:target,rotulo:target,resumo:'papel: '+_oldRole+'→'+role});
     } else if(act === 'removeUser'){
       if(!rowIdx) return _json({ok:false, error:'not_found'});
       // nao deixa remover o ULTIMO admin
@@ -307,6 +425,7 @@ function _adminUsersAction(body){
         return _json({ok:false, error:'last_admin'});
       }
       sh.deleteRow(rowIdx);
+      _audit({ts:_now,usuario:_actor,papel:_arole,acao:'user_remove',entidade:'usuario',id:target,rotulo:target,resumo:'(removido)'});
     } else {
       return _json({ok:false, error:'unknown_action'});
     }
@@ -345,6 +464,11 @@ function doPost(e){
   var u = _verify(body.idToken);
   if(!u) return _json({ok:false, error:'unauthorized'});
   var email = u.email;
+  // ---- consulta ao audit log (READ-ONLY; viewer tambem pode ver) ----
+  if(body.action === 'audit'){
+    try{ return _auditQuery(body, u); }
+    catch(err){ return _json({ok:false, error:'audit_failed:'+err.message}); }
+  }
   // ---- viewer (Visualizador) = SOMENTE LEITURA: rejeita qualquer escrita/ação via POST ----
   if(u.role === 'viewer'){ return _json({ok:false, error:'forbidden_readonly'}); }
   // ---- upload de imagem (foto de fatura) para o Google Drive ----
@@ -357,7 +481,7 @@ function doPost(e){
   // ---- gestao de usuarios (tela de Admin) — SO admin ----
   if(body.action === 'listUsers' || body.action === 'addUser' || body.action === 'setRole' || body.action === 'removeUser' || body.action === 'replaceUsers'){
     if(u.role !== 'admin') return _json({ok:false, error:'forbidden'});
-    try{ return _adminUsersAction(body); }
+    try{ body._actor=u.email; body._actorRole=u.role; return _adminUsersAction(body); }
     catch(err){ return _json({ok:false, error:'admin_failed:'+err.message}); }
   }
   // ---- seguranca: dados financeiros (Caixa) por papel ----
@@ -386,32 +510,47 @@ function doPost(e){
       var shE = _collSheet(EST_SHEET, EST_HEADERS);
       var lastE = shE.getLastRow(); if(lastE > 1){ shE.deleteRows(2, lastE - 1); }
     }
+    var now = new Date().toISOString();
+    var _bulk = (body.reset===true);
     // deleção de inscritos por id (tombstones enviados pelo cliente) — apaga de baixo pra cima
     if(body.inscritosDel && body.inscritosDel.length){
       var delSet={}; body.inscritosDel.forEach(function(id){ delSet[String(id)]=1; });
       var vAll=sh.getDataRange().getValues();
       var rowsDel=[];
       for(var rr=1; rr<vAll.length; rr++){ if(delSet[String(vAll[rr][0])]) rowsDel.push(rr+1); }
-      rowsDel.sort(function(a,b){return b-a;}).forEach(function(rowIdx){ sh.deleteRows(rowIdx,1); });
+      rowsDel.sort(function(a,b){return b-a;}).forEach(function(rowIdx){
+        if(!_bulk){ var antesO=_rowToObj(vAll[rowIdx-1]);
+          _audit({ts:now,usuario:email,papel:u.role,acao:'excluir',entidade:'inscrito',id:antesO.id,rotulo:_audRotulo('inscrito',antesO),resumo:'(removido)'}); }
+        sh.deleteRows(rowIdx,1);
+      });
     }
     var values = sh.getDataRange().getValues();
     var idCol = {}; // id -> rowIndex(1-based)
     for(var r=1; r<values.length; r++){ idCol[String(values[r][0])] = r+1; }
-    var now = new Date().toISOString();
     var saved = 0;
     arr.forEach(function(o){
       o.atualizadoEm = now;
       o.atualizadoPor = email;
       var row = _objToRow(o);
       var existing = idCol[String(o.id)];
-      if(existing){ sh.getRange(existing, 1, 1, HEADERS.length).setValues([row]); }
-      else { sh.appendRow(row); }
+      if(existing){
+        if(!_bulk){ var antesIns=_rowToObj(values[existing-1]);
+          var resumoIns=_diffResumo(antesIns, o, HEADERS);
+          if(resumoIns) _audit({ts:now,usuario:email,papel:u.role,acao:'editar',entidade:'inscrito',id:o.id,rotulo:_audRotulo('inscrito',o),resumo:resumoIns}); }
+        sh.getRange(existing, 1, 1, HEADERS.length).setValues([row]);
+      } else {
+        if(!_bulk){ _audit({ts:now,usuario:email,papel:u.role,acao:'criar',entidade:'inscrito',id:o.id,rotulo:_audRotulo('inscrito',o),resumo:_diffResumo(null,o,HEADERS)}); }
+        sh.appendRow(row);
+      }
       saved++;
     });
     var savedDesp=0, savedMov=0, savedEst=0;
-    if(body.despesas || body.despesasDel){ savedDesp=_collUpsert(DESP_SHEET, DESP_HEADERS, body.despesas||[], email, now, body.despesasDel||[]); }
-    if(body.movimentos || body.movimentosDel){ savedMov=_collUpsert(MOV_SHEET, MOV_HEADERS, body.movimentos||[], email, now, body.movimentosDel||[]); }
-    if(body.estoque || body.estoqueDel){ savedEst=_collUpsert(EST_SHEET, EST_HEADERS, body.estoque||[], email, now, body.estoqueDel||[]); }
+    if(body.despesas || body.despesasDel){ savedDesp=_collUpsert(DESP_SHEET, DESP_HEADERS, body.despesas||[], email, now, body.despesasDel||[], 'despesa', u.role, _bulk); }
+    if(body.movimentos || body.movimentosDel){ savedMov=_collUpsert(MOV_SHEET, MOV_HEADERS, body.movimentos||[], email, now, body.movimentosDel||[], 'movimento', u.role, _bulk); }
+    if(body.estoque || body.estoqueDel){ savedEst=_collUpsert(EST_SHEET, EST_HEADERS, body.estoque||[], email, now, body.estoqueDel||[], 'estoque', u.role, _bulk); }
+    // restore/reset em massa = 1 linha-resumo (não 1 por registro)
+    if(_bulk){ _audit({ts:now,usuario:email,papel:u.role,acao:'reset',entidade:'sistema',id:'',rotulo:'restore',
+      resumo:'restaurou base · '+saved+' inscritos, '+savedDesp+' despesas, '+savedMov+' movimentos, '+savedEst+' estoque'}); }
     return _json({ok:true, saved: saved, savedDesp: savedDesp, savedMov: savedMov, savedEst: savedEst, serverTime: now, user: email, role: u.role});
   } finally {
     lock.releaseLock();
@@ -443,7 +582,7 @@ function dailyBackup(){
     var today = new Date();
     var stamp = _ymd(today);
     // backup FULL: copia todas as abas de dados (Gideoes + Despesas + Movimentos + Admin)
-    var dataSheets = [SHEET_NAME, DESP_SHEET, MOV_SHEET, EST_SHEET, ADMIN_SHEET];
+    var dataSheets = [SHEET_NAME, DESP_SHEET, MOV_SHEET, EST_SHEET, ADMIN_SHEET, AUD_SHEET];
     dataSheets.forEach(function(srcName){
       var src = ss.getSheetByName(srcName);
       if(!src) return;
