@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.4-beta3';
+const APP_VERSION = 'v4.1.4-beta4';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -50,7 +50,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.', migrarAvisos:'Migrar avisos deste dispositivo → servidor', migrarAvisosNota:'Sobe o histórico de avisos WhatsApp (enviados/desconsiderados) guardado SÓ neste dispositivo para o servidor, para virar o estado compartilhado. Rode uma única vez, no aparelho que tem o histórico real.', migrarConfT:'Migrar avisos para o servidor', migrarConfMsg:'Encontrei {n} marca(s) de aviso neste dispositivo ({env} enviado(s), {des} desconsiderado(s)) em {g} Gideão(ões). Enviar ao servidor como estado compartilhado? Marcas já existentes no servidor para os mesmos avisos serão sobrescritas por estas.', migrarConfOk:'Migrar agora', migrarNada:'Nenhuma marca de aviso encontrada neste dispositivo.', migrarOk:'Migração concluída: {n} aviso(s) em {g} Gideão(ões) enviados ao servidor.', migrarErro:'Falha ao migrar avisos', migrarJaFeito:'Este dispositivo já migrou os avisos antes. Deseja migrar novamente (sobrescreve no servidor com o estado atual deste dispositivo)?',
+    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.', zerarPend:'Marcar avisos pendentes como desconsiderados', zerarPendNota:'Marca TODOS os avisos hoje pendentes como desconsiderados, de uma vez. Use para começar do zero: a partir daqui, só mudanças novas (novo cadastro, pagamento, camisa pronta/entregue) geram avisos pendentes. Sincroniza entre todos.', zerarConfT:'Zerar avisos pendentes', zerarConfMsg:'Encontrei {n} aviso(s) pendente(s) em {g} Gideão(ões). Marcar todos como desconsiderados? Eles saem da lista de pendentes (podem ser revertidos depois com toque longo).', zerarConfOk:'Marcar todos', zerarNada:'Nenhum aviso pendente para marcar.', zerarOk:'Pronto: {n} aviso(s) em {g} Gideão(ões) marcados como desconsiderados.', zerarErro:'Falha ao marcar avisos',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
     suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
@@ -148,7 +148,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.', migrarAvisos:'Migrar avisos de este dispositivo → servidor', migrarAvisosNota:'Sube el historial de avisos WhatsApp (enviados/descartados) guardado SOLO en este dispositivo al servidor, para que sea el estado compartido. Hazlo una sola vez, en el aparato que tiene el historial real.', migrarConfT:'Migrar avisos al servidor', migrarConfMsg:'Encontré {n} marca(s) de aviso en este dispositivo ({env} enviado(s), {des} descartado(s)) en {g} Gedeón(es). ¿Enviar al servidor como estado compartido? Las marcas ya existentes en el servidor para los mismos avisos se sobrescribirán por estas.', migrarConfOk:'Migrar ahora', migrarNada:'No se encontró ninguna marca de aviso en este dispositivo.', migrarOk:'Migración completada: {n} aviso(s) en {g} Gedeón(es) enviados al servidor.', migrarErro:'Error al migrar avisos', migrarJaFeito:'Este dispositivo ya migró los avisos antes. ¿Migrar de nuevo (sobrescribe en el servidor con el estado actual de este dispositivo)?',
+    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.', zerarPend:'Marcar avisos pendientes como descartados', zerarPendNota:'Marca TODOS los avisos pendientes de hoy como descartados, de una vez. Úsalo para empezar de cero: a partir de aquí, solo los cambios nuevos (nuevo registro, pago, camiseta lista/entregada) generan avisos pendientes. Se sincroniza entre todos.', zerarConfT:'Poner a cero avisos pendientes', zerarConfMsg:'Encontré {n} aviso(s) pendiente(s) en {g} Gedeón(es). ¿Marcar todos como descartados? Salen de la lista de pendientes (se pueden revertir luego con pulsación larga).', zerarConfOk:'Marcar todos', zerarNada:'No hay avisos pendientes para marcar.', zerarOk:'Listo: {n} aviso(s) en {g} Gedeón(es) marcados como descartados.', zerarErro:'Error al marcar avisos',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
     suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
@@ -409,76 +409,42 @@ function waUnmark(rec,tipo){ return waSetMark(rec,tipo,null); }
 function waDismiss(rec,tipo){ return waSetMark(rec,tipo,'desconsiderado'); }
 function waUndismiss(rec,tipo){ return waSetMark(rec,tipo,null); }
 
-// ===== Migração ÚNICA: marcas de avisos do localStorage (modelo antigo, por dispositivo) -> servidor =====
-// Modelo antigo (produção v4.1.4): enviados em 'gd_wa_<id>_<tipo>' = {data,quem}; desconsiderados em 'gd_wadis_<id>_<tipo>' = '1'.
-// Lê essas chaves DESTE dispositivo, monta rec.avisos[tipo]={estado,data,quem} preservando data/quem dos enviados,
-// grava no inscrito, marca pendente e sincroniza. Idempotente por natureza (reescreve sempre o mesmo valor).
-const WA_TIPOS = ['cadastro','pagtoParcial','cotaCompleta','camisaPronta','camisaEntregue'];
-function waScanLocalMarks(){
-  // retorna { porId: {id: {tipo:{estado,data,quem}}}, nEnviados, nDesc, nGideoes }
-  const porId={}; let nEnviados=0, nDesc=0;
-  for(let k=0;k<localStorage.length;k++){
-    const key=localStorage.key(k);
-    if(!key) continue;
-    let m=key.match(/^gd_wa_(.+)_(cadastro|pagtoParcial|cotaCompleta|camisaPronta|camisaEntregue)$/);
-    if(m){
-      const id=m[1], tipo=m[2];
-      let v=null; try{ v=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){ v=null; }
-      (porId[id]=porId[id]||{})[tipo]={ estado:'enviado', data:(v&&v.data)||new Date().toISOString(), quem:(v&&v.quem)||'?' };
-      nEnviados++; continue;
-    }
-    m=key.match(/^gd_wadis_(.+)_(cadastro|pagtoParcial|cotaCompleta|camisaPronta|camisaEntregue)$/);
-    if(m){
-      const id=m[1], tipo=m[2];
-      // não sobrescreve um 'enviado' já captado para o mesmo id+tipo
-      const cur=(porId[id]=porId[id]||{});
-      if(!cur[tipo]) cur[tipo]={ estado:'desconsiderado', data:new Date().toISOString(), quem:'migração' };
-      nDesc++;
-    }
-  }
-  return { porId, nEnviados, nDesc, nGideoes:Object.keys(porId).length };
-}
-async function migrarAvisosLocais(){
+// ===== Ação ÚNICA (admin): marca todos os avisos HOJE pendentes como "desconsiderado" =====
+// Começa do zero limpo: zera os pendentes retroativos usando a própria lógica de computeAvisos
+// (todos os escopos). A partir daqui, só mudanças novas geram pendentes. Sincroniza via rec.avisos.
+async function zerarAvisosPendentes(){
   if(effectiveRole()!=='admin'){ return; }
-  const scan=waScanLocalMarks();
-  const total=scan.nEnviados+scan.nDesc;
-  if(total===0){ toast(t('migrarNada'),'ok'); return; }
-  // aviso extra se já migrou antes neste dispositivo
-  if(localStorage.getItem('gd_wa_migrado')==='1'){
-    const again=await confirmDialog(t('migrarConfT'), t('migrarJaFeito'), {perigo:false, okText:t('migrarConfOk')});
-    if(!again) return;
-  }
-  const ok=await confirmDialog(t('migrarConfT'),
-    t('migrarConfMsg',{n:total, env:scan.nEnviados, des:scan.nDesc, g:scan.nGideoes}),
-    {perigo:false, okText:t('migrarConfOk')});
+  const all=await getAll();
+  // levanta os pendentes de cada Gideão (sem scope = todos os tipos aplicáveis)
+  const plano=[]; // {rec, tipos:[...]}
+  let nAvisos=0;
+  all.forEach(rec=>{
+    const pend=computeAvisos(rec).filter(x=>x.estado==='pendente').map(x=>x.tipo);
+    if(pend.length){ plano.push({rec, tipos:pend}); nAvisos+=pend.length; }
+  });
+  if(nAvisos===0){ toast(t('zerarNada'),'ok'); return; }
+  const ok=await confirmDialog(t('zerarConfT'),
+    t('zerarConfMsg',{n:nAvisos, g:plano.length}),
+    {perigo:false, okText:t('zerarConfOk')});
   if(!ok) return;
   try{
-    const all=await getAll();
-    const byId={}; all.forEach(i=>byId[String(i.id)]=i);
     let aplicados=0, gideoes=0;
-    for(const id of Object.keys(scan.porId)){
-      const rec=byId[id];
-      if(!rec) continue;                         // id local não existe mais -> ignora
+    for(const {rec, tipos} of plano){
       if(!rec.avisos || typeof rec.avisos!=='object') rec.avisos={};
-      let mudou=false;
-      const marks=scan.porId[id];
-      for(const tipo of WA_TIPOS){
-        if(marks[tipo]){ rec.avisos[tipo]=marks[tipo]; aplicados++; mudou=true; }
-      }
-      if(mudou){
-        rec.atualizadoEm=new Date().toISOString();
-        await put(rec);
-        markPending(rec.id);
-        gideoes++;
-      }
+      const quem=(auth&&(auth.role||auth.email))||'?';
+      const now=new Date().toISOString();
+      tipos.forEach(tipo=>{ rec.avisos[tipo]={ estado:'desconsiderado', data:now, quem:quem }; aplicados++; });
+      rec.atualizadoEm=now;
+      await put(rec);
+      markPending(rec.id);
+      gideoes++;
     }
-    localStorage.setItem('gd_wa_migrado','1');
     if(ONLINE_ENABLED) await syncNow();
     await refresh();
     if(state.view==='lista'){ renderFilters&&renderFilters(); renderList&&renderList(); }
-    toast(t('migrarOk',{n:aplicados, g:gideoes}),'ok');
+    toast(t('zerarOk',{n:aplicados, g:gideoes}),'ok');
   }catch(e){
-    toast(t('migrarErro')+': '+(e&&e.message||e),'err');
+    toast(t('zerarErro')+': '+(e&&e.message||e),'err');
   }
 }
 // long-press: dispara fn() após ~550ms mantendo pressionado (mouse/touch); cancela se soltar/mover antes
@@ -2989,7 +2955,7 @@ $('#featWhatsappChk') && ($('#featWhatsappChk').onchange=function(){
   toast(this.checked? t('featOn') : t('featOff'), 'ok');
   if(state.view==='lista') renderList();   // reflete o ícone no card na hora
 });
-$('#btnMigrarAvisos') && ($('#btnMigrarAvisos').onclick=migrarAvisosLocais);
+$('#btnZerarAvisos') && ($('#btnZerarAvisos').onclick=zerarAvisosPendentes);
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
 $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }
