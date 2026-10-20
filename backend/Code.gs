@@ -50,9 +50,9 @@ const HEADERS = ['id','numero','nome','telefone','tamanho','cota','pagamentos_js
                  'atualizadoEm','atualizadoPor','isento','criadoEm','avisos_json'];
 // coleções financeiras (fase Caixa)
 const DESP_SHEET='Despesas';
-const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','fotos_json','atualizadoEm','atualizadoPor','status','suspensoPor','suspensoEm'];
+const DESP_HEADERS=['id','descricao','valor','data','categoria','bolso','obs','fotos_json','atualizadoEm','atualizadoPor','status','suspensoPor','suspensoEm','origemCusto'];
 const MOV_SHEET='Movimentos';
-const MOV_HEADERS=['id','de','para','valor','data','comentario','atualizadoEm','atualizadoPor','fotos_json'];
+const MOV_HEADERS=['id','de','para','valor','data','comentario','atualizadoEm','atualizadoPor','fotos_json','origemCusto'];
 const EST_SHEET='Estoque';
 const EST_HEADERS=['id','tamanho','delta','motivo','data','atualizadoEm','atualizadoPor'];
 
@@ -201,6 +201,14 @@ function _collSheet(name, headers){
   let sh=ss.getSheetByName(name);
   if(!sh){ sh=ss.insertSheet(name); }
   if(sh.getLastRow()===0){ sh.appendRow(headers); }
+  else {
+    // reconcilia o cabeçalho: se faltam colunas novas (ex.: origemCusto adicionado no FIM),
+    // reescreve a linha 1 com os headers completos. Seguro: só acrescenta no fim, não desloca dados.
+    try{
+      var lastCol=sh.getLastColumn();
+      if(lastCol < headers.length){ sh.getRange(1,1,1,headers.length).setValues([headers]); }
+    }catch(e){}
+  }
   // força a coluna 'data' como TEXTO puro (evita auto-conversão para Date)
   var di=headers.indexOf('data');
   if(di>=0){ try{ sh.getRange(1, di+1, sh.getMaxRows(), 1).setNumberFormat('@'); }catch(e){} }
