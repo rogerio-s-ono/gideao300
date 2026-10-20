@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.4';
+const APP_VERSION = 'v4.1.5';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -50,7 +50,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.',
+    fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.', zerarPend:'Marcar avisos pendentes como desconsiderados', zerarPendNota:'Marca TODOS os avisos hoje pendentes como desconsiderados, de uma vez. Use para começar do zero: a partir daqui, só mudanças novas (novo cadastro, pagamento, camisa pronta/entregue) geram avisos pendentes. Sincroniza entre todos.', zerarConfT:'Zerar avisos pendentes', zerarConfMsg:'Encontrei {n} aviso(s) pendente(s) em {g} Gideão(ões). Marcar todos como desconsiderados? Eles saem da lista de pendentes (podem ser revertidos depois com toque longo).', zerarConfOk:'Marcar todos', zerarNada:'Nenhum aviso pendente para marcar.', zerarOk:'Pronto: {n} aviso(s) em {g} Gideão(ões) marcados como desconsiderados.', zerarErro:'Falha ao marcar avisos',
     restaurar:'Restaurar', excluirGideaoT:'Excluir Gideão?', excluirDespT:'Excluir despesa?', excluirMovT:'Excluir movimentação?', restaurarBackupT:'Restaurar backup?', restaurarUsersT:'Restaurar usuários?', recarregarBaseT:'Recarregar base original?', pagamentoNaoAddT:'Pagamento não adicionado', adicionarESalvar:'Adicionar e salvar', salvarSemAdd:'Salvar sem adicionar',
     origemDestinoIguais:'Origem e destino devem ser diferentes.', okGenerico:'Feito.', erroGenerico:'Erro', okRecarregada:'Base recarregada ({n}).',
     suspender:'Suspender', reativar:'Reativar', suspensa:'Suspensa', suspenderDespT:'Suspender despesa?', confirmSuspenderDesp:'A despesa fica no histórico como suspensa e sai do saldo. O tesoureiro pode reativar ou excluir de vez.', despSuspensa:'Despesa suspensa.', despReativada:'Despesa reativada.',
@@ -148,7 +148,7 @@ const I18N = {
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
-    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.',
+    fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.', zerarPend:'Marcar avisos pendientes como descartados', zerarPendNota:'Marca TODOS los avisos pendientes de hoy como descartados, de una vez. Úsalo para empezar de cero: a partir de aquí, solo los cambios nuevos (nuevo registro, pago, camiseta lista/entregada) generan avisos pendientes. Se sincroniza entre todos.', zerarConfT:'Poner a cero avisos pendientes', zerarConfMsg:'Encontré {n} aviso(s) pendiente(s) en {g} Gedeón(es). ¿Marcar todos como descartados? Salen de la lista de pendientes (se pueden revertir luego con pulsación larga).', zerarConfOk:'Marcar todos', zerarNada:'No hay avisos pendientes para marcar.', zerarOk:'Listo: {n} aviso(s) en {g} Gedeón(es) marcados como descartados.', zerarErro:'Error al marcar avisos',
     restaurar:'Restaurar', excluirGideaoT:'¿Eliminar Gedeón?', excluirDespT:'¿Eliminar gasto?', excluirMovT:'¿Eliminar movimiento?', restaurarBackupT:'¿Restaurar copia?', restaurarUsersT:'¿Restaurar usuarios?', recarregarBaseT:'¿Recargar base original?', pagamentoNaoAddT:'Pago no añadido', adicionarESalvar:'Añadir y guardar', salvarSemAdd:'Guardar sin añadir',
     origemDestinoIguais:'Origen y destino deben ser diferentes.', okGenerico:'Hecho.', erroGenerico:'Error', okRecarregada:'Base recargada ({n}).',
     suspender:'Suspender', reativar:'Reactivar', suspensa:'Suspendida', suspenderDespT:'¿Suspender gasto?', confirmSuspenderDesp:'El gasto queda en el historial como suspendido y sale del saldo. El tesorero puede reactivar o eliminar del todo.', despSuspensa:'Gasto suspendido.', despReativada:'Gasto reactivado.',
@@ -365,15 +365,15 @@ function waTexto(tipo, i){
     pt:{
       cadastro:`Olá, *${pnome}*! Que alegria contar com você no Projeto Gideão 300! 🙏\n\nPara confirmar sua participação como um dos Gideões de Casa Fuerte, ficamos à espera da sua contribuição de *300 €*.\n\n📖 «Com estes trezentos homens eu livrarei Israel e entregarei os midianitas em suas mãos.»\n— Juízes 7:7 (NVT)\n\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\n\nSe precisar alterar algum dado, responda a esta mensagem.\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
       pagtoParcial:`Olá, *${pnome}*! Recebemos com alegria sua contribuição de *${valor} €* para o Projeto Gideão 300. 🙏\n\nFaltam *${falta} €* para completar os *300 €* e confirmar sua participação como um dos Gideões de Casa Fuerte.\n\n📖 «Cada um deve decidir em seu coração quanto dar. Não contribuam com relutância ou por obrigação, pois Deus ama quem dá com alegria.»\n— 2 Coríntios 9:7 (NVT)\n\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\n\nSe precisar alterar algum dado, responda a esta mensagem.\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
-      cotaCompleta:`Olá, *${pnome}*! Sua contribuição está completa (*300 €*) — agora você é oficialmente um dos Gideões de Casa Fuerte! 🎉\n\nMuito obrigado pelo seu coração generoso. Avisaremos quando sua camisa estiver pronta.\n\n📖 «Então ouvi o Senhor perguntar: "Quem enviarei como mensageiro a este povo? Quem irá por nós?". E eu respondi: "Aqui estou; envia-me".»\n— Isaías 6:8 (NVT)\n\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\n- Número: *${num}*\n\nSe precisar alterar algum dado, responda a esta mensagem.\n\n🎖️ *Você conquistou seu lugar entre os 300!* Entre agora no grupo exclusivo dos Gideões e faça parte deste exército escolhido:\n${WA_GRUPO}\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
-      camisaPronta:`Olá, *${pnome}*! Sua camisa do Projeto Gideão 300 já está pronta! 👕\n\nCamisa *tamanho ${tam}*, nº *${num}*.\nVocê pode retirar sua camisa a partir do próximo domingo, depois do culto.\n\n📖 «Vistam toda a armadura de Deus, para que possam permanecer firmes contra as estratégias do diabo.»\n— Efésios 6:11 (NVT)\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
+      cotaCompleta:`Olá, *${pnome}*! Confirmamos o recebimento da sua contribuição (*300 €*) — agora você é oficialmente um dos Gideões de Casa Fuerte! 🎉\n\nMuito obrigado pelo seu coração generoso. Avisaremos quando sua camisa estiver pronta.\n\n📖 «Então ouvi o Senhor perguntar: "Quem enviarei como mensageiro a este povo? Quem irá por nós?". E eu respondi: "Aqui estou; envia-me".»\n— Isaías 6:8 (NVT)\n\nConfira que seus dados estão corretos:\n- Nome: *${nome}*\n- Tamanho da camisa: *${tam}*\n\nSe precisar alterar algum dado, responda a esta mensagem.\n\n🎖️ *Você conquistou seu lugar entre os 300!* Entre agora no grupo exclusivo dos Gideões e faça parte deste exército escolhido:\n${WA_GRUPO}\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
+      camisaPronta:`Olá, *${pnome}*! Sua camisa do Projeto Gideão 300 já está pronta! 👕\n\nCamisa *tamanho ${tam}*.\nVocê pode retirar sua camisa a partir do próximo domingo, depois do culto.\n\n📖 «Vistam toda a armadura de Deus, para que possam permanecer firmes contra as estratégias do diabo.»\n— Efésios 6:11 (NVT)\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`,
       camisaEntregue:`Olá, *${pnome}*! Confirmamos a entrega da sua camisa do Projeto Gideão 300 (tamanho *${tam}*, nº *${num}*). ✅\n\nVista com fé e faça parte desta corrente de propósito!\n\n📖 «Vá com a força que você tem e liberte Israel dos midianitas. Sou eu quem o envia!»\n— Juízes 6:14 (NVT)\n\n👥 Ainda não está no grupo exclusivo dos 300? Entre e caminhe com a gente:\n${WA_GRUPO}\n\nQue Deus abençoe sua vida e este propósito! 🙏\n\nProjeto Gideão 300 | Casa Fuerte Church`
     },
     es:{
       cadastro:`¡Hola, *${pnome}*! ¡Qué alegría contar contigo en el Proyecto Gedeón 300! 🙏\n\nPara confirmar tu participación como uno de los Gedeones de Casa Fuerte, quedamos a la espera de tu aportación de *300 €*.\n\n📖 «Con estos trescientos hombres, rescataré a Israel y te daré la victoria sobre los madianitas.»\n— Jueces 7:7 (NTV)\n\nConfirma que tus datos sean correctos:\n- Nombre: *${nome}*\n- Talla de camiseta: *${tam}*\n\nSi necesitas cambiar algún dato, responde a este mensaje.\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
       pagtoParcial:`¡Hola, *${pnome}*! Recibimos con alegría tu aportación de *${valor} €* para el Proyecto Gedeón 300. 🙏\n\nFaltan *${falta} €* para completar los *300 €* y confirmar tu participación como uno de los Gedeones de Casa Fuerte.\n\n📖 «Cada uno debe decidir en su corazón cuánto dar; y no den de mala gana ni bajo presión, porque Dios ama a la persona que da con alegría.»\n— 2 Corintios 9:7 (NTV)\n\nConfirma que tus datos sean correctos:\n- Nombre: *${nome}*\n- Talla de camiseta: *${tam}*\n\nSi necesitas cambiar algún dato, responde a este mensaje.\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
-      cotaCompleta:`¡Hola, *${pnome}*! Tu aportación está completa (*300 €*) — ¡ahora eres oficialmente uno de los Gedeones de Casa Fuerte! 🎉\n\nMuchas gracias por tu corazón generoso. Te avisaremos cuando tu camiseta esté lista.\n\n📖 «Entonces oí que el Señor preguntaba: "¿A quién enviaré como mensajero a este pueblo? ¿Quién irá por nosotros?". Y respondí: "Aquí estoy. Envíame a mí".»\n— Isaías 6:8 (NTV)\n\nConfirma que tus datos sean correctos:\n- Nombre: *${nome}*\n- Talla de camiseta: *${tam}*\n- Número: *${num}*\n\nSi necesitas cambiar algún dato, responde a este mensaje.\n\n🎖️ *¡Conquistaste tu lugar entre los 300!* Entra ahora en el grupo exclusivo de los Gedeones y sé parte de este ejército escogido:\n${WA_GRUPO}\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
-      camisaPronta:`¡Hola, *${pnome}*! ¡Tu camiseta del Proyecto Gedeón 300 ya está lista! 👕\n\nCamiseta *talla ${tam}*, nº *${num}*.\nPuedes retirar tu camiseta a partir del próximo domingo, después del culto.\n\n📖 «Pónganse toda la armadura de Dios para poder mantenerse firmes contra todas las estrategias del diablo.»\n— Efesios 6:11 (NTV)\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
+      cotaCompleta:`¡Hola, *${pnome}*! Confirmamos la recepción de tu aportación (*300 €*) — ¡ahora eres oficialmente uno de los Gedeones de Casa Fuerte! 🎉\n\nMuchas gracias por tu corazón generoso. Te avisaremos cuando tu camiseta esté lista.\n\n📖 «Entonces oí que el Señor preguntaba: "¿A quién enviaré como mensajero a este pueblo? ¿Quién irá por nosotros?". Y respondí: "Aquí estoy. Envíame a mí".»\n— Isaías 6:8 (NTV)\n\nConfirma que tus datos sean correctos:\n- Nombre: *${nome}*\n- Talla de camiseta: *${tam}*\n\nSi necesitas cambiar algún dato, responde a este mensaje.\n\n🎖️ *¡Conquistaste tu lugar entre los 300!* Entra ahora en el grupo exclusivo de los Gedeones y sé parte de este ejército escogido:\n${WA_GRUPO}\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
+      camisaPronta:`¡Hola, *${pnome}*! ¡Tu camiseta del Proyecto Gedeón 300 ya está lista! 👕\n\nCamiseta *talla ${tam}*.\nPuedes retirar tu camiseta a partir del próximo domingo, después del culto.\n\n📖 «Pónganse toda la armadura de Dios para poder mantenerse firmes contra todas las estrategias del diablo.»\n— Efesios 6:11 (NTV)\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`,
       camisaEntregue:`¡Hola, *${pnome}*! Confirmamos la entrega de tu camiseta del Proyecto Gedeón 300 (talla *${tam}*, nº *${num}*). ✅\n\n¡Vístela con fe y sé parte de esta corriente de propósito!\n\n📖 «Ve con la fuerza que tienes y rescata a Israel de los madianitas. ¡Yo soy quien te envía!»\n— Jueces 6:14 (NTV)\n\n👥 ¿Aún no estás en el grupo exclusivo de los 300? Entra y camina con nosotros:\n${WA_GRUPO}\n\n¡Que Dios bendiga tu vida y este propósito! 🙏\n\nProyecto Gedeón 300 | Casa Fuerte Church`
     }
   };
@@ -388,15 +388,65 @@ function waLabel(tipo, i){
   return (L[lang]||L.pt)[tipo]||tipo;
 }
 // marca local (por dispositivo) — sincronização virá com o backend depois
-function waKey(id,tipo){ return 'gd_wa_'+id+'_'+tipo; }
-function waGetSent(id,tipo){ try{ return JSON.parse(localStorage.getItem(waKey(id,tipo))||'null'); }catch(e){ return null; } }
-function waMarkSent(id,tipo){ const quem=(auth&&(auth.role||auth.email))||'?'; localStorage.setItem(waKey(id,tipo), JSON.stringify({data:new Date().toISOString(), quem:quem})); }
-function waUnmark(id,tipo){ localStorage.removeItem(waKey(id,tipo)); }
-// "desconsiderar" (dispensar): não envia e sai de pendente (marca local separada)
-function waDisKey(id,tipo){ return 'gd_wadis_'+id+'_'+tipo; }
-function waGetDismissed(id,tipo){ return localStorage.getItem(waDisKey(id,tipo))==='1'; }
-function waDismiss(id,tipo){ localStorage.setItem(waDisKey(id,tipo),'1'); }
-function waUndismiss(id,tipo){ localStorage.removeItem(waDisKey(id,tipo)); }
+// Marca de avisos WhatsApp — agora PERSISTIDA no campo rec.avisos (sincroniza via planilha).
+// rec.avisos[tipo] = { estado:'enviado'|'desconsiderado', data:ISO, quem:role|email }.  Ausente = pendente.
+function waGetSent(rec,tipo){ const a=rec&&rec.avisos&&rec.avisos[tipo]; return (a&&a.estado==='enviado')? a : null; }
+function waGetDismissed(rec,tipo){ const a=rec&&rec.avisos&&rec.avisos[tipo]; return !!(a&&a.estado==='desconsiderado'); }
+// grava a marca no inscrito + persiste + enfileira p/ sync (como um pagamento). Viewer não marca.
+async function waSetMark(rec, tipo, estado){
+  if(effectiveRole()==='viewer') return false;
+  if(!rec.avisos || typeof rec.avisos!=='object') rec.avisos={};
+  if(estado===null){ delete rec.avisos[tipo]; }
+  else { rec.avisos[tipo] = { estado:estado, data:new Date().toISOString(), quem:(auth&&(auth.role||auth.email))||'?' }; }
+  rec.atualizadoEm=new Date().toISOString();
+  await put(rec);
+  markPending(rec.id);
+  if(ONLINE_ENABLED) syncNow();
+  return true;
+}
+function waMarkSent(rec,tipo){ return waSetMark(rec,tipo,'enviado'); }
+function waUnmark(rec,tipo){ return waSetMark(rec,tipo,null); }
+function waDismiss(rec,tipo){ return waSetMark(rec,tipo,'desconsiderado'); }
+function waUndismiss(rec,tipo){ return waSetMark(rec,tipo,null); }
+
+// ===== Ação ÚNICA (admin): marca todos os avisos HOJE pendentes como "desconsiderado" =====
+// Começa do zero limpo: zera os pendentes retroativos usando a própria lógica de computeAvisos
+// (todos os escopos). A partir daqui, só mudanças novas geram pendentes. Sincroniza via rec.avisos.
+async function zerarAvisosPendentes(){
+  if(effectiveRole()!=='admin'){ return; }
+  const all=await getAll();
+  // levanta os pendentes de cada Gideão (sem scope = todos os tipos aplicáveis)
+  const plano=[]; // {rec, tipos:[...]}
+  let nAvisos=0;
+  all.forEach(rec=>{
+    const pend=computeAvisos(rec).filter(x=>x.estado==='pendente').map(x=>x.tipo);
+    if(pend.length){ plano.push({rec, tipos:pend}); nAvisos+=pend.length; }
+  });
+  if(nAvisos===0){ toast(t('zerarNada'),'ok'); return; }
+  const ok=await confirmDialog(t('zerarConfT'),
+    t('zerarConfMsg',{n:nAvisos, g:plano.length}),
+    {perigo:false, okText:t('zerarConfOk')});
+  if(!ok) return;
+  try{
+    let aplicados=0, gideoes=0;
+    for(const {rec, tipos} of plano){
+      if(!rec.avisos || typeof rec.avisos!=='object') rec.avisos={};
+      const quem=(auth&&(auth.role||auth.email))||'?';
+      const now=new Date().toISOString();
+      tipos.forEach(tipo=>{ rec.avisos[tipo]={ estado:'desconsiderado', data:now, quem:quem }; aplicados++; });
+      rec.atualizadoEm=now;
+      await put(rec);
+      markPending(rec.id);
+      gideoes++;
+    }
+    if(ONLINE_ENABLED) await syncNow();
+    await refresh();
+    if(state.view==='lista'){ renderFilters&&renderFilters(); renderList&&renderList(); }
+    toast(t('zerarOk',{n:aplicados, g:gideoes}),'ok');
+  }catch(e){
+    toast(t('zerarErro')+': '+(e&&e.message||e),'err');
+  }
+}
 // long-press: dispara fn() após ~550ms mantendo pressionado (mouse/touch); cancela se soltar/mover antes
 function onLongPress(el, fn){
   let timer=null, fired=false;
@@ -425,8 +475,8 @@ function computeAvisos(i, scope){
   const lista = allow ? aplic.filter(tp=>allow.indexOf(tp)>=0) : aplic;
   const tel=normPhone(i.telefone);
   return lista.map(tipo=>{
-    const sent=waGetSent(i.id,tipo);
-    const dismissed=waGetDismissed(i.id,tipo);
+    const sent=waGetSent(i,tipo);
+    const dismissed=waGetDismissed(i,tipo);
     const estado = sent ? 'enviado' : (dismissed ? 'desconsiderado' : 'pendente');
     return { tipo, label:waLabel(tipo,i), estado,
              data: sent?sent.data:null, quem: sent?sent.quem:null,
@@ -452,7 +502,7 @@ async function waUnmarkFlow(i){
 async function waUnmarkOne(i, aviso){
   const ok=await confirmDialog(t('waDesmarcarT'), t('waDesmarcarMsg',{tipo:aviso.label}), {perigo:false, okText:t('waDesmarcarOk')});
   if(!ok) return;
-  waUnmark(i.id, aviso.tipo);
+  await waUnmark(i, aviso.tipo);
   toast(t('waDesmarcado'),'ok');
 }
 
@@ -463,11 +513,11 @@ function waTrigger(i){
   if(!featureOn('whatsapp')) return;   // feature desligada
   openWaModal(i);   // sempre abre o modal (envio só é confirmado tocando a linha lá dentro)
 }
-// abre a URL do wa.me e marca como enviado (local)
-function waSend(i, aviso){
+// abre a URL do wa.me e marca como enviado (persiste no rec.avisos + sincroniza)
+async function waSend(i, aviso){
   if(!aviso.url){ toast(t('waSemTel'),'err'); return; }
-  // marca ANTES de navegar (a navegação pode congelar o JS ao sair do app)
-  waMarkSent(i.id, aviso.tipo);
+  // marca ANTES de navegar (aguarda a gravação; a navegação pode congelar o JS ao sair do app)
+  await waMarkSent(i, aviso.tipo);
   toast(t('waEnviado'),'ok');
   // navega a própria janela: no iOS PWA o SO intercepta o wa.me e abre o WhatsApp
   // sem deixar uma aba vazia do browser in-app (que era o "Search or enter website name").
@@ -505,7 +555,7 @@ function openWaModal(i, scope){
     }).join('');
     // X: desconsiderar (não envia, sai de pendente)
     $$('#waList .wa-x').forEach(btn=>{
-      btn.onclick=(e)=>{ e.stopPropagation(); const x=computeAvisos(i, scope)[+btn.dataset.x]; if(x){ waDismiss(i.id,x.tipo); toast(t('waDesconsideradoOk'),'ok'); render(); reRenderView(); } };
+      btn.onclick=async(e)=>{ e.stopPropagation(); const x=computeAvisos(i, scope)[+btn.dataset.x]; if(x){ await waDismiss(i,x.tipo); toast(t('waDesconsideradoOk'),'ok'); render(); reRenderView(); } };
     });
     $$('#waList .wa-row').forEach(row=>{
       const x0=computeAvisos(i, scope)[+row.dataset.idx];
@@ -514,14 +564,14 @@ function openWaModal(i, scope){
         const x=computeAvisos(i, scope)[+row.dataset.idx];
         if(!x) return;
         if(x.estado==='enviado'){ await waUnmarkOne(i,x); render(); reRenderView(); }
-        else if(x.estado==='desconsiderado'){ waUndismiss(i.id,x.tipo); toast(t('waReativado'),'ok'); render(); reRenderView(); }
+        else if(x.estado==='desconsiderado'){ await waUndismiss(i,x.tipo); toast(t('waReativado'),'ok'); render(); reRenderView(); }
       });
-      row.onclick=()=>{
+      row.onclick=async()=>{
         if(wasLong()) return;
         const x=computeAvisos(i, scope)[+row.dataset.idx];
         if(!x || x.estado!=='pendente') return;         // só envia se pendente (enviado/desconsiderado: só long-press)
         if(!x.url){ toast(t('waSemTel'),'err'); return; }
-        waSend(i,x); render(); reRenderView();
+        await waSend(i,x);
       };
     });
     const hint=$('#waHint'); if(hint){ const temRev=a.some(x=>x.estado==='enviado'||x.estado==='desconsiderado'); hint.textContent=t('waHintDesmarcar'); hint.classList.toggle('hidden', !temRev); }
@@ -2905,6 +2955,7 @@ $('#featWhatsappChk') && ($('#featWhatsappChk').onchange=function(){
   toast(this.checked? t('featOn') : t('featOff'), 'ok');
   if(state.view==='lista') renderList();   // reflete o ícone no card na hora
 });
+$('#btnZerarAvisos') && ($('#btnZerarAvisos').onclick=zerarAvisosPendentes);
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
 $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }
