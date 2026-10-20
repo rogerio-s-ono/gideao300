@@ -798,10 +798,15 @@
     </div>
     <div class="lanc-head" style="margin-top:16px">
       <h3 data-i="lancamentos" style="margin:0">Lançamentos</h3>
-      <button type="button" id="cxSortBtn" class="sort-btn" title="Ordenar por data" aria-label="Ordenar por data">
-        <svg viewBox="0 0 24 24"><path d="M7 4v13l-3-3-1.4 1.4L8 21l5.4-5.6L12 14l-3 3V4H7zm9 0-5.4 5.6L12 11l3-3v13h2V8l3 3 1.4-1.4L16 4z"/></svg>
-        <span id="cxSortLbl" class="sort-lbl"></span>
-      </button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button type="button" id="cxHist" class="hist-i" title="Histórico financeiro" aria-label="Histórico financeiro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        </button>
+        <button type="button" id="cxSortBtn" class="sort-btn" title="Ordenar por data" aria-label="Ordenar por data">
+          <svg viewBox="0 0 24 24"><path d="M7 4v13l-3-3-1.4 1.4L8 21l5.4-5.6L12 14l-3 3V4H7zm9 0-5.4 5.6L12 11l3-3v13h2V8l3 3 1.4-1.4L16 4z"/></svg>
+          <span id="cxSortLbl" class="sort-lbl"></span>
+        </button>
+      </div>
     </div>
     <div class="tabs2" id="cxTabs">
       <div class="tab2 on" data-cx="despesas" data-i="despesas">Despesas</div>
@@ -1159,6 +1164,12 @@
     <button type="button" class="btn ghost" id="d-addFoto" data-i="tirarFoto">📎 Anexar comprovante (foto ou PDF)</button>
     <input type="file" id="d-fotoInput" accept="image/*,application/pdf" class="hidden">
     <div class="modal-divider"></div>
+    <div class="modal-ts-row hidden" id="despTsRow">
+      <div class="modal-ts" id="despTs"></div>
+      <button type="button" class="hist-i" id="despHist" title="Ver histórico" aria-label="Ver histórico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r=".6" fill="currentColor"/></svg>
+      </button>
+    </div>
     <div class="action-bar">
       <button class="act save" id="despSave" type="button">
         <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>
@@ -1213,6 +1224,12 @@
     <button type="button" class="btn ghost" id="m-addFoto" data-i="tirarFoto">📎 Anexar comprovante (foto ou PDF)</button>
     <input type="file" id="m-fotoInput" accept="image/*,application/pdf" class="hidden">
     <div class="modal-divider"></div>
+    <div class="modal-ts-row hidden" id="movTsRow">
+      <div class="modal-ts" id="movTs"></div>
+      <button type="button" class="hist-i" id="movHist" title="Ver histórico" aria-label="Ver histórico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r=".6" fill="currentColor"/></svg>
+      </button>
+    </div>
     <div class="action-bar">
       <button class="act save" id="movSave" type="button">
         <svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg>

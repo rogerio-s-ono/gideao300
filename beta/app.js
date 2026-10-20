@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.5-beta4';
+const APP_VERSION = 'v4.1.5-beta5';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -656,14 +656,15 @@ function histRender(){
   box.innerHTML=html;
   const mb=$('#histMore'); if(mb) mb.onclick=()=>{ _histState.shown=Math.min(_histState.shown+10, its.length); histRender(); };
 }
-async function openHistSheet(id, rotulo){
+async function openHistSheet(id, rotulo, entidade){
   const ov=$('#histSheet'); if(!ov) return;
+  entidade = entidade || 'inscrito';
   $('#histSub') && ($('#histSub').textContent = rotulo? (' · '+rotulo) : '');
   $('#histScroll') && ($('#histScroll').innerHTML='<div class="hist-loading">'+t('histCarregando')+'</div>');
   ov.classList.remove('hidden');
   _histState={ items:[], shown:0, id:id };
   try{
-    const data=await auditApi({ id:String(id), entidade:'inscrito', limit:500 });
+    const data=await auditApi({ id:String(id), entidade:entidade, limit:500 });
     _histState.items = data.items||[];
     _histState.shown = Math.min(5, _histState.items.length);   // 5 por padrão
     histRender();
@@ -713,7 +714,14 @@ async function audBuscar(){
     box.innerHTML='<div class="hist-empty">'+t('histErro')+(e&&e.message?(' ('+escHtml(e.message)+')'):'')+'</div>';
   }
 }
-function openAudSheet(){ const ov=$('#audSheet'); if(!ov) return; ov.classList.remove('hidden'); audBuscar(); }
+function openAudSheet(preEnt){
+  const ov=$('#audSheet'); if(!ov) return;
+  // pré-filtro opcional (ex.: aba Caixa -> despesa/movimento)
+  const sel=$('#audEnt'); if(sel) sel.value = preEnt || '';
+  const uu=$('#audUser'); if(uu) uu.value='';
+  const dd=$('#audData'); if(dd) dd.value='';
+  ov.classList.remove('hidden'); audBuscar();
+}
 function closeAudSheet(){ const ov=$('#audSheet'); if(ov) ov.classList.add('hidden'); }
 
 
@@ -1964,6 +1972,8 @@ async function renderCaixa(){
   const ct=$('#cashTeso'); if(ct) ct.textContent=eur(c.cashTeso||0);
   // selo somente-leitura: só quando o usuário não pode NADA na Caixa (nem adicionar despesa)
   const ro=$('#cxReadonly'); if(ro) ro.classList.toggle('hidden', !!auth.podeAddDespesa);
+  // (i) histórico global na Caixa: só admin (a Auditoria global é só-admin no backend)
+  const ch=$('#cxHist'); if(ch) ch.classList.toggle('hidden', effectiveRole()!=='admin');
   renderCaixaTabs(); renderCaixaList(c);
 }
 let cashSplitOpen=false;
@@ -2008,6 +2018,21 @@ function renderCaixaList(){
   }
 }
 /* --- modal despesa --- */
+// linha criado/atualizado + botão (i) nos modais de Caixa (despesa/movimento). entidade: 'despesa'|'movimento'
+function renderCxTs(rowSel, tsSel, histBtnSel, rec, entidade, rotulo){
+  const row=$(rowSel); if(!row) return;
+  const hasRec = !!(rec && rec.id);
+  const bits=[];
+  if(hasRec && rec.atualizadoEm){ bits.push(t('tsAtual')+' '+fmtStampCurto(rec.atualizadoEm)+(rec.atualizadoPor?(' · '+rec.atualizadoPor):'')); }
+  const ts=$(tsSel); if(ts) ts.textContent=bits.join(' · ');
+  row.classList.toggle('hidden', !hasRec);
+  const bHist=$(histBtnSel);
+  if(bHist){
+    bHist.classList.toggle('hidden', !hasRec);
+    if(hasRec){ bHist.onclick=()=>{ if(!ONLINE_ENABLED||!auth.idToken){ toast(t('histErro'),'err'); return; } openHistSheet(rec.id, rotulo, entidade); }; }
+  }
+}
+
 function openDesp(id){
   const d = id? caixaState.despesas.find(x=>x.id===id) : null;
   caixaState.editDesp = d? d.id : null;
@@ -2033,6 +2058,7 @@ function openDesp(id){
   $('#despReactivate').classList.toggle('hidden', !(d && suspensa && auth.podeAddDespesa));
   // Excluir (hard delete): só admin/tesoureiro
   $('#despDel').classList.toggle('hidden', !d || !auth.podeCaixaMgr);
+  renderCxTs('#despTsRow', '#despTs', '#despHist', d, 'despesa', d? (d.descricao||('despesa '+d.id)) : '');
   $('#despModal').classList.remove('hidden');
   applyModalRO('#despModal', despRO, ['#despSave','#d-addFoto']);
 }
@@ -2215,6 +2241,7 @@ function openMov(id){
   caixaState.draftFotosMov = (m && Array.isArray(m.fotos)) ? m.fotos.map(u=>({url:u})) : [];
   renderDraftFotosMov();
   $('#movDel').classList.toggle('hidden', !m || auth.caixaRO);
+  renderCxTs('#movTsRow', '#movTs', '#movHist', m, 'movimento', m? ((m.de||'?')+'→'+(m.para||'?')) : '');
   $('#movModal').classList.remove('hidden');
   applyModalRO('#movModal', auth.caixaRO, ['#movSave']);
 }
@@ -3117,6 +3144,12 @@ $('#btnAuditoria') && ($('#btnAuditoria').onclick=function(){
 $('#audClose') && ($('#audClose').onclick=closeAudSheet);
 $('#audSheet') && ($('#audSheet').addEventListener('click', function(e){ if(e.target===this) closeAudSheet(); }));
 $('#audBuscar') && ($('#audBuscar').onclick=audBuscar);
+// (i) no cabeçalho Lançamentos (Caixa) -> abre Auditoria global pré-filtrada pela aba ativa (só-admin)
+$('#cxHist') && ($('#cxHist').onclick=function(){
+  if(!ONLINE_ENABLED || !auth.idToken){ toast(t('histErro'),'err'); return; }
+  const ent = caixaState.tab==='movimentos' ? 'movimento' : 'despesa';
+  openAudSheet(ent);
+});
 $('#btnSyncNow') && ($('#btnSyncNow').onclick=syncNow);
 $('#btnPushAll') && ($('#btnPushAll').onclick=async()=>{
   if(!ONLINE_ENABLED||!auth.idToken){ return; }
