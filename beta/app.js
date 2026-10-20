@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.5-beta3';
+const APP_VERSION = 'v4.1.5-beta4';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -532,7 +532,11 @@ async function waSend(i, aviso, afterMark){
 function openWaModal(i, scope){
   const m=$('#waModal'); if(!m) return;
   $('#waTitle').textContent=t('waTitulo')+' '+primeiroNome(i.nome);
-  const reRenderView=()=>{ if(state.view==='lista') renderList(); else if(state.view==='confeccao' && typeof renderConfList==='function') renderConfList(); };
+  const reRenderView=()=>{
+    if(state.view==='lista') renderList(); else if(state.view==='confeccao' && typeof renderConfList==='function') renderConfList();
+    // se o modal de edição do Gideão está aberto, re-sincroniza a linha "Avisos WhatsApp" (pill de pendentes)
+    const edit=$('#modal'); if(edit && !edit.classList.contains('hidden') && typeof renderWaLine==='function' && _waLineRec){ renderWaLine(_waLineRec); }
+  };
   const render=()=>{
     const a=computeAvisos(i, scope);
     const box=$('#waList');
@@ -1478,6 +1482,24 @@ $('#f-num-free') && ($('#f-num-free').onclick=async()=>{
   $('#f-numero').value=String(n).padStart(2,'0');
   updateNumFreeBtn();
 });
+// renderiza a linha "Avisos WhatsApp" (#waLine) do modal de edição; guardada p/ re-render
+// quando o modal de envio altera os avisos (fix: pill de pendentes ficava dessincronizado).
+function renderWaLine(rec){
+  const waLine=$('#waLine'); if(!waLine) return;
+  _waLineRec = rec;
+  const show = !!rec && featureOn('whatsapp');
+  waLine.classList.toggle('hidden', !show);
+  if(show){
+    const avisos=computeAvisos(rec);
+    const nPend=avisos.filter(x=>x.estado==='pendente').length;
+    const pill=$('#waLinePill');
+    if(pill) pill.textContent = !avisos.length ? t('waNada')
+      : (nPend>0 ? (nPend+' '+t('waPendente')) : t('waReenviar'));
+    waLine.onclick=()=>{ openWaModal(rec); };
+  }
+}
+var _waLineRec=null;
+
 async function openModal(id){
   const all=await getAll();
   let rec=id?all.find(x=>x.id===id):null;
@@ -1536,19 +1558,7 @@ async function openModal(id){
     if(bHist){ bHist.classList.toggle('hidden', !hasRec); if(hasRec) bHist.dataset.id=rec.id; }
   }
   // linha "Avisos WhatsApp" (só p/ registro já salvo; marca local)
-  const waLine=$('#waLine');
-  if(waLine){
-    const show = !!rec && featureOn('whatsapp');   // só com a feature ligada e registro salvo
-    waLine.classList.toggle('hidden', !show);
-    if(show){
-      const avisos=computeAvisos(rec);
-      const nPend=avisos.filter(x=>x.estado==='pendente').length;
-      const pill=$('#waLinePill');
-      pill.textContent = !avisos.length ? t('waNada')
-        : (nPend>0 ? (nPend+' '+t('waPendente')) : t('waReenviar'));
-      waLine.onclick=()=>{ const cur=(state.editing!=null)?rec:rec; openWaModal(rec); };
-    }
-  }
+  renderWaLine(rec);
   $('#modal').classList.remove('hidden');
   const sheet=$('#modal .sheet'); if(sheet) sheet.scrollTop=0;
   state.formSnapshot=formSnapshot();
