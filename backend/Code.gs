@@ -105,11 +105,17 @@ function _diffAvisos(aJson, bJson){
 }
 // diff específico de pagamentos_json: emite "pagamento: Σantes→Σdepois € (N→M itens)"
 function _diffPagtos(aJson, bJson){
-  function soma(j){ try{ return (JSON.parse(j||'[]')||[]).reduce(function(s,p){return s+(+p.valor||0);},0); }catch(_){ return 0; } }
-  function qtd(j){ try{ return (JSON.parse(j||'[]')||[]).length; }catch(_){ return 0; } }
-  var sa=soma(aJson), sb=soma(bJson), qa=qtd(aJson), qb=qtd(bJson);
-  if(sa===sb && qa===qb) return '';
-  return 'pagamento: '+sa+'→'+sb+' € ('+qa+'→'+qb+' itens)';
+  function parse(j){ try{ return (JSON.parse(j||'[]')||[]); }catch(_){ return []; } }
+  var a=parse(aJson), b=parse(bJson);
+  function soma(arr){ return arr.reduce(function(s,p){return s+(+p.valor||0);},0); }
+  // contagem de parcelas marcadas "entregue ao tesoureiro" (flag de custódia)
+  function entTeso(arr){ return arr.filter(function(p){ return p && (p.entregueTesoureiro===true || p.recebidoPor==='tesoureiro'); }).length; }
+  var parts=[];
+  var sa=soma(a), sb=soma(b), qa=a.length, qb=b.length;
+  if(sa!==sb || qa!==qb){ parts.push('pagamento: '+sa+'→'+sb+' € ('+qa+'→'+qb+' itens)'); }
+  var ta=entTeso(a), tb=entTeso(b);
+  if(ta!==tb){ parts.push('entregue ao tesoureiro: '+ta+'→'+tb); }
+  return parts.join(' | ');
 }
 // diff antes->depois: retorna "campo: a→b | campo2: c→d" só dos campos que mudaram
 function _diffResumo(antes, depois, headers){
