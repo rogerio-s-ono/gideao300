@@ -107,7 +107,7 @@ function _diffAvisos(aJson, bJson){
 function _diffPagtos(aJson, bJson){
   function parse(j){ try{ return (JSON.parse(j||'[]')||[]); }catch(_){ return []; } }
   var a=parse(aJson), b=parse(bJson);
-  function soma(arr){ return arr.reduce(function(s,p){return s+(+p.valor||0);},0); }
+  function soma(arr){ return arr.reduce(function(s,p){return s+((p && +p.valor)||0);},0); }
   // contagem de parcelas marcadas "entregue ao tesoureiro" (flag de custódia)
   function entTeso(arr){ return arr.filter(function(p){ return p && (p.entregueTesoureiro===true || p.recebidoPor==='tesoureiro'); }).length; }
   // contagem de parcelas em dinheiro com custódia do PASTOR (origemCusto)
@@ -155,7 +155,8 @@ function _diffResumo(antes, depois, headers){
 function _diffRows(antesRow, depoisRow, headers){
   var a={}, b={};
   headers.forEach(function(h,i){ a[h]=antesRow?antesRow[i]:undefined; b[h]=depoisRow?depoisRow[i]:undefined; });
-  return _diffResumo(a, b, headers);
+  // best-effort: o cálculo do resumo roda ANTES da gravação do dado de negócio — nunca pode derrubá-la
+  try{ return _diffResumo(a, b, headers); }catch(e){ return '(resumo indisponível)'; }
 }
 
 // consulta ao audit log. body.action='audit'.
@@ -234,12 +235,14 @@ function _collGetAll(name, headers){
 function _rowObjH(row, headers){ var o={}; headers.forEach(function(h,i){ o[h]=row[i]; }); return o; }
 // rótulo legível por entidade (nome/descrição) para o log
 function _audRotulo(entidade, o){
-  if(!o) return '';
-  if(entidade==='inscrito') return o.nome||('nº '+(o.numero||'s/n'));
-  if(entidade==='despesa')  return o.descricao||('despesa '+o.id);
-  if(entidade==='movimento')return (o.de||'?')+'→'+(o.para||'?');
-  if(entidade==='estoque')  return 'tam '+(o.tamanho||'?');
-  return String(o.id||'');
+  try{
+    if(!o) return '';
+    if(entidade==='inscrito') return o.nome||('nº '+(o.numero||'s/n'));
+    if(entidade==='despesa')  return o.descricao||('despesa '+o.id);
+    if(entidade==='movimento')return (o.de||'?')+'→'+(o.para||'?');
+    if(entidade==='estoque')  return 'tam '+(o.tamanho||'?');
+    return String(o.id||'');
+  }catch(e){ return ''; }
 }
 function _collUpsert(name, headers, arr, email, now, dels, entidade, papel, bulk){
   const sh=_collSheet(name, headers);
