@@ -1,5 +1,5 @@
 /* Service worker — Gideão 300 */
-const CACHE = 'gideao300-v417';
+const CACHE = 'gideao300-v418';
 const ASSETS = [
   './',
   './index.html',
@@ -17,7 +17,11 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  // Precache SEM passar pelo cache HTTP do navegador. O GitHub Pages manda "max-age=600" (10 min): com addAll comum, o SW novo
+  // podia gravar no SEU cache a cópia VELHA dos arquivos e o app "atualizado" continuava na versão antiga.
+  // Ao terminar de instalar com os arquivos FRESCOS, o SW novo se ativa sozinho (skipWaiting). Sem isso ele ficava "esperando"
+  // e o SW antigo seguia servindo a versão velha depois do recarregamento (era preciso clicar em Atualizar várias vezes).
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS.map(u => new Request(u, {cache: 'reload'})))).then(() => self.skipWaiting()));
 });
 
 // ativa o SW novo quando a página pedir (botão "Atualizar")

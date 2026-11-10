@@ -436,6 +436,13 @@
   .num-wrap input{flex:1}
   .num-free{flex:none;width:40px;height:40px;border:1px solid var(--line);border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent)}
   .num-free svg{width:18px;height:18px;fill:currentColor}
+  /* folha: números de camisa disponíveis (lupa) */
+  #numModal{z-index:120}   /* acima do modal do Gideão (100); abaixo do appConfirm (150) */
+  .num-sheet{max-width:520px}
+  .num-sheet .sheet-head{justify-content:space-between}
+  .num-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0 4px}
+  .num-grid button{padding:12px 0;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;font-family:var(--sans);color:var(--ink);cursor:pointer}
+  .num-grid button:active{background:var(--accent-soft);border-color:var(--accent)}
   .lanc-head{display:flex;align-items:center;justify-content:space-between}
   .sort-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer;color:var(--muted);font-size:.78rem}
   .sort-btn svg{width:15px;height:15px;fill:currentColor}
@@ -984,7 +991,7 @@
         <div><label data-i="numero">Número</label>
           <div class="num-wrap">
             <input id="f-numero" inputmode="numeric" placeholder="auto">
-            <button type="button" id="f-num-free" class="num-free hidden" title="Buscar número livre" aria-label="Buscar número livre">
+            <button type="button" id="f-num-free" class="num-free" title="Ver números disponíveis" aria-label="Ver números disponíveis">
               <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1114 9.5 4.5 4.5 0 019.5 14z"/></svg>
             </button>
           </div>
@@ -1164,6 +1171,19 @@
     </div>
     <button class="btn primary" id="payConfirm" type="button">Adicionar pagamento</button>
     <button class="btn ghost" id="payCancel" type="button" data-i="cancelar">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL: números de camisa disponíveis (lupa do campo Número) -->
+<div class="overlay hidden" id="numModal">
+  <div class="sheet num-sheet" role="dialog" aria-modal="true" aria-labelledby="numModalTitle">
+    <div class="sheet-head">
+      <h2 id="numModalTitle" data-i="numLivresT">Números disponíveis</h2>
+      <button class="pm-x" id="numX" type="button" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="num-grid" id="numGrid"></div>
+    <button class="btn ghost" id="numMore" type="button" data-i="numLivresMais">Mostrar mais 10</button>
+    <button class="btn ghost" id="numClose" type="button" data-i="fechar">Fechar</button>
   </div>
 </div>
 
