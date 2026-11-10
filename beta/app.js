@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.7-beta2';
+const APP_VERSION = 'v4.1.7-beta3';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -2639,16 +2639,48 @@ async function refresh(){
 let bannerShown=false;
 let newVersionAvail=null;   // versão nova detectada (string) — usada pela barra E pelo botão em MAIS
 let updating=false;
-// aplica a atualização: limpa caches + atualiza SW + recarrega forçando rede (compartilhada barra/MAIS)
+// Arquivos do app que mudam a cada versão (renovados no cache HTTP do navegador antes de recarregar)
+const UPDATE_SHELL=['./','index.html','app.js','config.js','manifest.json'];
+// Faz o service worker NOVO assumir o controle (e espera, com limite de tempo). Sem isso ele fica "esperando"
+// e o SW antigo continua servindo a versão velha depois do recarregamento.
+async function swTakeOver(ms){
+  if(!('serviceWorker' in navigator)) return;
+  const reg=await navigator.serviceWorker.getRegistration(); if(!reg) return;
+  const changed=new Promise(res=>{
+    const to=setTimeout(res,ms);
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{ clearTimeout(to); res(); },{once:true});
+  });
+  try{ await reg.update(); }catch(e){}
+  const w=reg.waiting||reg.installing;
+  if(!w) return;                                     // sw.js igual ao instalado: nada a ativar
+  const go=()=>{ try{ (reg.waiting||w).postMessage('skipWaiting'); }catch(e){} };
+  if(w.state==='installed') go(); else w.addEventListener('statechange',()=>{ if(w.state==='installed') go(); });
+  await changed;
+}
+// aplica a atualização (compartilhada barra / MAIS / login / logo):
+//  1) zera os caches do SW  2) renova os arquivos no cache HTTP (o GitHub Pages guarda 10 min; 'reload' ignora a cópia velha)
+//  3) instala o SW novo e faz ele assumir  4) recarrega. Há um limite de 15 s: recarrega de qualquer jeito.
 async function applyUpdate(btn){
   if(updating) return; updating=true;
   if(btn){ btn.disabled=true; btn.textContent=t('atualizando'); }
-  try{
+  const work=(async()=>{
     if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
-    if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.update().catch(()=>{}))); }
-  }catch(e){}
-  setTimeout(()=>{ location.reload(); }, 300);
+    await Promise.all(UPDATE_SHELL.map(u=>fetch(u,{cache:'reload'}).catch(()=>{})));
+    await swTakeOver(8000);
+  })();
+  try{ await Promise.race([work, new Promise(r=>setTimeout(r,15000))]); }catch(e){}
+  location.reload();
 }
+// Proteção contra laço de recarga no login: no máximo 2 tentativas AUTOMÁTICAS por versão (renova após 10 min).
+function autoUpdateAllowed(ver){
+  try{
+    const now=Date.now(); let g=JSON.parse(localStorage.getItem('gd_autoupd')||'null');
+    if(!g || g.ver!==ver || (now-g.t)>10*60*1000) g={ver:ver,n:0,t:now};
+    if(g.n>=2) return false;
+    g.n++; g.t=now; localStorage.setItem('gd_autoupd',JSON.stringify(g)); return true;
+  }catch(e){ return false; }
+}
+function autoUpdateClear(){ try{ localStorage.removeItem('gd_autoupd'); }catch(e){} }
 // atualiza a LINHA da tab MAIS (visível sempre que houver nova versão, mesmo após ignorar a barra)
 function refreshUpdateRow(){
   const row=$('#updateRow'); if(!row) return;
@@ -2685,7 +2717,7 @@ async function checkVersion(){
       newVersionAvail=data.version;
       refreshUpdateRow();          // mostra o botão em MAIS
       showUpdateBanner(data.version);
-    }
+    } else { autoUpdateClear(); }
   }catch(e){ /* offline: ignora */ }
 }
 async function registerSWWithUpdate(){
@@ -2724,10 +2756,18 @@ async function checkLoginVersion(){
     const data=await r.json();
     if(data && data.version && data.version!==APP_VERSION){
       newVersionAvail=data.version;
-      nv.textContent = t('novaVersao') + ' (' + data.version + ') — ' + t('atualizar');
       nv.classList.remove('hidden');
-      nv.onclick=()=>applyUpdate(nv);
-    } else { nv.classList.add('hidden'); }
+      if(!updating && autoUpdateAllowed(data.version)){
+        // há versão nova e este app ainda é o antigo: atualiza SOZINHO (sem pedir clique)
+        nv.textContent = t('atualizando') + ' ' + data.version;
+        nv.onclick=null;
+        applyUpdate(null);
+      } else {
+        // já tentou 2x automaticamente (ex.: publicação ainda propagando): oferece o clique manual
+        nv.textContent = t('novaVersao') + ' (' + data.version + ') — ' + t('atualizar');
+        nv.onclick=()=>applyUpdate(nv);
+      }
+    } else { nv.classList.add('hidden'); autoUpdateClear(); }
   }catch(e){ /* offline: ignora */ }
 }
 function onGoogleCredential(resp){
