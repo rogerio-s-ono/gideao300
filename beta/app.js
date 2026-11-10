@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.6-beta2';
+const APP_VERSION = 'v4.1.6-beta3';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -2313,7 +2313,7 @@ function updateFabCaixa(){
   fc.classList.toggle('hidden', !(naCaixa && pode));
 }
 // marcador de pendência para sync das novas coleções (chave composta)
-function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=1; localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
+function markPendingKV(kind,id){ const p=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}'); p[kind+':'+id]=_pendStamp(); localStorage.setItem('gd_pending_cx',JSON.stringify(p)); }
 
 /* --- Extrato por bolso --- */
 // custódia derivada de um pagamento em dinheiro: 'teso' | 'pastor'
@@ -2921,12 +2921,23 @@ $('#loginLogoLink') && ($('#loginLogoLink').onclick=async()=>{
   try{ await checkVersion(); }catch(_){}
   applyUpdate(null);
 });
+// Carimbo único e crescente de cada marcação de pendência. Permite saber se um registro foi
+// alterado DE NOVO enquanto um envio estava em andamento (mesmo id, mesmo Gideão).
+var _pendSeq=0;
+function _pendStamp(){ _pendSeq=Math.max(Date.now(), _pendSeq+1); return _pendSeq; }
 function markPending(id){
-  const p=JSON.parse(localStorage.getItem('gd_pending')||'{}'); p[id]=1;
+  const p=JSON.parse(localStorage.getItem('gd_pending')||'{}'); p[id]=_pendStamp();
   localStorage.setItem('gd_pending', JSON.stringify(p));
 }
 function pendingIds(){ return Object.keys(JSON.parse(localStorage.getItem('gd_pending')||'{}')); }
 function clearPending(){ localStorage.removeItem('gd_pending'); }
+// Remove só as pendências que foram ENVIADAS e que NÃO foram remarcadas durante o envio
+// (snap = cópia de localStorage[key] tirada ANTES do envio). Evita perder alterações feitas no meio do sync.
+function clearPendingSnap(key, snap){
+  const cur=JSON.parse(localStorage.getItem(key)||'{}');
+  Object.keys(snap||{}).forEach(k=>{ if(cur[k]===snap[k]) delete cur[k]; });
+  if(Object.keys(cur).length) localStorage.setItem(key, JSON.stringify(cur)); else localStorage.removeItem(key);
+}
 // tombstones de inscritos apagados (para propagar a deleção ao servidor no próximo push)
 function markPendingDel(id){
   const p=JSON.parse(localStorage.getItem('gd_pending_del')||'{}'); p[String(id)]=1;
@@ -2998,9 +3009,13 @@ async function reconcileColl(store, serverArr, kind, pendKeys){
 }
 async function pushPending(){
   if(!ONLINE_ENABLED || !auth.idToken) return;
-  const ids=pendingIds();
-  const delIds=pendingDelIds();
-  const pcx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
+  // foto das pendências ANTES de ler os dados: o que mudar depois disso fica pendente p/ o próximo envio
+  const snapPend=JSON.parse(localStorage.getItem('gd_pending')||'{}');
+  const snapDel=JSON.parse(localStorage.getItem('gd_pending_del')||'{}');
+  const snapCx=JSON.parse(localStorage.getItem('gd_pending_cx')||'{}');
+  const ids=Object.keys(snapPend);
+  const delIds=Object.keys(snapDel);
+  const pcx=snapCx;
   const cxKeys=Object.keys(pcx);
   if(!ids.length && !delIds.length && !cxKeys.length) return;
   const payload={idToken:auth.idToken};
@@ -3026,9 +3041,10 @@ async function pushPending(){
     body:JSON.stringify(payload)});
   const data=await r.json();
   if(!data.ok) throw new Error(data.error||'push_failed');
-  clearPending();
-  clearPendingDel();
-  localStorage.removeItem('gd_pending_cx');
+  // limpa SÓ o que foi enviado e não foi alterado de novo durante o envio (antes limpava tudo -> perdia marcas feitas no meio)
+  clearPendingSnap('gd_pending', snapPend);
+  clearPendingSnap('gd_pending_del', snapDel);
+  clearPendingSnap('gd_pending_cx', snapCx);
   return data;
 }
 async function serverCount(){
@@ -3056,7 +3072,7 @@ async function syncNow(){
   if(syncState==='syncing'){
     // proteção: se ficou "syncing" há muito tempo (>40s), destrava e permite nova tentativa
     if(syncStartedAt && (Date.now()-syncStartedAt) > 40000){ syncState='off'; }
-    else return;
+    else { _syncAgain=true; return; }   // pedido durante um sync: roda de novo ao terminar (não perde a marca nova)
   }
   syncStartedAt = Date.now();
   // watchdog: se por algum motivo travar, força erro e destrava depois de 35s
@@ -3076,7 +3092,7 @@ async function syncNow(){
           base = seed.inscritos.map(i=>({...i, cota:i.cota||COTA, camisaEstado:(i.camisaEstado===undefined?0:i.camisaEstado)})); }catch(e){ base=[]; }
         for(const i of base){ await put(i); }
       }
-      if(base.length){ await pushAll(base); clearPending(); await pull(); }
+      if(base.length){ const snapBase=JSON.parse(localStorage.getItem('gd_pending')||'{}'); await pushAll(base); clearPendingSnap('gd_pending', snapBase); await pull(); }
     }
     setSync(pendingIds().length? 'pend':'ok');
     retryDelay=0;                       // sucesso -> zera backoff
@@ -3097,8 +3113,11 @@ async function syncNow(){
   }finally{
     done=true; clearTimeout(watchdog); syncStartedAt=0;
     if(syncState==='syncing') setSync('err');   // salvaguarda: nunca deixa preso em syncing
+    // alguém pediu sync durante este (ex.: marcou um aviso no meio do envio) -> sincroniza de novo
+    if(_syncAgain){ _syncAgain=false; if(auth && auth.idToken) setTimeout(()=>{ syncNow(); }, 50); }
   }
 }
+var _syncAgain=false;
 /* retentativa automática com backoff (5s,15s,30s,60s...) até sincronizar — usuário nunca precisa agir */
 let retryDelay=0, retryTimer=null;
 function scheduleRetry(){
