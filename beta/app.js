@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.6-beta6';
+const APP_VERSION = 'v4.1.6-beta7';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -134,7 +134,7 @@ const I18N = {
     novaDespesa:'Nova despesa', editarDespesa:'Editar despesa', descricao:'Descrição', categoria:'Categoria', pagoDe:'Pago de (bolso)', observacao:'Observação',
     novaMovimentacao:'Nova movimentação', editarMovimentacao:'Editar movimentação', de:'De', para:'Para', comentario:'Comentário',
     arrecadadoLabel:'Arrecadado', despesasLabel:'Despesas', semLancamentos:'Nenhum lançamento', confirmDelDesp:'Excluir esta despesa?', confirmDelMov:'Excluir esta movimentação?',
-    extrato:'Extrato', saldoAtual:'Saldo atual', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento',
+    extrato:'Extrato', saldoAtual:'Saldo atual', saldoTotal:'Saldo total', entrada:'Entrada', despesa:'Despesa', movimentacao:'Movimentação', pagamentoDe:'Pagamento',
     fotosFatura:'Comprovante — foto ou PDF (até 3)', tirarFoto:'📎 Anexar comprovante (foto ou PDF)', verFoto:'Ver comprovante', enviandoFoto:'Enviando anexo…', maxFotos:'Máximo de 3 anexos.', pdfGrande:'PDF muito grande (máx. 5 MB). Reduza o arquivo e tente novamente.', anexarComprovante:'Anexar comprovante',
     fotoSemConexao:'Sem conexão para enviar a foto. Conecte-se à internet e tente salvar novamente (ou remova a foto para salvar sem ela).',
     fotoFalhou:'Não foi possível enviar a foto. A despesa NÃO foi salva. Tente de novo ou remova a foto.'
@@ -236,7 +236,7 @@ const I18N = {
     novaDespesa:'Nuevo gasto', editarDespesa:'Editar gasto', descricao:'Descripción', categoria:'Categoría', pagoDe:'Pagado de (bolsa)', observacao:'Observación',
     novaMovimentacao:'Nuevo traspaso', editarMovimentacao:'Editar traspaso', de:'De', para:'A', comentario:'Comentario',
     arrecadadoLabel:'Recaudado', despesasLabel:'Gastos', semLancamentos:'Sin movimientos', confirmDelDesp:'¿Eliminar este gasto?', confirmDelMov:'¿Eliminar este traspaso?',
-    extrato:'Extracto', saldoAtual:'Saldo actual', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago',
+    extrato:'Extracto', saldoAtual:'Saldo actual', saldoTotal:'Saldo total', entrada:'Entrada', despesa:'Gasto', movimentacao:'Traspaso', pagamentoDe:'Pago',
     fotosFatura:'Comprobante — foto o PDF (hasta 3)', tirarFoto:'📎 Adjuntar comprobante (foto o PDF)', verFoto:'Ver comprobante', enviandoFoto:'Enviando adjunto…', maxFotos:'Máximo de 3 adjuntos.', pdfGrande:'PDF demasiado grande (máx. 5 MB). Reduce el archivo e intenta de nuevo.', anexarComprovante:'Adjuntar comprobante',
     fotoSemConexao:'Sin conexión para enviar la foto. Conéctate a internet e intenta guardar de nuevo (o quita la foto para guardar sin ella).',
     fotoFalhou:'No se pudo enviar la foto. El gasto NO se guardó. Intenta de nuevo o quita la foto.'
@@ -758,6 +758,7 @@ function computeCaixa(inscritos, despesas, movimentos){
   // despesas em dinheiro: reduzem a custódia de origem (pastor/tesoureiro; default tesoureiro)
   (despesas||[]).forEach(d=>{
     if((d.bolso||'banco')!=='dinheiro') return;
+    if(d.status==='suspenso') return;     // suspensa: fora do saldo e da custódia (senão Pastor+Tesoureiro ≠ Dinheiro)
     var v=+d.valor||0;
     if(d.origemCusto==='pastor') cashPastor-=v; else cashTeso-=v;
   });
@@ -2079,21 +2080,12 @@ async function renderCaixa(){
   $('#cxDinheiro').textContent = eur(c.bolso.dinheiro);
   $('#cxBanco').textContent = eur(c.bolso.banco);
   $('#cxOutros').textContent = eur(c.bolso.outros);
-  // item 7: quebra do dinheiro por custódia
-  const cp=$('#cashPastor'); if(cp) cp.textContent=eur(c.cashPastor||0);
-  const ct=$('#cashTeso'); if(ct) ct.textContent=eur(c.cashTeso||0);
   // selo somente-leitura: só quando o usuário não pode NADA na Caixa (nem adicionar despesa)
   const ro=$('#cxReadonly'); if(ro) ro.classList.toggle('hidden', !!auth.podeAddDespesa);
   // (i) histórico global na Caixa: só admin (a Auditoria global é só-admin no backend)
   const ch=$('#cxHist'); if(ch) ch.classList.toggle('hidden', effectiveRole()!=='admin');
   renderCaixaTabs(); renderCaixaList(c);
 }
-let cashSplitOpen=false;
-$('#cashSplitHead') && ($('#cashSplitHead').onclick=()=>{
-  cashSplitOpen=!cashSplitOpen;
-  const lines=$('#cashLines'); if(lines) lines.classList.toggle('hidden', !cashSplitOpen);
-  const head=$('#cashSplitHead'); if(head) head.classList.toggle('open', cashSplitOpen);
-});
 function renderCaixaTabs(){
   $$('#cxTabs .tab2').forEach(el=>{ el.classList.toggle('on', el.dataset.cx===caixaState.tab); el.onclick=()=>{ caixaState.tab=el.dataset.cx; renderCaixa(); updateFabCaixa(); }; });
   const lbl=$('#cxSortLbl'); if(lbl) lbl.textContent = caixaState.sortDesc? t('maisRecente') : t('maisAntigo');
@@ -2420,7 +2412,7 @@ function custodyPill(kind){
 let extratoBolso=null;   // bolso atualmente aberto (para voltar ao extrato após editar)
 let extHighlight=null;   // chave do lançamento a destacar ao voltar ao extrato
 let cxHighlight=null;    // chave do lançamento a destacar na lista de Lançamentos (despesas/movimentos)
-let extCust={teso:true, pastor:true};   // filtro de custódia no extrato do Dinheiro
+let extCustSel=null;   // filtro de custódia no extrato do Dinheiro: null (mostra tudo, nada marcado) | 'pastor' | 'teso'. Nunca os dois.
 async function openExtrato(bolso){
   extratoBolso=bolso;
   cxHighlight=null;   // ao abrir o extrato, não deixa highlight preso vazar para a lista de Lançamentos por baixo
@@ -2439,17 +2431,21 @@ async function openExtrato(bolso){
   caixaState.despesas.forEach(d=>{ if((d.bolso||'banco')!==bolso) return; const susp=(d.status==='suspenso'); lanc.push({ data:d.data||'', tipo:t('despesa'), desc:d.descricao||'—', valor: susp?0:-(+d.valor||0), valorReal:-(+d.valor||0), susp:susp, kind:'desp', refId:d.id, cust: isCash? (d.origemCusto==='pastor'?'pastor':'teso') : null }); });
   // movimentações que afetam este bolso
   caixaState.movimentos.forEach(m=>{
-    if(m.para===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:(+m.valor||0), kind:'mov', refId:m.id });
-    if(m.de===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:-(+m.valor||0), kind:'mov', refId:m.id });
+    // custódia (só no Dinheiro): entrada em dinheiro vai p/ o tesoureiro; saída sai da custódia de origem (mesma regra do computeCaixa)
+    if(m.para===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:(+m.valor||0), kind:'mov', refId:m.id, cust: isCash? 'teso' : null });
+    if(m.de===bolso) lanc.push({ data:m.data||'', tipo:t('movimentacao'), desc:`${BOLSO_LABEL[m.de]} → ${BOLSO_LABEL[m.para]}${m.comentario?' · '+m.comentario:''}`, valor:-(+m.valor||0), kind:'mov', refId:m.id, cust: isCash? (m.origemCusto==='pastor'?'pastor':'teso') : null });
   });
   // ordena CRONOLOGICO crescente para calcular saldo corrente (sobre TODOS, saldo total real)
   lanc.sort((a,b)=>toISODate(a.data).localeCompare(toISODate(b.data)));
   let bal=0; lanc.forEach(l=>{ bal+=l.valor; l.bal=bal; });
   const saldoFinal=bal;
-  // filtro de custódia (só no Dinheiro): afeta APENAS a exibição, não o saldo total
-  const custActive = isCash && !(extCust.teso && extCust.pastor);  // filtro ativo se algum desligado
-  let shown = lanc;
-  if(isCash){ shown = lanc.filter(l=>{ if(l.cust==='teso') return extCust.teso; if(l.cust==='pastor') return extCust.pastor; return !custActive; }); }
+  // subtotais por custódia: somados das MESMAS linhas do saldo total => Pastor + Tesoureiro = Saldo total, sempre
+  const r2=(n)=>Math.round(n*100)/100;
+  let subPastor=0, subTeso=0;
+  if(isCash) lanc.forEach(l=>{ if(l.cust==='pastor') subPastor+=l.valor; else if(l.cust==='teso') subTeso+=l.valor; });
+  // filtro de custódia (só no Dinheiro): afeta APENAS a exibição, não o saldo total nem os subtotais
+  const custActive = isCash && !!extCustSel;
+  let shown = custActive ? lanc.filter(l=>l.cust===extCustSel) : lanc;
   // ordem de exibição conforme o toggle (default: recente no topo)
   if(caixaState.sortDesc) shown=shown.slice().reverse();
   $('#extTitle').textContent=`${t('extrato')} · ${BOLSO_LABEL[bolso]}`;
@@ -2457,7 +2453,9 @@ async function openExtrato(bolso){
   // controles: label de ordenação + filtros de custódia (só Dinheiro)
   const sl=$('#extSortLbl'); if(sl) sl.textContent=caixaState.sortDesc? t('maisRecente') : t('maisAntigo');
   const cf=$('#extCustFilters'); if(cf) cf.classList.toggle('hidden', !isCash);
-  $$('#extCustFilters .cust-toggle').forEach(b=>b.classList.toggle('on', !!extCust[b.dataset.cust]));
+  const sp=$('#extCustPastor'); if(sp) sp.textContent=eur(r2(subPastor));
+  const st=$('#extCustTeso');   if(st) st.textContent=eur(r2(subTeso));
+  $$('#extCustFilters .cust-row').forEach(b=>b.setAttribute('aria-pressed', extCustSel===b.dataset.cust ? 'true' : 'false'));
   const el=$('#extList');
   const lkey=(l)=> l.kind==='pag' ? ('pag:'+l.gid+':'+l.pidx) : (l.kind+':'+l.refId);
   if(!shown.length){ el.innerHTML=`<div class="empty">${t('semLancamentos')}</div>`; }
@@ -2500,7 +2498,7 @@ async function openExtrato(bolso){
 }
 // ordenação e filtros de custódia do extrato
 $('#extSortBtn') && ($('#extSortBtn').onclick=()=>{ caixaState.sortDesc=!caixaState.sortDesc; if(extratoBolso) openExtrato(extratoBolso); });
-$$('#extCustFilters .cust-toggle').forEach(b=>b.onclick=()=>{ extCust[b.dataset.cust]=!extCust[b.dataset.cust]; if(extratoBolso) openExtrato(extratoBolso); });
+$$('#extCustFilters .cust-row').forEach(b=>b.onclick=()=>{ extCustSel = (extCustSel===null) ? b.dataset.cust : null; if(extratoBolso) openExtrato(extratoBolso); });
 // controla retorno ao extrato após editar a partir dele
 let extReturn=null;
 function backToExtratoIfNeeded(){
@@ -2508,7 +2506,7 @@ function backToExtratoIfNeeded(){
 }
 document.addEventListener('click',(e)=>{
   const b=e.target.closest && e.target.closest('#view-caixa .bolso');
-  if(b && b.dataset.bolso && state.view==='caixa'){ openExtrato(b.dataset.bolso); }
+  if(b && b.dataset.bolso && state.view==='caixa'){ extCustSel=null; openExtrato(b.dataset.bolso); }
 });
 $('#extBack') && ($('#extBack').onclick=()=>$('#extratoModal').classList.add('hidden'));
 $('#extratoModal') && $('#extratoModal').addEventListener('click',e=>{ if(e.target.id==='extratoModal') $('#extratoModal').classList.add('hidden'); });

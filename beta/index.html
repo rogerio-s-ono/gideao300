@@ -440,12 +440,6 @@
   .sort-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer;color:var(--muted);font-size:.78rem}
   .sort-btn svg{width:15px;height:15px;fill:currentColor}
   .ext-ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
-  .ext-cust-filters{display:flex;gap:6px;margin-left:auto}
-  .cust-toggle{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:.78rem;cursor:pointer;background:#fff;color:var(--muted);opacity:.45}
-  .cust-toggle.on{opacity:1;border-color:currentColor}
-  .cust-toggle .cdot{width:9px;height:9px;border-radius:50%;display:inline-block}
-  .cust-toggle .cdot.teso{background:#329864} .cust-toggle .cdot.pastor{background:#0050CA}
-  .cust-toggle[data-cust=teso].on{color:#329864} .cust-toggle[data-cust=pastor].on{color:#0050CA}
   /* pagamentos */
   .pay{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:9px 10px;background:var(--soft-grey);border-radius:8px;margin-top:6px;font-size:14px}
   .pay .pay-main{display:flex;align-items:center;gap:8px}
@@ -511,6 +505,16 @@
   .bolso{cursor:pointer}
   .ext-saldo{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;font-size:14px}
   .ext-saldo b{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--accent)}
+  /* cartão do saldo: Saldo total + linhas Pastor/Tesoureiro (subtotal e filtro) */
+  .ext-card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+  .ext-card .ext-saldo{border:0;border-radius:0;margin:0;background:transparent}
+  .cust-row{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;background:transparent;border:0;border-top:1px solid var(--line);font-size:15px;font-family:var(--sans);color:var(--ink);text-align:left;cursor:pointer}
+  .cust-row .cbx{position:relative;width:18px;height:18px;border:1.5px solid var(--grey);border-radius:5px;background:#fff;flex:none}
+  .cust-row .cdot{margin:0}
+  .cust-row b{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
+  .cust-row[aria-pressed="true"]{background:var(--accent-soft)}
+  .cust-row[aria-pressed="true"] .cbx{background:var(--primary);border-color:var(--primary)}
+  .cust-row[aria-pressed="true"] .cbx:after{content:"";position:absolute;left:5px;top:1px;width:4px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
   .ext-item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
   .ext-item .e-d{font-weight:500;font-size:14px}
   .ext-item .e-m{font-size:12px;color:var(--muted);margin-top:2px}
@@ -561,13 +565,6 @@
   #impersonateBanner svg{width:18px;height:18px;fill:currentColor;flex:none}
   #impersonateBanner span{flex:1}
   #impersonateBanner button{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer}
-  .cash-inline{margin:8px 0}
-  .cash-toggle{display:inline-flex;align-items:center;gap:6px;font-size:.84rem;color:var(--blue,#1174e6);cursor:pointer;font-weight:600;padding:6px 4px;background:none;border:none}
-  .cash-toggle svg{width:16px;height:16px;fill:currentColor}
-  .cs-chev{transition:transform .15s}
-  .cash-toggle.open .cs-chev{transform:rotate(180deg)}
-  .cs-lines{margin-top:6px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--soft,#f4f2ee);max-width:280px}
-  .cs-line{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:.92rem}
   .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:1px}
   .cdot.pastor{background:#0050CA} .cdot.teso{background:#329864}
   #d-origemRow{margin:10px 0 4px}
@@ -833,16 +830,6 @@
       <div class="bolso dinheiro" data-bolso="dinheiro"><div class="b-v" id="cxDinheiro">—</div><div class="b-l" data-i="bolsoDinheiro">Dinheiro</div></div>
       <div class="bolso banco" data-bolso="banco"><div class="b-v" id="cxBanco">—</div><div class="b-l" data-i="bolsoBanco">Banco</div></div>
       <div class="bolso outros" data-bolso="outros"><div class="b-v" id="cxOutros">—</div><div class="b-l" data-i="bolsoOutros">Outros</div></div>
-    </div>
-    <div class="cash-inline" id="cashSplit">
-      <button class="cash-toggle" id="cashSplitHead" type="button">
-        <svg viewBox="0 0 24 24"><path d="M12 5c-5 0-9 4.5-10 7 1 2.5 5 7 10 7s9-4.5 10-7c-1-2.5-5-7-10-7zm0 11a4 4 0 110-8 4 4 0 010 8z"/></svg>
-        <span data-i="custodia">Custódia</span><span class="cs-chev" id="cashChev">▾</span>
-      </button>
-      <div class="cs-lines hidden" id="cashLines">
-        <div class="cs-line"><span><span class="cdot pastor"></span><span data-i="comPastores">Com pastores</span></span><b id="cashPastor">—</b></div>
-        <div class="cs-line"><span><span class="cdot teso"></span><span data-i="comTesoureiro">Com tesoureiro</span></span><b id="cashTeso">—</b></div>
-      </div>
     </div>
     <div class="lanc-head" style="margin-top:16px">
       <h3 data-i="lancamentos" style="margin:0">Lançamentos</h3>
@@ -1366,16 +1353,18 @@
       <button id="extBack" class="back-btn" aria-label="Voltar"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
       <h2 id="extTitle">Extrato</h2>
     </div>
-    <div class="ext-saldo"><span data-i="saldoAtual">Saldo atual</span><b id="extSaldo">—</b></div>
+    <div class="ext-card">
+      <div class="ext-saldo"><span data-i="saldoTotal">Saldo total</span><b id="extSaldo">—</b></div>
+      <div class="hidden" id="extCustFilters">
+        <button type="button" class="cust-row" data-cust="pastor" aria-pressed="false"><span class="cbx"></span><span class="cdot pastor"></span><span data-i="origemPastor">Pastor</span><b id="extCustPastor">—</b></button>
+        <button type="button" class="cust-row" data-cust="teso" aria-pressed="false"><span class="cbx"></span><span class="cdot teso"></span><span data-i="origemTesoureiro">Tesoureiro</span><b id="extCustTeso">—</b></button>
+      </div>
+    </div>
     <div class="ext-ctrls">
       <button type="button" id="extSortBtn" class="sort-btn" title="Ordenar por data">
         <svg viewBox="0 0 24 24"><path d="M7 4v13l-3-3-1.4 1.4L8 21l5.4-5.6L12 14l-3 3V4H7zm9 0-5.4 5.6L12 11l3-3v13h2V8l3 3 1.4-1.4L16 4z"/></svg>
         <span id="extSortLbl"></span>
       </button>
-      <div class="ext-cust-filters hidden" id="extCustFilters">
-        <button type="button" class="cust-toggle on" data-cust="teso"><span class="cdot teso"></span><span data-i="origemTesoureiro">Tesoureiro</span></button>
-        <button type="button" class="cust-toggle on" data-cust="pastor"><span class="cdot pastor"></span><span data-i="origemPastor">Pastor</span></button>
-      </div>
     </div>
     <div id="extList"></div>
   </div>
