@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.6-beta1';
+const APP_VERSION = 'v4.1.6-beta2';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -784,10 +784,40 @@ let state={ view:'lista', filter:'todos', q:'', qAdv: localStorage.getItem('qAdv
 
 /* ---------- render lista ---------- */
 const FILTERS=[['todos','fTodos'],['pago','fPago'],['parcial','fParcial'],['pend','fPend'],['entregar','fEntregue'],['isento','fIsento'],['revisar','fRevisar']];
-function renderFilters(){
-  $('#filters').innerHTML=FILTERS.map(([k,l])=>`<div class="chip ${state.filter===k?'active':''}" data-f="${k}">${t(l)}</div>`).join('');
-  $$('#filters .chip').forEach(c=>c.onclick=()=>{state.filter=c.dataset.f;renderFilters();renderList();});
+// critério de cada filtro da lista (usado pela lista E pelos subtotais dos chips)
+function matchListFilter(i,k){
+  const st=statusPag(i);
+  switch(k){
+    case 'pago': return st==='pago';
+    case 'parcial': return st==='parcial';
+    case 'pend': return st==='pend';
+    case 'isento': return st==='isento';
+    case 'entregar': return podeProduzir(i) && i.camisaEstado===EST.PRONTA;
+    case 'revisar': return !!i.aRevisar;
+    default: return true;
+  }
 }
+let _filterCounts=null;   // subtotais por filtro (sobre todos os Gideões, ignorando a busca)
+function paintFilters(){
+  const el=$('#filters'); if(!el) return;
+  const sl=el.scrollLeft;
+  el.innerHTML=FILTERS.map(([k,l])=>{
+    const n=_filterCounts?_filterCounts[k]:null;
+    const badge=(n==null)?'':` <span class="cbadge">${n}</span>`;
+    return `<div class="chip ${state.filter===k?'active':''}" data-f="${k}">${t(l)}${badge}</div>`;
+  }).join('');
+  el.scrollLeft=sl;
+  $$('#filters .chip').forEach(c=>c.onclick=()=>{state.filter=c.dataset.f;paintFilters();renderList();});
+}
+// recalcula os subtotais e só repinta os chips se algum número mudou
+async function updateFilterCounts(){
+  try{
+    const all=await getAll();
+    const c={}; FILTERS.forEach(([k])=>{ c[k]=all.filter(i=>matchListFilter(i,k)).length; });
+    if(!_filterCounts || FILTERS.some(([k])=>_filterCounts[k]!==c[k])){ _filterCounts=c; paintFilters(); }
+  }catch(e){}
+}
+function renderFilters(){ paintFilters(); updateFilterCounts(); }
 async function getFiltered(){
   const all=(await getAll()).sort((a,b)=>{
     const na=numOrder(a.numero), nb=numOrder(b.numero);
@@ -812,19 +842,11 @@ async function getFiltered(){
       }
       if(!matched) return false;
     }
-    const st=statusPag(i);
-    switch(state.filter){
-      case 'pago': return st==='pago';
-      case 'parcial': return st==='parcial';
-      case 'pend': return st==='pend';
-      case 'isento': return st==='isento';
-      case 'entregar': return podeProduzir(i) && i.camisaEstado===EST.PRONTA;
-      case 'revisar': return i.aRevisar;
-      default: return true;
-    }
+    return matchListFilter(i, state.filter);
   });
 }
 async function renderList(){
+  updateFilterCounts();   // subtotais dos chips acompanham qualquer mudança nos dados
   const cardsEl=$('#list'), tableEl=$('#listTable');
   const isTable=state.viewMode==='table';
   cardsEl.classList.toggle('hidden',isTable);
@@ -1120,8 +1142,8 @@ function renderConfFilters(counts){
   $$('#confFilters .chip').forEach(c=>c.onclick=()=>{
     const k=c.dataset.f;
     if(k==='todos'){
-      // marca todos; se já estavam todos, mantém todos (não deixa vazio ao clicar Todos)
-      state.confFilters = CONF_ALL_STATES.slice();
+      // alterna: se já estavam todos marcados, desmarca tudo (sem filtro, para escolher do zero); senão marca todos
+      state.confFilters = allOn ? [] : CONF_ALL_STATES.slice();
     } else {
       const arr=state.confFilters.slice();
       const i=arr.indexOf(k);
