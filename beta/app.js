@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.6-beta9';
+const APP_VERSION = 'v4.1.6-beta10';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -1602,6 +1602,7 @@ function formSnapshot(){
     numero:$('#f-numero').value.trim(), nome:$('#f-nome').value.trim(),
     telefone:$('#f-telefone').value.trim(), tamanho:$('#f-tamanho').value,
     revisar:$('#f-revisar').checked, obs:$('#f-obs').value.trim(),
+    isento:!!($('#f-isento') && $('#f-isento').checked),   // marcar/desmarcar Isento também é alteração (pede confirmação ao sair)
     pays:state.draftPays
   });
 }
