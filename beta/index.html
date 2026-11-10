@@ -360,6 +360,52 @@
   .pay-block .bh{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
   .add-pay{width:100%;margin-top:10px;padding:12px;border-radius:9px;border:1.5px dashed var(--green);background:var(--soft-green);color:var(--green);font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--sans)}
   .add-pay svg{width:18px;height:18px;fill:currentColor}
+  /* ---- cartão da cota (substitui a faixa "Pago — cota completa") ---- */
+  .cq{border-radius:14px;padding:12px 14px;border:1px solid transparent;margin:4px 0 2px}
+  .cq:empty{display:none}
+  .cq .cq-r{display:flex;align-items:center;gap:12px}
+  .cq .cq-t{flex:1;min-width:0}
+  .cq .cq-t b{display:block;font-size:17px;line-height:1.2}
+  .cq .cq-t span{font-size:13px;opacity:.85}
+  .cq .cq-pb{height:7px;border-radius:4px;margin-top:10px;overflow:hidden}
+  .cq .cq-pb i{display:block;height:100%;border-radius:4px}
+  .cq .cq-badge{width:44px;height:44px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 3px 8px rgba(63,125,84,.35)}
+  .cq .cq-badge svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+  .cq .cq-ring{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+  .cq .cq-ring i{width:34px;height:34px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:700}
+  .cq.ok{background:linear-gradient(135deg,#eaf3ed,#d9ebdf);border-color:#bcd8c5;color:#2f6544}
+  .cq.ok .cq-pb{background:#c4dccb}.cq.ok .cq-pb i{background:linear-gradient(90deg,#4c9264,#3f7d54)}
+  .cq.part{background:linear-gradient(135deg,#fbf3e3,#f6e8c9);border-color:#ebd6a6;color:#8a5f14}
+  .cq.part .cq-pb{background:#ecdcb2}.cq.part .cq-pb i{background:linear-gradient(90deg,#d9a548,#c08a2d)}
+  .cq.part .cq-ring{background:conic-gradient(#c08a2d calc(var(--p)*1%),#ecdcb2 0)}
+  .cq.zero{background:#f4f2ec;border-color:#e3dfd5;color:#6f6a63}
+  .cq.zero .cq-pb{background:#e3dfd5}.cq.zero .cq-ring{background:#e3dfd5}
+  .cq.iso{background:#eeedf3;border-color:#d9d7e6;color:#55527a}
+  .cq.iso .cq-ring{background:#d9d7e6}
+  /* pagamento adicionado nesta edição e ainda não salvo */
+  .pay.pay-new{background:var(--soft-green);outline:1.5px solid var(--green)}
+  .pay-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px;background:var(--soft-amber);color:var(--amber);letter-spacing:.03em;white-space:nowrap}
+  /* ---- folha "Adicionar pagamento" ---- */
+  #payModal{z-index:120}   /* acima do modal do Gideão (100); abaixo do appConfirm (150) e do toast (300) */
+  .pay-sheet{max-width:520px}
+  .pay-sheet .sheet-head{justify-content:space-between}
+  .pm-x{width:34px;height:34px;border-radius:50%;border:0;background:var(--soft-grey);color:var(--muted);font-size:22px;line-height:1;cursor:pointer;flex:none}
+  .pm-row{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;align-items:end}
+  .pm-inp{position:relative}
+  .pm-inp input{padding-right:30px;font-weight:600}
+  .pm-inp .pm-eur{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+  .pm-datebox{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;height:46px;padding:0 11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:15px;cursor:pointer;white-space:nowrap}
+  .pm-datebox svg{width:18px;height:18px;fill:var(--muted);flex:none}
+  .pm-datebox .dc-txt{font-variant-numeric:tabular-nums}
+  .pm-datebox .dc-in{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;cursor:pointer}
+  .pm-hint{font-size:12px;color:var(--muted);margin-top:5px;min-height:16px}
+  .pm-hint.warn{color:var(--amber)}
+  .pm-seg{display:flex;gap:8px}
+  .pm-seg button{flex:1;padding:12px 6px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-size:15px;font-family:var(--sans);cursor:pointer}
+  .pm-seg button.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+  .pm-err{font-size:12px;color:var(--red);margin-top:4px}
+  .pm-note{margin-top:6px;font-size:12px;color:var(--muted);background:var(--soft-grey);border-radius:8px;padding:7px 9px;line-height:1.4}
+  #payConfirm.off{opacity:.4}
   .modal-divider{height:1px;background:var(--line);margin:16px 0}
   /* barra de acoes horizontal (item 5) */
   .action-bar{display:flex;gap:8px;margin-top:8px}
@@ -962,29 +1008,16 @@
 
     <div class="grp" id="addPayArea">
     <div class="gh" data-i="pagamentos">Pagamentos (cota 300€)</div>
+    <div class="cq" id="saldoBox"></div>
     <div id="paysList"></div>
     <input type="file" id="p-fotoInput" accept="image/*,application/pdf" class="hidden">
-    <div class="saldo" id="saldoBox"></div>
     <div class="pay-sub" id="addPaySub">
     <div class="bh-row" id="addPayHead">
       <span class="bh" id="addPayTitle" data-i="adicionarPagamento">Adicionar pagamento</span>
       <label class="isento-chk"><input type="checkbox" id="f-isento"> <span data-i="isentoChk">Isento</span></label>
     </div>
     <div id="payFields">
-    <div class="row2">
-      <div><label data-i="valor">Valor (€)</label><input id="p-valor" inputmode="decimal" placeholder="300"></div>
-      <div><label data-i="tipo">Tipo</label><select id="p-tipo"></select></div>
-    </div>
-    <div id="p-outros-wrap" class="hidden"><label data-i="comentarioOutros">Comentário (Outros)</label><input id="p-comentario" placeholder="ex.: Bizum Rogério, Máquina igreja"></div>
-    <div id="p-receb-wrap" class="hidden">
-      <label data-i="recebidoPor">Recebido por</label>
-      <div class="origem-radio">
-        <label><input type="radio" name="p-recebido" value="pastor" checked> <span data-i="origemPastor">Pastor</span></label>
-        <label><input type="radio" name="p-recebido" value="tesoureiro"> <span data-i="origemTesoureiro">Tesoureiro</span></label>
-      </div>
-    </div>
-    <input id="p-data" type="hidden">
-    <button class="add-pay" id="addPay" type="button"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg> <span data-i="adicionarEstePagamento">Adicionar este pagamento</span></button>
+    <button class="add-pay" id="addPay" type="button"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg> <span data-i="adicionarPagamento">Adicionar pagamento</span></button>
     </div>
     <div class="isento-nota hidden" id="isentoNota"></div>
     </div>
@@ -1105,6 +1138,46 @@
     <button class="btn primary" id="fcSave" data-i="salvarESair">Salvar e sair</button>
     <button class="btn danger" id="fcDiscard" data-i="descartarSair">Descartar alterações</button>
     <button class="btn ghost" id="fcCancel" data-i="continuarEditando">Continuar editando</button>
+  </div>
+</div>
+
+<!-- MODAL: adicionar pagamento (folha) -->
+<div class="overlay hidden" id="payModal">
+  <div class="sheet pay-sheet" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+    <div class="sheet-head">
+      <h2 id="payModalTitle" data-i="adicionarPagamento">Adicionar pagamento</h2>
+      <button class="pm-x" id="payX" type="button" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="pm-row">
+      <div>
+        <label for="p-valor" data-i="valor">Valor (€)</label>
+        <div class="pm-inp"><input id="p-valor" inputmode="decimal" autocomplete="off" placeholder="0"><span class="pm-eur">€</span></div>
+      </div>
+      <div>
+        <label for="p-data" data-i="data">Data</label>
+        <span class="pm-datebox"><span class="dc-txt" id="p-dateTxt"></span><svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm12 7v10H5V9h14z"/></svg><input type="date" class="dc-in" id="p-data"></span>
+      </div>
+    </div>
+    <div class="pm-hint" id="p-hint"></div>
+    <label data-i="tipo">Tipo</label>
+    <div class="pm-seg" id="p-seg" role="group">
+      <button type="button" data-v="Dinheiro">Dinheiro</button><button type="button" data-v="Cartão">Cartão</button><button type="button" data-v="Outros">Outros</button>
+    </div>
+    <div id="p-outros-wrap" class="hidden">
+      <label for="p-comentario" data-i="payComentarioLbl">Comentário (obrigatório)</label>
+      <input id="p-comentario" placeholder="ex.: Bizum Rogério, Máquina igreja">
+      <div class="pm-err hidden" id="p-err"></div>
+    </div>
+    <div id="p-receb-wrap" class="hidden">
+      <label data-i="recebidoPor">Recebido por</label>
+      <div class="origem-radio">
+        <label><input type="radio" name="p-recebido" value="pastor" checked> <span data-i="origemPastor">Pastor</span></label>
+        <label><input type="radio" name="p-recebido" value="tesoureiro"> <span data-i="origemTesoureiro">Tesoureiro</span></label>
+      </div>
+      <div class="pm-note" id="p-recNote"></div>
+    </div>
+    <button class="btn primary" id="payConfirm" type="button">Adicionar pagamento</button>
+    <button class="btn ghost" id="payCancel" type="button" data-i="cancelar">Cancelar</button>
   </div>
 </div>
 
