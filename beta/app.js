@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.6-beta3';
+const APP_VERSION = 'v4.1.6-beta4';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -48,6 +48,10 @@ const I18N = {
     comentarioObrigatorio:'Para o tipo "Outros", informe um comentário.',
     maisRecente:'Mais recente', maisAntigo:'Mais antigo',
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
+    payRestante:'Saldo restante: {v}', payRestarao:'restarão {v}', payExcede:'Acima do saldo em {v}', payValorInvalido:'Informe o valor do pagamento.', payComentarioLbl:'Comentário (obrigatório)',
+    payNotaPastor:'Pastor:', payNotaPastorTxt:' depois marque "Entregue ao tesoureiro" na linha do pagamento.', payNotaTes:'Tesoureiro:', payNotaTesTxt:' já conta como entregue.',
+    payAdicionadoToast:'Pagamento de {v} adicionado. Toque em Salvar para gravar.', payDescartarT:'Descartar este pagamento?', payDescartarMsg:'Você preencheu um pagamento que ainda não foi adicionado à lista.', payDescartarOk:'Descartar', payNaoSalvo:'NÃO SALVO',
+    cqCompleta:'Cota completa', cqFaltam:'Faltam {v}', cqRecebidos:'{a} de {b} recebidos', cqIsento:'Isento da cota', cqIsentoSub:'Não paga a cota',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
     salvar:'Salvar', excluir:'Excluir', cancelar:'Cancelar', confirmar:'Confirmar',
     fechar:'Fechar', waTitulo:'Avisar no WhatsApp —', waNada:'Nada a avisar por agora.', waPendente:'pendente', waReenviar:'reenviar?', waSemTel:'Sem telefone válido — não é possível avisar.', waEnviado:'WhatsApp aberto — confira e envie.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marcação', waDesmarcarMsg:'Marcar "{tipo}" como NÃO enviado? O aviso volta a aparecer como pendente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marcação removida — voltou a pendente.', waHintDesmarcar:'Dica: segure um aviso enviado ou desconsiderado para voltar a pendente.', waDesconsiderar:'Desconsiderar (não enviar)', waDesconsiderado:'desconsiderado', waDesconsideradoOk:'Aviso desconsiderado.', waReativado:'Aviso reativado — voltou a pendente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificações WhatsApp', featWhatsappNota:'Liga/desliga os avisos por WhatsApp. Por enquanto vale só neste dispositivo (em breve, para todos via servidor).', featOn:'Funcionalidade ligada.', featOff:'Funcionalidade desligada.', zerarPend:'Marcar avisos pendentes como desconsiderados', zerarPendNota:'Marca TODOS os avisos hoje pendentes como desconsiderados, de uma vez. Use para começar do zero: a partir daqui, só mudanças novas (novo cadastro, pagamento, camisa pronta/entregue) geram avisos pendentes. Sincroniza entre todos.', zerarConfT:'Zerar avisos pendentes', zerarConfMsg:'Encontrei {n} aviso(s) pendente(s) em {g} Gideão(ões). Marcar todos como desconsiderados? Eles saem da lista de pendentes (podem ser revertidos depois com toque longo).', zerarConfOk:'Marcar todos', zerarNada:'Nenhum aviso pendente para marcar.', zerarOk:'Pronto: {n} aviso(s) em {g} Gideão(ões) marcados como desconsiderados.', zerarErro:'Falha ao marcar avisos', histTitulo:'Histórico', histVazio:'Sem alterações registradas ainda.', histCarregando:'Carregando…', histVerMais:'Ver mais 10', histErro:'Não foi possível carregar o histórico', histCriar:'criou', histEditar:'editou', histExcluir:'excluiu', histSuspender:'suspendeu', histReativar:'reativou', auditoriaBtn:'Auditoria (histórico geral)', auditoriaNota:'Registro de todas as alterações (Gideões, despesas, movimentos, estoque, usuários). Só administradores.', auditoriaTitulo:'Auditoria', audTodas:'Todas as entidades', audDespesa:'Despesa', audMovimento:'Movimento', audEstoque:'Estoque', audUsuario:'Usuário', audSistema:'Sistema', audBuscar:'Buscar', audUserPh:'usuário (email)', audReset:'reset', entInscrito:'Gideão', entDespesa:'despesa', entMovimento:'movimento', entEstoque:'estoque', entUsuario:'usuário', entSistema:'sistema',
@@ -146,6 +150,10 @@ const I18N = {
     comentarioObrigatorio:'Para el tipo "Otros", indica un comentario.',
     maisRecente:'Más reciente', maisAntigo:'Más antiguo',
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
+    payRestante:'Saldo restante: {v}', payRestarao:'quedarán {v}', payExcede:'Por encima del saldo en {v}', payValorInvalido:'Indica el importe del pago.', payComentarioLbl:'Comentario (obligatorio)',
+    payNotaPastor:'Pastor:', payNotaPastorTxt:' luego marca "Entregado al tesorero" en la línea del pago.', payNotaTes:'Tesorero:', payNotaTesTxt:' ya cuenta como entregado.',
+    payAdicionadoToast:'Pago de {v} añadido. Toca Guardar para grabar.', payDescartarT:'¿Descartar este pago?', payDescartarMsg:'Rellenaste un pago que aún no fue añadido a la lista.', payDescartarOk:'Descartar', payNaoSalvo:'SIN GUARDAR',
+    cqCompleta:'Cuota completa', cqFaltam:'Faltan {v}', cqRecebidos:'{a} de {b} recibidos', cqIsento:'Exento de la cuota', cqIsentoSub:'No paga la cuota',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
     salvar:'Guardar', excluir:'Eliminar', cancelar:'Cancelar', confirmar:'Confirmar',
     fechar:'Cerrar', waTitulo:'Avisar por WhatsApp —', waNada:'Nada que avisar por ahora.', waPendente:'pendiente', waReenviar:'¿reenviar?', waSemTel:'Sin teléfono válido — no se puede avisar.', waEnviado:'WhatsApp abierto — revisa y envía.', waSecTitulo:'Avisos WhatsApp', waDesmarcarT:'Cancelar marca', waDesmarcarMsg:'¿Marcar "{tipo}" como NO enviado? El aviso vuelve a aparecer como pendiente.', waDesmarcarOk:'Desmarcar', waDesmarcado:'Marca eliminada — volvió a pendiente.', waHintDesmarcar:'Consejo: mantén pulsado un aviso enviado o descartado para volver a pendiente.', waDesconsiderar:'Descartar (no enviar)', waDesconsiderado:'descartado', waDesconsideradoOk:'Aviso descartado.', waReativado:'Aviso reactivado — volvió a pendiente.', funcionalidades:'Funcionalidades', featWhatsapp:'Notificaciones WhatsApp', featWhatsappNota:'Activa/desactiva los avisos por WhatsApp. Por ahora vale solo en este dispositivo (pronto, para todos vía servidor).', featOn:'Funcionalidad activada.', featOff:'Funcionalidad desactivada.', zerarPend:'Marcar avisos pendientes como descartados', zerarPendNota:'Marca TODOS los avisos pendientes de hoy como descartados, de una vez. Úsalo para empezar de cero: a partir de aquí, solo los cambios nuevos (nuevo registro, pago, camiseta lista/entregada) generan avisos pendientes. Se sincroniza entre todos.', zerarConfT:'Poner a cero avisos pendientes', zerarConfMsg:'Encontré {n} aviso(s) pendiente(s) en {g} Gedeón(es). ¿Marcar todos como descartados? Salen de la lista de pendientes (se pueden revertir luego con pulsación larga).', zerarConfOk:'Marcar todos', zerarNada:'No hay avisos pendientes para marcar.', zerarOk:'Listo: {n} aviso(s) en {g} Gedeón(es) marcados como descartados.', zerarErro:'Error al marcar avisos', histTitulo:'Historial', histVazio:'Sin cambios registrados aún.', histCarregando:'Cargando…', histVerMais:'Ver 10 más', histErro:'No se pudo cargar el historial', histCriar:'creó', histEditar:'editó', histExcluir:'eliminó', histSuspender:'suspendió', histReativar:'reactivó', auditoriaBtn:'Auditoría (historial general)', auditoriaNota:'Registro de todos los cambios (Gedeones, gastos, movimientos, stock, usuarios). Solo administradores.', auditoriaTitulo:'Auditoría', audTodas:'Todas las entidades', audDespesa:'Gasto', audMovimento:'Movimiento', audEstoque:'Stock', audUsuario:'Usuario', audSistema:'Sistema', audBuscar:'Buscar', audUserPh:'usuario (email)', audReset:'reset', entInscrito:'Gedeón', entDespesa:'gasto', entMovimento:'movimiento', entEstoque:'stock', entUsuario:'usuario', entSistema:'sistema',
@@ -1546,9 +1554,6 @@ async function openModal(id){
   $('#f-numero').placeholder=nextNum||'auto';
   updateNumFreeBtn();
   fillTamanho('#f-tamanho', rec?rec.tamanho:'');
-  fillSelect('#p-tipo',TIPOS,'Dinheiro');
-  if($('#p-outros-wrap')){ $('#p-outros-wrap').classList.add('hidden'); $('#p-comentario').value=''; }
-  if($('#p-receb-wrap')){ $('#p-receb-wrap').classList.remove('hidden'); const pr=$('#p-receb-wrap input[value="pastor"]'); if(pr) pr.checked=true; }
   $('#f-nome').value=rec?rec.nome:'';
   $('#f-telefone').value=rec?(rec.telefone||''):'';
   const estAtual = rec?(rec.camisaEstado||0):0;
@@ -1565,8 +1570,6 @@ async function openModal(id){
   $('#f-orig').textContent=rec?(rec.textoOriginal||'—'):'—';
   updateRevisarVis();
   updateCamisaStatusVis(rec);
-  const restanteOpen=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
-  $('#p-valor').value = restanteOpen>0 ? String(restanteOpen) : ''; $('#p-data').value=hoje();
   $('#del').classList.toggle('hidden', !rec);
   const isEl=$('#f-isento'); if(isEl){ isEl.checked = rec?!!rec.isento:false; }
   updateIsentoVis();
@@ -1657,6 +1660,7 @@ function fotosRowHtml(p, idx){
   return `<div class="pay-fotos">${thumbs}${addBtn}${cnt}</div>`;
 }
 
+var _payNew=new WeakSet();   // pagamentos adicionados nesta edição e ainda NÃO salvos (só visual; nunca vai para o registro)
 function renderPays(){
   const soma=state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
   const falta=COTA-soma;
@@ -1679,9 +1683,10 @@ function renderPays(){
         deliverRow = `<div class="pay-deliver"><span>${t('recebidoDireto')}</span></div>`;
       }
     }
-    return `<div class="pay">
+    return `<div class="pay${_payNew.has(p)?' pay-new':''}">
       <div class="pay-main">
         <span class="vt">${p.valor}€ · ${esc(p.tipo||'—')}${p.tipo==='Outros'&&p.nota?' ('+esc(p.nota)+')':''}</span>
+        ${_payNew.has(p)?`<span class="pay-tag">${t('payNaoSalvo')}</span>`:''}
         ${dateChip(idx,'data',p.data||hoje())}
         <button class="del" data-i="${idx}">×</button>
       </div>
@@ -1702,52 +1707,126 @@ function renderPays(){
   });
   // editar datas (input date transparente sobreposto ao texto)
   $$('#paysList .dc-in').forEach(el=>el.onchange=()=>{ if(el.value){ state.draftPays[+el.dataset.i][el.dataset.f]=el.value; renderPays(); } });
-  const box=$('#saldoBox');
-  if(soma>=COTA){ box.style.background='var(--soft-green)';box.style.color='var(--green)';box.textContent=t('saldoPago'); }
-  else if(soma>0){ box.style.background='var(--soft-amber)';box.style.color='var(--amber)';box.textContent=t('saldoFalta',{v:falta}); }
-  else { box.style.background='var(--soft-grey)';box.style.color='var(--grey)';box.textContent=t('saldoPend'); }
-  // esconde a área de adicionar pagamento quando a cota já está completa OU o inscrito é isento
-  const isentoNow = $('#f-isento') && $('#f-isento').checked;
-  const ap=$('#payFields'); if(ap) ap.classList.toggle('hidden', isentoNow || soma>=COTA);
-  // a linha (titulo + checkbox Isento) some quando pago e NAO isento (mantem acessivel p/ marcar isento se ainda nao pagou)
-  const head=$('#addPayHead'); if(head) head.classList.toggle('hidden', !isentoNow && soma>=COTA);
+  updateIsentoVis();   // atualiza cartão da cota e a visibilidade do botão/Isento
 }
 // Isento: esconde os campos de pagamento (mantém o checkbox visível); mostra nota discreta
+function draftSum(){ return state.draftPays.reduce((a,p)=>a+(+p.valor||0),0); }
+function eurTxt(n){ return (Math.round((+n||0)*100)/100).toString().replace('.',',')+' €'; }
+// cartão da cota: completa (verde ✓) · parcial (âmbar, anel) · sem pagamento (cinza) · isento (lilás)
+function renderCotaCard(){
+  const box=$('#saldoBox'); if(!box) return;
+  const isento=!!($('#f-isento') && $('#f-isento').checked);
+  const soma=draftSum();
+  const pct=Math.max(0,Math.min(100,Math.round(soma/COTA*100)));
+  const rec=t('cqRecebidos',{a:eurTxt(soma), b:eurTxt(COTA)});
+  const ring=(txt)=>`<div class="cq-ring"><i>${txt}</i></div>`;
+  const check='<div class="cq-badge"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>';
+  let cls, ico, tit, sub, bar='';
+  if(isento){ cls='iso'; ico=ring('—'); tit=t('cqIsento'); sub=t('cqIsentoSub'); }
+  else if(soma>=COTA){ cls='ok'; ico=check; tit=t('cqCompleta'); sub=rec; bar='<div class="cq-pb"><i style="width:100%"></i></div>'; }
+  else if(soma>0){ cls='part'; ico=ring(pct+'%'); tit=t('cqFaltam',{v:eurTxt(COTA-soma)}); sub=rec; bar=`<div class="cq-pb"><i style="width:${pct}%"></i></div>`; }
+  else { cls='zero'; ico=ring('0%'); tit=t('saldoPend'); sub=rec; bar='<div class="cq-pb"><i style="width:0"></i></div>'; }
+  box.className='cq '+cls; box.style.setProperty('--p',pct);
+  box.innerHTML=`<div class="cq-r">${ico}<div class="cq-t"><b>${tit}</b><span>${sub}</span></div></div>${bar}`;
+}
+// Isento / cota completa: o que fica visível na área de pagamento
 function updateIsentoVis(){
-  const on = $('#f-isento') && $('#f-isento').checked;
-  const soma = state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
+  const on = !!($('#f-isento') && $('#f-isento').checked);
+  const completo = !on && draftSum()>=COTA;      // cota completa (mesmo antes de salvar) e não isento
   const pl=$('#paysList'); if(pl) pl.classList.toggle('hidden', on);
-  const sb=$('#saldoBox'); if(sb) sb.classList.toggle('hidden', on);
-  const pf=$('#payFields'); if(pf) pf.classList.toggle('hidden', on || soma>=COTA);
-  const nota=$('#isentoNota'); if(nota) nota.classList.toggle('hidden', !on);
-  const ttl=$('#addPayTitle'); if(ttl) ttl.classList.toggle('hidden', on);  // esconde "Adicionar pagamento" quando isento
-  // a linha (titulo + checkbox Isento) some quando a cota ja esta completa e NAO e isento
-  const head=$('#addPayHead'); if(head) head.classList.toggle('hidden', !on && soma>=COTA);
-  const ap=$('#addPaySub'); if(ap) ap.classList.remove('hidden');  // sempre visível (contém o checkbox)
+  const nota=$('#isentoNota'); if(nota) nota.classList.add('hidden');   // o cartão "Isento da cota" já informa
+  const ttl=$('#addPayTitle'); if(ttl) ttl.classList.toggle('hidden', on);
+  const pf=$('#payFields'); if(pf) pf.classList.toggle('hidden', on || completo);
+  const head=$('#addPayHead'); if(head) head.classList.toggle('hidden', completo);
+  const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', completo);   // some o botão e o Isento
+  renderCotaCard();
 }
 $('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); updateCamisaStatusVis(); });
-$('#addPay').onclick=()=>{
-  const v=parseFloat(($('#p-valor').value||'').replace(',','.'));
-  if(!v||v<=0) return;
-  const tipo=$('#p-tipo').value;
+/* ---------- Folha "Adicionar pagamento" ---------- */
+let _payDef=null;      // valores iniciais da folha (para saber se o usuário mexeu em algo)
+let _pmHist=false;     // entrada de histórico criada ao abrir (o Voltar do celular fecha a folha)
+function payNum(){ return parseFloat((($('#p-valor').value)||'').replace(',','.')); }
+function payTipo(){ const b=$('#p-seg button.on'); return b?b.dataset.v:'Dinheiro'; }
+function payRecebido(){ const rb=$('#p-receb-wrap input[name="p-recebido"]:checked'); return rb?rb.value:'pastor'; }
+function payModalOpen(){ const m=$('#payModal'); return !!m && !m.classList.contains('hidden'); }
+function payTouched(){
+  if(!_payDef) return false;
+  return ($('#p-valor').value||'').trim()!==_payDef.valor || payTipo()!==_payDef.tipo
+      || ($('#p-comentario').value||'').trim()!==_payDef.nota || payRecebido()!==_payDef.rec
+      || ($('#p-data').value||'')!==_payDef.data;
+}
+function payValid(){ const v=payNum(); return v>0 && (payTipo()!=='Outros' || !!($('#p-comentario').value||'').trim()); }
+function payRefresh(){
+  const tipo=payTipo(), v=payNum(), rest=COTA-draftSum();
+  $$('#p-seg button').forEach(b=>b.classList.toggle('on', b.dataset.v===tipo));
+  $('#p-outros-wrap').classList.toggle('hidden', tipo!=='Outros');
+  $('#p-receb-wrap').classList.toggle('hidden', tipo!=='Dinheiro');
+  if(tipo==='Dinheiro'){ $('#p-recNote').innerHTML='<b>'+esc(t('payNotaPastor'))+'</b>'+esc(t('payNotaPastorTxt'))+'<br><b>'+esc(t('payNotaTes'))+'</b>'+esc(t('payNotaTesTxt')); }
+  if(tipo!=='Outros' || ($('#p-comentario').value||'').trim()) $('#p-err').classList.add('hidden');
+  const hint=$('#p-hint'); let h='', warn=false;
+  if(rest>0){ h=t('payRestante',{v:eurTxt(rest)}); if(v>0 && v<rest-0.001) h+=' · '+t('payRestarao',{v:eurTxt(rest-v)}); }
+  if(v>rest+0.001){ h=t('payExcede',{v:eurTxt(v-rest)}); warn=true; }
+  hint.textContent=h; hint.classList.toggle('warn',warn);
+  const btn=$('#payConfirm'); btn.textContent=t('adicionarPagamento')+(v>0?' · '+eurTxt(v):''); btn.classList.toggle('off', !payValid());
+  $('#p-dateTxt').textContent=fmtDMY($('#p-data').value||hoje());
+}
+function pmPushHist(){ try{ history.pushState({pm:1},''); _pmHist=true; }catch(_){ _pmHist=false; } }
+function pmPopHist(){ if(!_pmHist) return; _pmHist=false; try{ history.back(); }catch(_){} }
+function openPayModal(){
+  if(writeBlocked()) return;
+  const rest=COTA-draftSum();
+  _payDef={valor:rest>0?String(rest):'', tipo:'Dinheiro', nota:'', rec:'pastor', data:hoje()};
+  $('#p-valor').value=_payDef.valor; $('#p-comentario').value=''; $('#p-err').classList.add('hidden');
+  const pr=$('#p-receb-wrap input[value="pastor"]'); if(pr) pr.checked=true;
+  $('#p-data').value=_payDef.data;
+  $$('#p-seg button').forEach(b=>b.classList.toggle('on', b.dataset.v==='Dinheiro'));
+  $('#payModal').classList.remove('hidden');
+  payRefresh();
+  pmPushHist();
+  setTimeout(()=>{ const v=$('#p-valor'); try{ v.focus(); v.select(); }catch(_){} }, 60);
+}
+function closePayModal(historyAlreadyPopped){
+  $('#payModal').classList.add('hidden'); _payDef=null;
+  if(historyAlreadyPopped) _pmHist=false; else pmPopHist();
+}
+// fechar (X, Cancelar, Esc, Voltar): se o usuário mexeu em algo, pergunta antes de descartar
+async function requestClosePay(fromBack){
+  if(payTouched()){
+    const ok=await confirmDialog(t('payDescartarT'), t('payDescartarMsg'), {perigo:true, okText:t('payDescartarOk'), cancelText:t('continuarEditando')});
+    if(!ok){ if(fromBack) pmPushHist(); return; }
+  }
+  closePayModal(!!fromBack);
+}
+function payConfirmAdd(){
+  const tipo=payTipo(), v=payNum();
+  if(!(v>0)){ toast(t('payValorInvalido'),'info'); const c=$('#p-valor'); if(c) c.focus(); return; }
   const nota=(tipo==='Outros')? ($('#p-comentario').value||'').trim() : '';
-  if(tipo==='Outros' && !nota){ toast(t('comentarioObrigatorio'),'info'); const c=$('#p-comentario'); if(c) c.focus(); return; }
+  if(tipo==='Outros' && !nota){ const e=$('#p-err'); e.textContent=t('comentarioObrigatorio'); e.classList.remove('hidden'); $('#p-comentario').focus(); return; }
   const pay={valor:v,tipo,data:$('#p-data').value||hoje(),nota};
   if(tipo==='Dinheiro'){
-    const rb=$('#p-receb-wrap input[name="p-recebido"]:checked');
-    pay.recebidoPor = rb? rb.value : 'pastor';
+    pay.recebidoPor=payRecebido();
     // se recebido direto pelo tesoureiro, já conta como entregue
     if(pay.recebidoPor==='tesoureiro'){ pay.entregueTesoureiro=true; pay.dataEntregaTesoureiro=pay.data; }
   }
-  state.draftPays.push(pay);
-  const restante=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
-  $('#p-valor').value = restante>0 ? String(restante) : '';
-  $('#p-data').value=hoje();
-  $('#p-comentario').value='';
+  state.draftPays.push(pay); _payNew.add(pay);
+  closePayModal(false);
   renderPays();
-};
-// mostra o campo de comentário só quando "Outros"
-document.addEventListener('change',(e)=>{ if(e.target && e.target.id==='p-tipo'){ $('#p-outros-wrap').classList.toggle('hidden', e.target.value!=='Outros'); const rw=$('#p-receb-wrap'); if(rw) rw.classList.toggle('hidden', e.target.value!=='Dinheiro'); } });
+  toast(t('payAdicionadoToast',{v:eurTxt(v)}),'ok');
+}
+$('#addPay').onclick=openPayModal;
+$('#payConfirm').onclick=payConfirmAdd;
+$('#payCancel').onclick=()=>requestClosePay(false);
+$('#payX').onclick=()=>requestClosePay(false);
+// tocar no fundo só fecha se nada foi preenchido (evita perder o que foi digitado)
+$('#payModal').addEventListener('click',(e)=>{ if(e.target.id==='payModal' && !payTouched()) requestClosePay(false); });
+$$('#p-seg button').forEach(b=>b.onclick=()=>{ $$('#p-seg button').forEach(x=>x.classList.toggle('on',x===b)); payRefresh(); if(b.dataset.v==='Outros') setTimeout(()=>{ const c=$('#p-comentario'); if(c) c.focus(); },50); });
+['p-valor','p-comentario','p-data'].forEach(id=>{ const el=$('#'+id); if(el){ el.addEventListener('input',payRefresh); el.addEventListener('change',payRefresh); } });
+$$('#p-receb-wrap input').forEach(r=>r.addEventListener('change',payRefresh));
+$('#payModal').addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){ e.preventDefault(); requestClosePay(false); }
+  else if(e.key==='Enter' && e.target.tagName==='INPUT' && e.target.type!=='radio' && e.target.type!=='date'){ e.preventDefault(); payConfirmAdd(); }
+});
+window.addEventListener('popstate',()=>{ if(_pmHist){ _pmHist=false; if(payModalOpen()) requestClosePay(true); } });
 // comprovante de uma parcela específica (Cartão/Outros)
 $('#p-fotoInput') && ($('#p-fotoInput').onchange=async(e)=>{
   const file=e.target.files && e.target.files[0]; const pi=payFotoTargetIdx; e.target.value=''; payFotoTargetIdx=null;
@@ -1763,13 +1842,6 @@ $('#save').onclick=async()=>{
   const nome=$('#f-nome').value.trim();
   if(!nome){ toast(t('nomeObrig'),'info'); return; }
   const isento = !!($('#f-isento') && $('#f-isento').checked);
-  // reforço defensivo: valor de pagamento digitado mas NÃO adicionado
-  // (ignora o "restante" auto-preenchido — só avisa se o usuário digitou algo diferente)
-  const pv=parseFloat(($('#p-valor').value||'').replace(',','.'));
-  const restanteAtual=COTA-state.draftPays.reduce((a,p)=>a+(+p.valor||0),0);
-  if(!isento && pv && pv>0 && Math.abs(pv-restanteAtual)>0.001){
-    if(await confirmDialog(t('pagamentoNaoAddT'), t('pagamentoNaoAdicionado'), {perigo:false, okText:t('adicionarESalvar'), cancelText:t('salvarSemAdd')})){ $('#addPay').click(); }
-  }
   // sobe comprovantes pendentes de CADA parcela (Cartão/Outros) antes de gravar; aborta se falhar
   if(!isento){
     const btn=$('#save'); const orig=(btn.querySelector('span')?btn.querySelector('span').textContent:btn.textContent);
@@ -1821,6 +1893,7 @@ $('#camisaStatusLine').onclick=()=>{
   setView('confeccao');
 };
 function closeModal(){
+  if(typeof payModalOpen==='function' && payModalOpen()) closePayModal(false);
   $('#modal').classList.add('hidden');
   const fromExtrato = !!extReturn;   // capturar antes de backToExtratoIfNeeded limpar
   // se o modal foi aberto a partir da lista (não do extrato), lembra o card para destacar ao voltar
