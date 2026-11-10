@@ -508,13 +508,12 @@
   /* cartão do saldo: Saldo total + linhas Pastor/Tesoureiro (subtotal e filtro) */
   .ext-card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
   .ext-card .ext-saldo{border:0;border-radius:0;margin:0;background:transparent}
-  .cust-row{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;background:transparent;border:0;border-top:1px solid var(--line);font-size:15px;font-family:var(--sans);color:var(--ink);text-align:left;cursor:pointer}
-  .cust-row .cbx{position:relative;width:18px;height:18px;border:1.5px solid var(--grey);border-radius:5px;background:#fff;flex:none}
-  .cust-row .cdot{margin:0}
-  .cust-row b{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
-  .cust-row[aria-pressed="true"]{background:var(--accent-soft)}
-  .cust-row[aria-pressed="true"] .cbx{background:var(--primary);border-color:var(--primary)}
-  .cust-row[aria-pressed="true"] .cbx:after{content:"";position:absolute;left:5px;top:1px;width:4px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .cust-row{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:9px 12px;background:transparent;border:0;border-top:1px solid var(--line);font-size:15px;font-family:var(--sans);color:var(--ink);text-align:left;cursor:pointer}
+  /* desmarcado: texto normal. Marcado: mesmo visual da tag do registro (.b.cust-pastor / .b.cust-teso). Mesmo padding nos dois estados => nada "pula" */
+  .cust-row .cr-l{display:inline-block;padding:3px 10px;border-radius:10px;font-size:14px;font-weight:500;background:transparent;color:var(--ink)}
+  .cust-row b{font-variant-numeric:tabular-nums;font-weight:600}
+  .cust-row[data-cust="pastor"][aria-pressed="true"] .cr-l{background:#e4eefc;color:#0050CA}
+  .cust-row[data-cust="teso"][aria-pressed="true"] .cr-l{background:#e9f1eb;color:#329864}
   .ext-item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
   .ext-item .e-d{font-weight:500;font-size:14px}
   .ext-item .e-m{font-size:12px;color:var(--muted);margin-top:2px}
@@ -565,8 +564,6 @@
   #impersonateBanner svg{width:18px;height:18px;fill:currentColor;flex:none}
   #impersonateBanner span{flex:1}
   #impersonateBanner button{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer}
-  .cdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:1px}
-  .cdot.pastor{background:#0050CA} .cdot.teso{background:#329864}
   #d-origemRow{margin:10px 0 4px}
   #d-origemRow>label{display:block;margin-bottom:6px}
   .origem-radio{display:flex;gap:10px;flex-wrap:wrap}
@@ -1356,8 +1353,8 @@
     <div class="ext-card">
       <div class="ext-saldo"><span data-i="saldoTotal">Saldo total</span><b id="extSaldo">—</b></div>
       <div class="hidden" id="extCustFilters">
-        <button type="button" class="cust-row" data-cust="pastor" aria-pressed="false"><span class="cbx"></span><span class="cdot pastor"></span><span data-i="origemPastor">Pastor</span><b id="extCustPastor">—</b></button>
-        <button type="button" class="cust-row" data-cust="teso" aria-pressed="false"><span class="cbx"></span><span class="cdot teso"></span><span data-i="origemTesoureiro">Tesoureiro</span><b id="extCustTeso">—</b></button>
+        <button type="button" class="cust-row" data-cust="pastor" aria-pressed="false"><span class="cr-l" data-i="origemPastor">Pastor</span><b id="extCustPastor">—</b></button>
+        <button type="button" class="cust-row" data-cust="teso" aria-pressed="false"><span class="cr-l" data-i="origemTesoureiro">Tesoureiro</span><b id="extCustTeso">—</b></button>
       </div>
     </div>
     <div class="ext-ctrls">
