@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.6-beta4';
+const APP_VERSION = 'v4.1.6-beta5';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -1730,15 +1730,17 @@ function renderCotaCard(){
   box.innerHTML=`<div class="cq-r">${ico}<div class="cq-t"><b>${tit}</b><span>${sub}</span></div></div>${bar}`;
 }
 // Isento / cota completa: o que fica visível na área de pagamento
+//  • Isento (à direita do título, posição fixa): só aparece se NÃO há nenhum pagamento (ou se já está marcado, p/ poder desfazer)
+//  • botão "Adicionar pagamento": some com Isento marcado ou cota completa (mesmo antes de salvar)
 function updateIsentoVis(){
   const on = !!($('#f-isento') && $('#f-isento').checked);
-  const completo = !on && draftSum()>=COTA;      // cota completa (mesmo antes de salvar) e não isento
+  const temPag = state.draftPays.length>0;
+  const completo = !on && draftSum()>=COTA;
   const pl=$('#paysList'); if(pl) pl.classList.toggle('hidden', on);
   const nota=$('#isentoNota'); if(nota) nota.classList.add('hidden');   // o cartão "Isento da cota" já informa
-  const ttl=$('#addPayTitle'); if(ttl) ttl.classList.toggle('hidden', on);
+  const lbl=$('#isentoLbl'); if(lbl) lbl.classList.toggle('hidden', temPag && !on);
   const pf=$('#payFields'); if(pf) pf.classList.toggle('hidden', on || completo);
-  const head=$('#addPayHead'); if(head) head.classList.toggle('hidden', completo);
-  const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', completo);   // some o botão e o Isento
+  const ap=$('#addPaySub'); if(ap) ap.classList.toggle('hidden', on || completo);
   renderCotaCard();
 }
 $('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); updateCamisaStatusVis(); });
