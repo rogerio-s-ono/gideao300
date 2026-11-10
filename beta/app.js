@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.6-beta8';
+const APP_VERSION = 'v4.1.6-beta9';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -2498,7 +2498,8 @@ async function openExtrato(bolso){
 }
 // ordenação e filtros de custódia do extrato
 $('#extSortBtn') && ($('#extSortBtn').onclick=()=>{ caixaState.sortDesc=!caixaState.sortDesc; if(extratoBolso) openExtrato(extratoBolso); });
-$$('#extCustFilters .cust-row').forEach(b=>b.onclick=()=>{ extCustSel = (extCustSel===null) ? b.dataset.cust : null; if(extratoBolso) openExtrato(extratoBolso); });
+// tocar numa linha: marca (se havia outra marcada, TROCA para esta); tocar na já marcada desmarca => mostra tudo. Nunca as duas.
+$$('#extCustFilters .cust-row').forEach(b=>b.onclick=()=>{ extCustSel = (extCustSel===b.dataset.cust) ? null : b.dataset.cust; if(extratoBolso) openExtrato(extratoBolso); });
 // controla retorno ao extrato após editar a partir dele
 let extReturn=null;
 function backToExtratoIfNeeded(){
