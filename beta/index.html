@@ -383,6 +383,8 @@
   .cq.iso{background:#eeedf3;border-color:#d9d7e6;color:#55527a}
   .cq.iso .cq-ring{background:#d9d7e6}
   /* pagamento adicionado nesta edição e ainda não salvo */
+  .gh-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:24px;margin-bottom:8px}
+  .grp .gh-row .gh{margin:0}
   .pay.pay-new{background:var(--soft-green);outline:1.5px solid var(--green)}
   .pay-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px;background:var(--soft-amber);color:var(--amber);letter-spacing:.03em;white-space:nowrap}
   /* ---- folha "Adicionar pagamento" ---- */
@@ -1007,15 +1009,14 @@
     </div>
 
     <div class="grp" id="addPayArea">
-    <div class="gh" data-i="pagamentos">Pagamentos (cota 300€)</div>
+    <div class="gh-row">
+      <div class="gh" data-i="pagamentos">Pagamentos (cota 300€)</div>
+      <label class="isento-chk" id="isentoLbl"><input type="checkbox" id="f-isento"> <span data-i="isentoChk">Isento</span></label>
+    </div>
     <div class="cq" id="saldoBox"></div>
     <div id="paysList"></div>
     <input type="file" id="p-fotoInput" accept="image/*,application/pdf" class="hidden">
-    <div class="pay-sub" id="addPaySub">
-    <div class="bh-row" id="addPayHead">
-      <span class="bh" id="addPayTitle" data-i="adicionarPagamento">Adicionar pagamento</span>
-      <label class="isento-chk"><input type="checkbox" id="f-isento"> <span data-i="isentoChk">Isento</span></label>
-    </div>
+    <div id="addPaySub">
     <div id="payFields">
     <button class="add-pay" id="addPay" type="button"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg> <span data-i="adicionarPagamento">Adicionar pagamento</span></button>
     </div>
