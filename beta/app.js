@@ -3,7 +3,7 @@
 
 const COTA = 300;
 const META = 300;
-const APP_VERSION = 'v4.1.6-beta5';
+const APP_VERSION = 'v4.1.6-beta6';
 
 // ============ Feature flags (runtime) ============
 // MVP: override LOCAL (localStorage, por dispositivo). Estruturado para, no futuro,
@@ -49,7 +49,7 @@ const I18N = {
     maisRecente:'Mais recente', maisAntigo:'Mais antigo',
     pagamentoNaoAdicionado:'Há um valor de pagamento digitado que não foi adicionado. Adicionar antes de salvar?',
     payRestante:'Saldo restante: {v}', payRestarao:'restarão {v}', payExcede:'Acima do saldo em {v}', payValorInvalido:'Informe o valor do pagamento.', payComentarioLbl:'Comentário (obrigatório)',
-    payNotaPastor:'Pastor:', payNotaPastorTxt:' depois marque "Entregue ao tesoureiro" na linha do pagamento.', payNotaTes:'Tesoureiro:', payNotaTesTxt:' já conta como entregue.',
+    payTipoObrig:'Escolha o tipo de pagamento.', payRecebidoObrig:'Informe quem recebeu o dinheiro.',
     payAdicionadoToast:'Pagamento de {v} adicionado. Toque em Salvar para gravar.', payDescartarT:'Descartar este pagamento?', payDescartarMsg:'Você preencheu um pagamento que ainda não foi adicionado à lista.', payDescartarOk:'Descartar', payNaoSalvo:'NÃO SALVO',
     cqCompleta:'Cota completa', cqFaltam:'Faltam {v}', cqRecebidos:'{a} de {b} recebidos', cqIsento:'Isento da cota', cqIsentoSub:'Não paga a cota',
     aRevisar:'A revisar', observacoes:'Observações', textoOriginal:'Texto original',
@@ -151,7 +151,7 @@ const I18N = {
     maisRecente:'Más reciente', maisAntigo:'Más antiguo',
     pagamentoNaoAdicionado:'Hay un valor de pago escrito que no fue añadido. ¿Añadir antes de guardar?',
     payRestante:'Saldo restante: {v}', payRestarao:'quedarán {v}', payExcede:'Por encima del saldo en {v}', payValorInvalido:'Indica el importe del pago.', payComentarioLbl:'Comentario (obligatorio)',
-    payNotaPastor:'Pastor:', payNotaPastorTxt:' luego marca "Entregado al tesorero" en la línea del pago.', payNotaTes:'Tesorero:', payNotaTesTxt:' ya cuenta como entregado.',
+    payTipoObrig:'Elige el tipo de pago.', payRecebidoObrig:'Indica quién recibió el dinero.',
     payAdicionadoToast:'Pago de {v} añadido. Toca Guardar para grabar.', payDescartarT:'¿Descartar este pago?', payDescartarMsg:'Rellenaste un pago que aún no fue añadido a la lista.', payDescartarOk:'Descartar', payNaoSalvo:'SIN GUARDAR',
     cqCompleta:'Cuota completa', cqFaltam:'Faltan {v}', cqRecebidos:'{a} de {b} recibidos', cqIsento:'Exento de la cuota', cqIsentoSub:'No paga la cuota',
     aRevisar:'Por revisar', observacoes:'Observaciones', textoOriginal:'Texto original',
@@ -1748,8 +1748,8 @@ $('#f-isento') && ($('#f-isento').onchange=()=>{ updateIsentoVis(); updateCamisa
 let _payDef=null;      // valores iniciais da folha (para saber se o usuário mexeu em algo)
 let _pmHist=false;     // entrada de histórico criada ao abrir (o Voltar do celular fecha a folha)
 function payNum(){ return parseFloat((($('#p-valor').value)||'').replace(',','.')); }
-function payTipo(){ const b=$('#p-seg button.on'); return b?b.dataset.v:'Dinheiro'; }
-function payRecebido(){ const rb=$('#p-receb-wrap input[name="p-recebido"]:checked'); return rb?rb.value:'pastor'; }
+function payTipo(){ const b=$('#p-seg button.on'); return b?b.dataset.v:''; }   // '' = ainda não escolhido
+function payRecebido(){ const rb=$('#p-receb-wrap input[name="p-recebido"]:checked'); return rb?rb.value:''; }   // '' = ainda não escolhido
 function payModalOpen(){ const m=$('#payModal'); return !!m && !m.classList.contains('hidden'); }
 function payTouched(){
   if(!_payDef) return false;
@@ -1757,14 +1757,22 @@ function payTouched(){
       || ($('#p-comentario').value||'').trim()!==_payDef.nota || payRecebido()!==_payDef.rec
       || ($('#p-data').value||'')!==_payDef.data;
 }
-function payValid(){ const v=payNum(); return v>0 && (payTipo()!=='Outros' || !!($('#p-comentario').value||'').trim()); }
+function payValid(){
+  const v=payNum(), tipo=payTipo();
+  if(!(v>0) || !tipo) return false;
+  if(tipo==='Outros' && !($('#p-comentario').value||'').trim()) return false;
+  if(tipo==='Dinheiro' && !payRecebido()) return false;
+  return true;
+}
 function payRefresh(){
   const tipo=payTipo(), v=payNum(), rest=COTA-draftSum();
   $$('#p-seg button').forEach(b=>b.classList.toggle('on', b.dataset.v===tipo));
   $('#p-outros-wrap').classList.toggle('hidden', tipo!=='Outros');
   $('#p-receb-wrap').classList.toggle('hidden', tipo!=='Dinheiro');
-  if(tipo==='Dinheiro'){ $('#p-recNote').innerHTML='<b>'+esc(t('payNotaPastor'))+'</b>'+esc(t('payNotaPastorTxt'))+'<br><b>'+esc(t('payNotaTes'))+'</b>'+esc(t('payNotaTesTxt')); }
+  // some o erro de cada campo assim que ele é preenchido
+  if(tipo) $('#p-err-tipo').classList.add('hidden');
   if(tipo!=='Outros' || ($('#p-comentario').value||'').trim()) $('#p-err').classList.add('hidden');
+  if(tipo!=='Dinheiro' || payRecebido()) $('#p-err-rec').classList.add('hidden');
   const hint=$('#p-hint'); let h='', warn=false;
   if(rest>0){ h=t('payRestante',{v:eurTxt(rest)}); if(v>0 && v<rest-0.001) h+=' · '+t('payRestarao',{v:eurTxt(rest-v)}); }
   if(v>rest+0.001){ h=t('payExcede',{v:eurTxt(v-rest)}); warn=true; }
@@ -1777,15 +1785,16 @@ function pmPopHist(){ if(!_pmHist) return; _pmHist=false; try{ history.back(); }
 function openPayModal(){
   if(writeBlocked()) return;
   const rest=COTA-draftSum();
-  _payDef={valor:rest>0?String(rest):'', tipo:'Dinheiro', nota:'', rec:'pastor', data:hoje()};
-  $('#p-valor').value=_payDef.valor; $('#p-comentario').value=''; $('#p-err').classList.add('hidden');
-  const pr=$('#p-receb-wrap input[value="pastor"]'); if(pr) pr.checked=true;
+  // valor sugerido = saldo restante (NÃO selecionado). Tipo e "Recebido por" começam VAZIOS: o usuário é obrigado a escolher.
+  _payDef={valor:rest>0?String(rest):'', tipo:'', nota:'', rec:'', data:hoje()};
+  $('#p-valor').value=_payDef.valor; $('#p-comentario').value='';
+  ['#p-err','#p-err-tipo','#p-err-rec'].forEach(sel=>{ const e=$(sel); if(e) e.classList.add('hidden'); });
+  $$('#p-receb-wrap input').forEach(r=>{ r.checked=false; });
   $('#p-data').value=_payDef.data;
-  $$('#p-seg button').forEach(b=>b.classList.toggle('on', b.dataset.v==='Dinheiro'));
+  $$('#p-seg button').forEach(b=>b.classList.remove('on'));
   $('#payModal').classList.remove('hidden');
   payRefresh();
   pmPushHist();
-  setTimeout(()=>{ const v=$('#p-valor'); try{ v.focus(); v.select(); }catch(_){} }, 60);
 }
 function closePayModal(historyAlreadyPopped){
   $('#payModal').classList.add('hidden'); _payDef=null;
@@ -1801,9 +1810,14 @@ async function requestClosePay(fromBack){
 }
 function payConfirmAdd(){
   const tipo=payTipo(), v=payNum();
-  if(!(v>0)){ toast(t('payValorInvalido'),'info'); const c=$('#p-valor'); if(c) c.focus(); return; }
   const nota=(tipo==='Outros')? ($('#p-comentario').value||'').trim() : '';
-  if(tipo==='Outros' && !nota){ const e=$('#p-err'); e.textContent=t('comentarioObrigatorio'); e.classList.remove('hidden'); $('#p-comentario').focus(); return; }
+  const show=(sel,msgKey)=>{ const e=$(sel); e.textContent=t(msgKey); e.classList.remove('hidden'); };
+  let primeiro=null;   // primeiro campo com problema (recebe o foco/rolagem)
+  if(!(v>0)){ toast(t('payValorInvalido'),'info'); primeiro=primeiro||'#p-valor'; }
+  if(!tipo){ show('#p-err-tipo','payTipoObrig'); primeiro=primeiro||'#p-seg'; }
+  else if(tipo==='Outros' && !nota){ show('#p-err','comentarioObrigatorio'); primeiro=primeiro||'#p-comentario'; }
+  else if(tipo==='Dinheiro' && !payRecebido()){ show('#p-err-rec','payRecebidoObrig'); primeiro=primeiro||'#p-receb-wrap'; }
+  if(primeiro){ const el=$(primeiro); try{ if(el.tagName==='INPUT') el.focus(); else el.scrollIntoView({block:'center',behavior:'smooth'}); }catch(_){} return; }
   const pay={valor:v,tipo,data:$('#p-data').value||hoje(),nota};
   if(tipo==='Dinheiro'){
     pay.recebidoPor=payRecebido();
@@ -1821,7 +1835,8 @@ $('#payCancel').onclick=()=>requestClosePay(false);
 $('#payX').onclick=()=>requestClosePay(false);
 // tocar no fundo só fecha se nada foi preenchido (evita perder o que foi digitado)
 $('#payModal').addEventListener('click',(e)=>{ if(e.target.id==='payModal' && !payTouched()) requestClosePay(false); });
-$$('#p-seg button').forEach(b=>b.onclick=()=>{ $$('#p-seg button').forEach(x=>x.classList.toggle('on',x===b)); payRefresh(); if(b.dataset.v==='Outros') setTimeout(()=>{ const c=$('#p-comentario'); if(c) c.focus(); },50); });
+$$('#p-seg button').forEach(b=>b.onclick=()=>{ if(payTipo()!==b.dataset.v) $$('#p-receb-wrap input').forEach(r=>{ r.checked=false; });   /* trocou o tipo: "Recebido por" volta a vazio (obriga a escolher de novo) */
+  $$('#p-seg button').forEach(x=>x.classList.toggle('on',x===b)); payRefresh(); if(b.dataset.v==='Outros') setTimeout(()=>{ const c=$('#p-comentario'); if(c) c.focus(); },50); });
 ['p-valor','p-comentario','p-data'].forEach(id=>{ const el=$('#'+id); if(el){ el.addEventListener('input',payRefresh); el.addEventListener('change',payRefresh); } });
 $$('#p-receb-wrap input').forEach(r=>r.addEventListener('change',payRefresh));
 $('#payModal').addEventListener('keydown',(e)=>{

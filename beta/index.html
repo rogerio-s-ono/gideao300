@@ -1164,6 +1164,7 @@
     <div class="pm-seg" id="p-seg" role="group">
       <button type="button" data-v="Dinheiro">Dinheiro</button><button type="button" data-v="Cartão">Cartão</button><button type="button" data-v="Outros">Outros</button>
     </div>
+    <div class="pm-err hidden" id="p-err-tipo"></div>
     <div id="p-outros-wrap" class="hidden">
       <label for="p-comentario" data-i="payComentarioLbl">Comentário (obrigatório)</label>
       <input id="p-comentario" placeholder="ex.: Bizum Rogério, Máquina igreja">
@@ -1172,10 +1173,10 @@
     <div id="p-receb-wrap" class="hidden">
       <label data-i="recebidoPor">Recebido por</label>
       <div class="origem-radio">
-        <label><input type="radio" name="p-recebido" value="pastor" checked> <span data-i="origemPastor">Pastor</span></label>
+        <label><input type="radio" name="p-recebido" value="pastor"> <span data-i="origemPastor">Pastor</span></label>
         <label><input type="radio" name="p-recebido" value="tesoureiro"> <span data-i="origemTesoureiro">Tesoureiro</span></label>
       </div>
-      <div class="pm-note" id="p-recNote"></div>
+      <div class="pm-err hidden" id="p-err-rec"></div>
     </div>
     <button class="btn primary" id="payConfirm" type="button">Adicionar pagamento</button>
     <button class="btn ghost" id="payCancel" type="button" data-i="cancelar">Cancelar</button>
